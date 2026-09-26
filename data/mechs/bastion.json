@@ -1,0 +1,136 @@
+{
+  "id": "bastion",
+  "name": "Bastion",
+  "weight_class": "heavy",
+  "max_heat": 14,
+  "heat_check_timing": "live",
+  "cells": [
+    [0,0],[0,1],[0,2],[0,3],[0,4],
+    [1,0],[1,1],[1,3],[1,4],
+    [2,1],[2,3],
+    [3,0],[3,1],[3,3],[3,4],
+    [4,1],[4,2],[4,3]
+  ],
+  "components": [
+    {
+      "id": "insulated_core",
+      "name": "Insulated Core",
+      "category": "reactor",
+      "hp": 18,
+      "cells": [[0,0],[0,1],[1,0],[1,1]],
+      "offset": [0,0],
+      "rotation": 0,
+      "cards": [
+        {
+          "id": "insulated_core_card",
+          "name": "Insulated Core",
+          "heat_cost": "0",
+          "hits": "0",
+          "damage": "0",
+          "statuses": [],
+          "effect_text": "Passive: −1 incoming Acid/Shock stack on this mech.",
+          "hand_side": "right"
+        }
+      ]
+    },
+    {
+      "id": "neon_axe",
+      "name": "Neon Axe",
+      "category": "hardpoint",
+      "hp": 64,
+      "cells": [[0,0],[0,1],[1,0],[1,1],[2,0]],
+      "offset": [0,2],
+      "rotation": 1,
+      "cards": [
+        {
+          "id": "wide_swing",
+          "name": "Wide Swing",
+          "heat_cost": "4",
+          "hits": "3",
+          "damage": "6-10",
+          "statuses": [],
+          "effect_text": "",
+          "hand_side": "left"
+        },
+        {
+          "id": "cross_chop",
+          "name": "Cross Chop",
+          "heat_cost": "6",
+          "hits": "2",
+          "damage": "14-20",
+          "statuses": [],
+          "effect_text": "",
+          "hand_side": "left"
+        },
+        {
+          "id": "extension",
+          "name": "Extension",
+          "heat_cost": "3",
+          "hits": "0",
+          "damage": "0",
+          "statuses": [
+            { "status": "deflect", "stacks": "1", "target": "ownMech" }
+          ],
+          "effect_text": "",
+          "hand_side": "left"
+        }
+      ]
+    },
+    {
+      "id": "voltage_spike",
+      "name": "Voltage Spike",
+      "category": "hardpoint",
+      "hp": 54,
+      "cells": [[0,0],[0,1],[1,1],[2,1]],
+      "offset": [2,1],
+      "rotation": 2,
+      "cards": [
+        {
+          "id": "spike_em",
+          "name": "Spike 'Em",
+          "heat_cost": "2",
+          "hits": "1",
+          "damage": "6-10",
+          "statuses": [
+            { "status": "shock", "stacks": "2", "target": "enemy" }
+          ],
+          "effect_text": "",
+          "hand_side": "left"
+        },
+        {
+          "id": "spike_setup",
+          "name": "Spike Setup",
+          "heat_cost": "2",
+          "hits": "0",
+          "damage": "0",
+          "statuses": [
+            { "status": "absorb", "stacks": "1", "target": "ownMech" }
+          ],
+          "effect_text": "",
+          "hand_side": "right"
+        }
+      ]
+    },
+    {
+      "id": "targeting_computer",
+      "name": "Targeting Computer",
+      "category": "protocol",
+      "hp": 26,
+      "cells": [[0,1],[1,0],[2,1]],
+      "offset": [2,3],
+      "rotation": 2,
+      "cards": [
+        {
+          "id": "lock_on",
+          "name": "Lock On",
+          "heat_cost": "",
+          "hits": "0",
+          "damage": "0",
+          "statuses": [],
+          "effect_text": "Your next attack puts all of its hits on a single cell.",
+          "hand_side": "right"
+        }
+      ]
+    }
+  ]
+}
