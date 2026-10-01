@@ -1,0 +1,58 @@
+{
+  "_note": "Location modifiers and mission variants (Claude's drafts, 2026-09-30, for Logan to vet): rules on top of a run built only from existing statuses and run effects. A location's `modifiers` (sectors.json) are always on there; each location's mission also rolls a variant with the sector (Profile.sector_variants), saved with the run's mission. Numbers are in balance.json conditions; {name} in the text is filled from there.",
+  "modifiers": {
+    "rain": {
+      "name": "Rain",
+      "text": "Rain soaks the heat sinks: every mech vents {vent_drop_pct}% less of its heat at max."
+    },
+    "jamming": {
+      "name": "Jamming",
+      "text": "Signal jamming: every mech's hardpoints start each fight with Jam {stacks}."
+    },
+    "dust": {
+      "name": "Dust",
+      "text": "Mine dust: every mech starts each fight with Smoke {stacks}."
+    },
+    "braced": {
+      "name": "Braced",
+      "text": "Enemies start every fight with Deflect {stacks}."
+    },
+    "blackout": {
+      "name": "Blackout",
+      "text": "No running lights: every mech starts every fight with Smoke {stacks}."
+    }
+  },
+  "variants": [
+    {
+      "id": "standard",
+      "name": "",
+      "summary": ""
+    },
+    {
+      "id": "hardened",
+      "name": "Hardened",
+      "summary": "They know you're coming.",
+      "modifiers": [
+        "braced"
+      ]
+    },
+    {
+      "id": "supply_line",
+      "name": "Supply Line",
+      "summary": "Fights pay {scraps_pct}% more scraps. Elites show up {elite_chance_mult}× as often."
+    },
+    {
+      "id": "low_visibility",
+      "name": "Low Visibility",
+      "summary": "You only see {sight_rows} rows ahead on the map."
+    },
+    {
+      "id": "blackout",
+      "name": "Blackout",
+      "summary": "A night operation.",
+      "modifiers": [
+        "blackout"
+      ]
+    }
+  ]
+}

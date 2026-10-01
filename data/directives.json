@@ -1,0 +1,308 @@
+{
+  "_note": "Daily Directives (Logan, 2026-09-28): rotating, completable in 1-2 hours of play, and together worth about as many Chips as that play earns. Each day 3 are drawn from this pool (seeded by the date). Claude's drafts to vet. kind: sum = add the stat up across runs that day; at_least / at_most = reach it in one run. Optional filters: mech (the run's mech), mission (the run's mission). stat can be a list (summed). 2026-09-30 (Claude's drafts, to vet): 15 more dailies (30 in the pool), an optional `location` filter, and `weekly`: bigger goals, 2 a week (balance.json meta.weekly_per_week), rolled from the ISO week.",
+  "directives": [
+    {
+      "id": "win_fights",
+      "text": "Win {n} fights",
+      "stat": "fights_won",
+      "n": 6,
+      "kind": "sum",
+      "chips": 45
+    },
+    {
+      "id": "wreck_parts",
+      "text": "Destroy {n} enemy parts",
+      "stat": "enemy_parts_destroyed",
+      "n": 25,
+      "kind": "sum",
+      "chips": 45
+    },
+    {
+      "id": "elites",
+      "text": "Beat {n} elites",
+      "stat": "elites_beaten",
+      "n": 2,
+      "kind": "sum",
+      "chips": 50
+    },
+    {
+      "id": "damage",
+      "text": "Deal {n} damage",
+      "stat": "damage_dealt",
+      "n": 2500,
+      "kind": "sum",
+      "chips": 45
+    },
+    {
+      "id": "reach_boss",
+      "text": "Reach a boss",
+      "stat": "bosses_reached",
+      "n": 1,
+      "kind": "sum",
+      "chips": 50
+    },
+    {
+      "id": "beat_boss",
+      "text": "Defeat a boss",
+      "stat": "bosses_beaten",
+      "n": 1,
+      "kind": "sum",
+      "chips": 65
+    },
+    {
+      "id": "bays",
+      "text": "Visit {n} repair or autonomous bays",
+      "stat": [
+        "repair_bays",
+        "autonomous_bays"
+      ],
+      "n": 3,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "spend",
+      "text": "Spend {n} Scraps",
+      "stat": "scraps_spent",
+      "n": 150,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "quick_win",
+      "text": "Win a fight in {n} turns or fewer",
+      "stat": "fastest_fight",
+      "n": 3,
+      "kind": "at_most",
+      "chips": 45
+    },
+    {
+      "id": "big_hit",
+      "text": "Land a single hit of {n}+ damage",
+      "stat": "biggest_hit",
+      "n": 35,
+      "kind": "at_least",
+      "chips": 45
+    },
+    {
+      "id": "cards",
+      "text": "Play {n} cards",
+      "stat": "cards_played",
+      "n": 120,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "redline_fights",
+      "text": "Win {n} fights in Redline",
+      "stat": "fights_won",
+      "n": 4,
+      "kind": "sum",
+      "mech": "redline",
+      "chips": 50
+    },
+    {
+      "id": "jackal_fights",
+      "text": "Win {n} fights in Jackal",
+      "stat": "fights_won",
+      "n": 4,
+      "kind": "sum",
+      "mech": "jackal",
+      "chips": 50
+    },
+    {
+      "id": "bastion_fights",
+      "text": "Win {n} fights in Bastion",
+      "stat": "fights_won",
+      "n": 4,
+      "kind": "sum",
+      "mech": "bastion",
+      "chips": 50
+    },
+    {
+      "id": "recon",
+      "text": "Finish a Deep Recon",
+      "stat": "clears",
+      "n": 1,
+      "kind": "sum",
+      "mission": "deep_recon",
+      "chips": 60
+    },
+    {
+      "id": "blocked",
+      "text": "Block {n} damage with Absorb or Deflect",
+      "stat": "damage_blocked",
+      "n": 300,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "healed",
+      "text": "Repair {n} HP",
+      "stat": "damage_healed",
+      "n": 200,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "enemies",
+      "text": "Destroy {n} enemies",
+      "stat": "enemies_destroyed",
+      "n": 10,
+      "kind": "sum",
+      "chips": 45
+    },
+    {
+      "id": "hits",
+      "text": "Land {n} hits",
+      "stat": "hits_landed",
+      "n": 80,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "heat",
+      "text": "Generate {n} heat",
+      "stat": "heat_generated",
+      "n": 150,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "parts",
+      "text": "Take {n} new parts",
+      "stat": "parts_acquired",
+      "n": 4,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "refits",
+      "text": "Finish {n} refits",
+      "stat": "refits",
+      "n": 3,
+      "kind": "sum",
+      "chips": 40
+    },
+    {
+      "id": "earn",
+      "text": "Earn {n} Scraps",
+      "stat": "scraps_earned",
+      "n": 400,
+      "kind": "sum",
+      "chips": 45
+    },
+    {
+      "id": "burst",
+      "text": "Deal {n}+ damage in a single turn",
+      "stat": "best_turn_damage",
+      "n": 90,
+      "kind": "at_least",
+      "chips": 50
+    },
+    {
+      "id": "elite_hunter",
+      "text": "Beat {n} elites in one run",
+      "stat": "elites_beaten",
+      "n": 2,
+      "kind": "at_least",
+      "chips": 55
+    },
+    {
+      "id": "shipyard",
+      "text": "Win {n} fights at the Shipyard",
+      "stat": "fights_won",
+      "n": 5,
+      "kind": "sum",
+      "chips": 50,
+      "location": "shipyard"
+    },
+    {
+      "id": "archives",
+      "text": "Win {n} fights at the Data Archives",
+      "stat": "fights_won",
+      "n": 5,
+      "kind": "sum",
+      "chips": 50,
+      "location": "data_archives"
+    },
+    {
+      "id": "mines",
+      "text": "Win {n} fights in the Mining Grounds",
+      "stat": "fights_won",
+      "n": 5,
+      "kind": "sum",
+      "chips": 50,
+      "location": "mining_grounds"
+    },
+    {
+      "id": "assault_clear",
+      "text": "Finish an Assault",
+      "stat": "clears",
+      "n": 1,
+      "kind": "sum",
+      "chips": 65,
+      "mission": "assault"
+    },
+    {
+      "id": "rescue_clear",
+      "text": "Finish a Rescue",
+      "stat": "clears",
+      "n": 1,
+      "kind": "sum",
+      "chips": 65,
+      "mission": "rescue"
+    }
+  ],
+  "weekly": [
+    {
+      "id": "w_clears",
+      "text": "Clear {n} runs",
+      "stat": "clears",
+      "n": 3,
+      "kind": "sum",
+      "chips": 110
+    },
+    {
+      "id": "w_bosses",
+      "text": "Defeat {n} bosses",
+      "stat": "bosses_beaten",
+      "n": 3,
+      "kind": "sum",
+      "chips": 120
+    },
+    {
+      "id": "w_elites",
+      "text": "Beat {n} elites",
+      "stat": "elites_beaten",
+      "n": 10,
+      "kind": "sum",
+      "chips": 100
+    },
+    {
+      "id": "w_damage",
+      "text": "Deal {n} damage",
+      "stat": "damage_dealt",
+      "n": 15000,
+      "kind": "sum",
+      "chips": 100
+    },
+    {
+      "id": "w_fights",
+      "text": "Win {n} fights",
+      "stat": "fights_won",
+      "n": 40,
+      "kind": "sum",
+      "chips": 100
+    },
+    {
+      "id": "w_recon",
+      "text": "Finish {n} Deep Recons",
+      "stat": "clears",
+      "n": 2,
+      "kind": "sum",
+      "chips": 110,
+      "mission": "deep_recon"
+    }
+  ]
+}

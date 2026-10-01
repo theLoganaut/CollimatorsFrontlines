@@ -46,14 +46,17 @@ static func parse_stacks(raw) -> int:
 		return int(s) if s != "" else 0
 	return int(raw)
 
+## A flag status (Offline) has no stack count in Refit Bay: it counts as 1.
+const FLAG_STATUSES := ["offline"]
+
 static func parse_statuses(arr) -> Array[StatusEffectData]:
 	var out: Array[StatusEffectData] = []
 	for d in arr:
-		out.append(StatusEffectData.new(
-			d.get("status", ""),
-			parse_stacks(d.get("stacks", 0)),
-			d.get("target", StatusEffectData.TARGET_ENEMY)
-		))
+		var status: String = d.get("status", "")
+		var stacks := parse_stacks(d.get("stacks", 0))
+		if stacks <= 0 and FLAG_STATUSES.has(status):
+			stacks = 1
+		out.append(StatusEffectData.new(status, stacks, d.get("target", StatusEffectData.TARGET_ENEMY)))
 	return out
 
 ## Attack cards are ones that deal damage, or apply a status to an enemy
@@ -83,7 +86,19 @@ static func load_card(dict: Dictionary, owner_component_id: String) -> CardData:
 	card.owner_component_id = owner_component_id
 	return card
 
+## A mech file can name a library part by id with just its placement
+## ({"id", "offset", "rotation"}); everything else comes from Refit Bay via
+## ComponentLibrary. A full inline definition (tests) is loaded as-is.
 static func load_component(dict: Dictionary) -> ComponentData:
+	var part_id: String = dict.get("part", dict.get("id", "")) # "part": a repeated part's library id
+	if not dict.has("cells") and ComponentLibrary.has(part_id):
+		var lib := ComponentLibrary.make(part_id)
+		if part_id != dict.get("id", part_id):
+			lib.set_instance_id(dict["id"])
+		lib.offset = parse_cell(dict.get("offset", [0, 0]))
+		lib.rotation_steps = int(dict.get("rotation", 0))
+		lib.placed_cells = GridUtils.place_cells(lib.cells, lib.rotation_steps, lib.offset)
+		return lib
 	var c := ComponentData.new()
 	c.id = dict.get("id", "")
 	c.name = dict.get("name", "")
@@ -94,6 +109,8 @@ static func load_component(dict: Dictionary) -> ComponentData:
 	c.offset = parse_cell(dict.get("offset", [0, 0]))
 	c.rotation_steps = int(dict.get("rotation", 0))
 	c.placed_cells = GridUtils.place_cells(c.cells, c.rotation_steps, c.offset)
+	c.passive = dict.get("passive", {})
+	c.library_id = c.id
 	c.cards = []
 	for card_dict in dict.get("cards", []):
 		c.cards.append(load_card(card_dict, c.id))
@@ -104,8 +121,19 @@ static func load_mech(dict: Dictionary) -> MechData:
 	m.id = dict.get("id", "")
 	m.name = dict.get("name", "")
 	m.weight_class = dict.get("weight_class", "")
+	m.tier = dict.get("tier", "")
+	var ai = dict.get("ai", "careful")
+	if typeof(ai) == TYPE_DICTIONARY:
+		m.ai = ai
+		m.ai_profile = ai.get("heat", "careful")
+	else:
+		m.ai = {"heat": str(ai)}
+		m.ai_profile = str(ai)
+	m.lines = dict.get("lines", {})
+	m.title = dict.get("title", "")
 	m.cells = parse_cells(dict.get("cells", []))
 	m.max_heat = int(dict.get("max_heat", 0))
+	m.defeat_hp_fraction = float(dict.get("defeat_hp_fraction", 0.0))
 	m.heat_check_timing = dict.get("heat_check_timing", MechData.HEAT_CHECK_END_OF_TURN)
 	m.components = []
 	for comp_dict in dict.get("components", []):

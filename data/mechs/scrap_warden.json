@@ -1,87 +1,91 @@
 {
   "id": "scrap_warden",
   "name": "Scrap Warden",
+  "tier": "regular",
   "weight_class": "general",
-  "max_heat": 8,
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
   "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "weakest",
+    "slip": 0.4,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "A scavenger: goes for whatever's already falling apart, sloppily."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
   "cells": [
-    [0,0],[0,1],[0,2],[0,3],
-    [1,0],[1,1],[1,2],[1,3],
-    [2,0],[2,1],[2,2],[2,3],
-    [3,0],[3,1],[3,2],[3,3]
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      1
+    ]
   ],
   "components": [
     {
-      "id": "armor_plate",
-      "name": "Armor Plate",
-      "category": "hardpoint",
-      "hp": 30,
-      "cells": [[0,0],[0,1],[1,0]],
-      "offset": [0,0],
-      "rotation": 0,
-      "cards": []
+      "id": "scatter_shot",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
     },
     {
-      "id": "rivet_driver",
-      "name": "Rivet Driver",
-      "category": "hardpoint",
-      "hp": 34,
-      "cells": [[2,0],[3,0],[3,1]],
-      "offset": [0,0],
-      "rotation": 0,
-      "cards": [
-        {
-          "id": "rivet_burst",
-          "name": "Rivet Burst",
-          "heat_cost": "2",
-          "hits": "2",
-          "damage": "4-6",
-          "statuses": [],
-          "effect_text": "",
-          "hand_side": "left"
-        }
-      ]
+      "id": "capacitor_bank",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 1
     },
     {
-      "id": "slag_reactor",
-      "name": "Slag Reactor",
-      "category": "reactor",
-      "hp": 36,
-      "cells": [[1,1],[1,2],[2,1],[2,2]],
-      "offset": [0,0],
-      "rotation": 0,
-      "cards": []
-    },
-    {
-      "id": "scrap_cannon",
-      "name": "Scrap Cannon",
-      "category": "hardpoint",
-      "hp": 40,
-      "cells": [[0,2],[0,3],[1,3],[2,3]],
-      "offset": [0,0],
-      "rotation": 0,
-      "cards": [
-        {
-          "id": "grapeshot",
-          "name": "Grapeshot",
-          "heat_cost": "2",
-          "hits": "3",
-          "damage": "3-5",
-          "statuses": [],
-          "effect_text": "",
-          "hand_side": "left"
-        },
-        {
-          "id": "overcharge_barrage",
-          "name": "Overcharge Barrage",
-          "heat_cost": "5",
-          "hits": "1",
-          "damage": "16-22",
-          "statuses": [],
-          "effect_text": "",
-          "hand_side": "left"
-        }
-      ]
+      "id": "redirect_spike",
+      "offset": [
+        2,
+        1
+      ],
+      "rotation": 0
     }
   ]
 }

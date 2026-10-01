@@ -1,0 +1,15 @@
+{
+  "_note": "Livery Bay cosmetics, bought with Chips (Logan, 2026-09-28: a new cosmetic should take several days). No art yet, so a livery paints the mech image placeholder: a base colour, an accent, and a pattern (solid / stripes / split / chevron). Names, colours and prices are Claude's drafts; prices come from balance.json meta.livery_prices by tier.",
+  "liveries": [
+    {"id": "standard_issue", "name": "Standard Issue", "tier": "free", "base": "1b2230", "accent": "2c3647", "pattern": "solid"},
+    {"id": "rust_belt", "name": "Rust Belt", "tier": "standard", "base": "3a2418", "accent": "b8562a", "pattern": "stripes"},
+    {"id": "glacier", "name": "Glacier", "tier": "standard", "base": "20323f", "accent": "9cc9e0", "pattern": "split"},
+    {"id": "nightwatch", "name": "Nightwatch", "tier": "standard", "base": "121a2b", "accent": "4b6a9b", "pattern": "chevron"},
+    {"id": "hazard", "name": "Hazard", "tier": "standard", "base": "1a1a1a", "accent": "e0b424", "pattern": "stripes"},
+    {"id": "moss", "name": "Moss", "tier": "standard", "base": "262e1c", "accent": "7d8a4a", "pattern": "split"},
+    {"id": "ember", "name": "Ember", "tier": "standard", "base": "2e1414", "accent": "d9542b", "pattern": "chevron"},
+    {"id": "collimator_gold", "name": "Collimator Gold", "tier": "premium", "base": "17130a", "accent": "d4a73a", "pattern": "chevron"},
+    {"id": "static", "name": "Static", "tier": "premium", "base": "1c1430", "accent": "36d0d8", "pattern": "stripes"},
+    {"id": "ghost", "name": "Ghost", "tier": "premium", "base": "0c0e12", "accent": "dfe6ee", "pattern": "split"}
+  ]
+}

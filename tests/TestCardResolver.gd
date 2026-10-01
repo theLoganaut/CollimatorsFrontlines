@@ -1,16 +1,19 @@
 class_name TestCardResolver
 extends RefCounted
 ## Covers the per-hit damage pipeline order, each status's slice
-## clarification, wasted hits, self cards, and status targets.
+## clarification, self cards, and status targets. (Wasted hits after the
+## target dies are covered through CombatManager's paced attacks.)
 
 static func run_all(t: TestContext) -> void:
 	t.group("CardResolver: roll_damage bounds")
 	var fixed_card := TestFixtures.make_card("fixed", "src", 0, 1, 5, 5)
 	t.assert_eq(CardResolver.roll_damage(fixed_card, TestFixtures.rng(1)), 5, "a min==max card always rolls that value")
 	var ranged_card := TestFixtures.make_card("ranged", "src", 0, 1, 1, 100)
+	var in_range := true
 	for seed_value in range(1, 21):
 		var roll := CardResolver.roll_damage(ranged_card, TestFixtures.rng(seed_value))
-		t.assert_true(roll >= 1 and roll <= 100, "roll #%d within [1,100]" % seed_value)
+		in_range = in_range and roll >= 1 and roll <= 100
+	t.assert_true(in_range, "rolls stay within [1,100] (20 seeds)")
 
 	t.group("CardResolver: Shock (2/3 damage, flat while any stacks remain)")
 	var shocked := TestFixtures.make_component("shocked", 100)
@@ -66,55 +69,26 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(defender_mech.mech_status_stacks("absorb"), 0, "Absorb consumed")
 	t.assert_eq(defender_mech.mech_status_stacks("deflect"), 1, "Deflect: ceil(3/2)=2 consumed, 1 left")
 
-	t.group("CardResolver: wasted hits after target destroyed, no spill-over")
-	var frail := TestFixtures.make_component("frail", 5)
-	var multi_hit_card := TestFixtures.make_card("triple", "atk2", 0, 3, 10, 10)
-	var atk2 := TestFixtures.make_component("atk2", 100)
-	var multi_defender_mech := TestFixtures.make_mech("md", 14, [])
-	var res := CardResolver.resolve_attack_card(multi_hit_card, TestFixtures.make_mech("am", 14, [atk2]), atk2, multi_defender_mech, frail, TestFixtures.rng(1))
-	t.assert_eq(res["total_damage"], 5, "only the first hit's damage (capped at 5 HP) counts")
-	t.assert_eq(res["hits_landed"], 1, "1 of 3 hits landed, the rest were wasted")
-	t.assert_true(res["target_destroyed"], "target destroyed by the first hit")
-	t.assert_eq(frail.current_hp, 0, "HP floors at 0, doesn't go negative")
-
 	t.group("CardResolver: status targets")
-	var shock_status: Array[StatusEffectData] = [StatusEffectData.new("shock", 2, StatusEffectData.TARGET_ENEMY)]
-	var enemy_card := TestFixtures.make_card("shocker", "p", 0, 1, 1, 1, shock_status)
-	var enemy_target := TestFixtures.make_component("et", 100)
-	var enemy_mech := TestFixtures.make_mech("em", 14, [enemy_target])
 	var player_component := TestFixtures.make_component("pc", 100)
 	var player_mech := TestFixtures.make_mech("pm", 14, [player_component])
-	CardResolver.resolve_attack_card(enemy_card, player_mech, player_component, enemy_mech, enemy_target, TestFixtures.rng(1))
+	var enemy_target := TestFixtures.make_component("et", 100)
+	var enemy_mech := TestFixtures.make_mech("em", 14, [enemy_target])
+	CardResolver.apply_card_status(StatusEffectData.new("shock", 2, StatusEffectData.TARGET_ENEMY), player_mech, player_component, enemy_mech, enemy_target)
 	t.assert_eq(enemy_target.status_stacks("shock"), 2, "TARGET_ENEMY status lands on the dropped-on component")
-
-	var all_enemies_status: Array[StatusEffectData] = [StatusEffectData.new("shock", 1, StatusEffectData.TARGET_ALL_ENEMIES)]
-	var aoe_card := TestFixtures.make_card("aoe", "p", 0, 1, 1, 1, all_enemies_status)
 	var e1 := TestFixtures.make_component("e1", 10)
 	var e2 := TestFixtures.make_component("e2", 10)
 	var e3_destroyed := TestFixtures.make_component("e3", 10)
 	e3_destroyed.destroyed = true
 	var aoe_mech := TestFixtures.make_mech("aoe_m", 14, [e1, e2, e3_destroyed])
-	CardResolver.resolve_attack_card(aoe_card, player_mech, player_component, aoe_mech, e1, TestFixtures.rng(1))
-	t.assert_eq(e1.status_stacks("shock"), 1, "TARGET_ALL_ENEMIES hits e1")
-	t.assert_eq(e2.status_stacks("shock"), 1, "TARGET_ALL_ENEMIES hits e2")
+	CardResolver.apply_card_status(StatusEffectData.new("shock", 1, StatusEffectData.TARGET_ALL_ENEMIES), player_mech, player_component, aoe_mech, e1)
+	t.assert_true(e1.status_stacks("shock") == 1 and e2.status_stacks("shock") == 1, "TARGET_ALL_ENEMIES hits every living part")
 	t.assert_eq(e3_destroyed.status_stacks("shock"), 0, "TARGET_ALL_ENEMIES skips a destroyed component")
-
-	var self_status: Array[StatusEffectData] = [StatusEffectData.new("shock", 1, StatusEffectData.TARGET_SELF)]
-	var self_card := TestFixtures.make_card("self_shock", "sc", 0, 1, 1, 1, self_status)
-	var self_component := TestFixtures.make_component("sc", 100)
-	var self_mech := TestFixtures.make_mech("sm", 14, [self_component])
 	var some_target := TestFixtures.make_component("st", 10)
 	var some_target_mech := TestFixtures.make_mech("stm", 14, [some_target])
-	CardResolver.resolve_attack_card(self_card, self_mech, self_component, some_target_mech, some_target, TestFixtures.rng(1))
-	t.assert_eq(self_component.status_stacks("shock"), 1, "TARGET_SELF lands on the component that granted the card")
+	CardResolver.apply_card_status(StatusEffectData.new("shock", 1, StatusEffectData.TARGET_SELF), player_mech, player_component, some_target_mech, some_target)
+	t.assert_eq(player_component.status_stacks("shock"), 1, "TARGET_SELF lands on the component that granted the card")
 	t.assert_eq(some_target.status_stacks("shock"), 0, "TARGET_SELF never touches the dropped-on target")
-
-	var linked_status: Array[StatusEffectData] = [StatusEffectData.new("coolant", 1, StatusEffectData.TARGET_LINKED)]
-	var linked_card := TestFixtures.make_card("linked", "lc", 0, 1, 1, 1, linked_status)
-	var linked_component := TestFixtures.make_component("lc", 100)
-	var linked_mech := TestFixtures.make_mech("lm", 14, [linked_component])
-	CardResolver.resolve_attack_card(linked_card, linked_mech, linked_component, some_target_mech, some_target, TestFixtures.rng(1))
-	t.assert_eq(linked_component.status_stacks("coolant"), 0, "TARGET_LINKED is a no-op (link system not built this slice)")
 
 	t.group("CardResolver: self cards (Extension / Spike Setup)")
 	var deflect_self: Array[StatusEffectData] = [StatusEffectData.new("deflect", 1, StatusEffectData.TARGET_OWN_MECH)]

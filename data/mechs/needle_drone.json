@@ -1,0 +1,95 @@
+{
+  "id": "needle_drone",
+  "name": "Needle Drone",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "hardpoints",
+    "slip": 0.35,
+    "protocols": 0.6,
+    "guard": 0.5,
+    "_why": "A sniper: Locks On, then picks your weapons apart."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "autocannon",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "fang_blade",
+      "offset": [
+        0,
+        2
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "targeting_computer",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 1
+    }
+  ]
+}

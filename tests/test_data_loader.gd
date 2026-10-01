@@ -1,13 +1,25 @@
 class_name TestDataLoader
 extends RefCounted
-## M0's done-when: bastion.json / scrap_warden.json load and print their
-## component/card lists correctly (162 HP, 7 cards, Warden 140 HP).
+## Parsing helpers, rotation math, and mech files loading into parts, cards
+## and passives that sit on their chassis. Refit Bay's own numbers aren't
+## pinned here: they change on every import.
 
 static func run_all(t: TestContext) -> void:
 	t.group("DataLoader: parsing helpers")
 	t.assert_eq(DataLoader.parse_damage_range("6-10"), [6, 10], "parses a-b damage range")
 	t.assert_eq(DataLoader.parse_damage_range("0"), [0, 0], "'0' damage is [0,0]")
 	t.assert_eq(DataLoader.parse_damage_range(""), [0, 0], "blank damage is [0,0]")
+
+	t.group("CardData: damage label")
+	var lbl := CardData.new()
+	lbl.hits = 3; lbl.damage_min = 6; lbl.damage_max = 10
+	t.assert_eq(lbl.damage_label(), "3×6–10", "multi-hit shows hits × range")
+	lbl.hits = 1
+	t.assert_eq(lbl.damage_label(), "6–10", "a single hit drops the implied 1×")
+	lbl.damage_min = 8; lbl.damage_max = 8
+	t.assert_eq(lbl.damage_label(), "8", "a fixed single hit is just the number")
+	lbl.hits = 0
+	t.assert_eq(lbl.damage_label(), "", "0 hits leaves the corner blank")
 	t.assert_eq(DataLoader.parse_heat_cost(""), 0, "blank heat cost is 0 (Lock On)")
 	t.assert_eq(DataLoader.parse_heat_cost("-3"), -3, "negative heat cost parses (vents)")
 	t.assert_eq(DataLoader.parse_heat_cost("4"), 4, "positive heat cost parses")
@@ -30,114 +42,42 @@ static func run_all(t: TestContext) -> void:
 	var tc_expected: Array[Vector2i] = [Vector2i(2,3), Vector2i(3,4), Vector2i(4,3)]
 	t.assert_eq(tc_placed, tc_expected, "Targeting Computer (2 steps, offset 2,3) matches placed cells — non-contiguous shape")
 
-	t.group("Bastion")
-	var bastion := DataLoader.load_mech_from_file("res://data/mechs/bastion.json")
+	t.group("Mech files load: cards, passives and placement")
+	var bastion := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
 	t.assert_true(bastion != null, "bastion.json loads")
 	if bastion == null:
 		return
-	t.assert_eq(bastion.cells.size(), 18, "Bastion has 18 chassis cells")
-	t.assert_eq(bastion.max_heat, 14, "Bastion max heat is 14")
-	t.assert_eq(bastion.heat_check_timing, MechData.HEAT_CHECK_LIVE, "Bastion checks heat live")
-	t.assert_eq(bastion.components.size(), 4, "Bastion has 4 installed components")
-	t.assert_eq(bastion.max_hp(), 162, "Bastion total HP is 162")
-	t.assert_eq(bastion.current_hp(), 162, "Bastion starts at full HP")
-
-	var all_cards := bastion.all_playable_cards()
-	t.assert_eq(all_cards.size(), 7, "Bastion grants 7 cards")
-	var left_count := 0
-	var right_count := 0
-	for c in all_cards:
-		if c.hand_side == "left":
-			left_count += 1
-		elif c.hand_side == "right":
-			right_count += 1
-	t.assert_eq(left_count, 4, "4 cards on the left")
-	t.assert_eq(right_count, 3, "3 cards on the right")
-
-	var neon_axe := bastion.get_component("neon_axe")
-	t.assert_true(neon_axe != null, "neon_axe component found")
-	t.assert_eq(neon_axe.category, ComponentData.CATEGORY_HARDPOINT, "Neon Axe is a hardpoint")
-	t.assert_eq(neon_axe.max_hp, 64, "Neon Axe has 64 HP")
-
+	t.assert_eq(bastion.current_hp(), bastion.max_hp(), "a fresh mech starts at full HP")
 	var insulated_core := bastion.get_component("insulated_core")
-	t.assert_true(insulated_core != null, "insulated_core component found")
 	t.assert_eq(insulated_core.category, ComponentData.CATEGORY_REACTOR, "Insulated Core is a REACTOR, not a hardpoint (audit fix)")
-
-	var wide_swing: CardData = null
-	var cross_chop: CardData = null
-	var extension: CardData = null
-	var spike_em: CardData = null
-	var lock_on: CardData = null
-	for c in all_cards:
-		match c.id:
-			"wide_swing": wide_swing = c
-			"cross_chop": cross_chop = c
-			"extension": extension = c
-			"spike_em": spike_em = c
-			"lock_on": lock_on = c
-	t.assert_true(wide_swing != null, "Wide Swing present")
-	if wide_swing != null:
-		t.assert_eq(wide_swing.heat_cost, 4, "Wide Swing costs 4 heat")
-		t.assert_eq(wide_swing.hits, 3, "Wide Swing has 3 hits")
-		t.assert_eq(wide_swing.damage_min, 6, "Wide Swing min dmg 6")
-		t.assert_eq(wide_swing.damage_max, 10, "Wide Swing max dmg 10")
-		t.assert_eq(wide_swing.play_mode, CardData.PLAY_MODE_ATTACK, "Wide Swing is an attack card")
-	t.assert_true(cross_chop != null, "Cross Chop present")
-	if cross_chop != null:
-		t.assert_eq(cross_chop.heat_cost, 6, "Cross Chop costs 6 heat")
-		t.assert_eq(cross_chop.damage_max, 20, "Cross Chop max dmg 20")
-	t.assert_true(extension != null, "Extension present")
-	if extension != null:
-		t.assert_eq(extension.play_mode, CardData.PLAY_MODE_SELF, "Extension is a self card (0 hits, targets ownMech)")
-		t.assert_eq(extension.statuses.size(), 1, "Extension applies one status")
-		t.assert_eq(extension.statuses[0].status, "deflect", "Extension applies Deflect")
-		t.assert_eq(extension.statuses[0].target, StatusEffectData.TARGET_OWN_MECH, "Extension targets own mech")
-	t.assert_true(spike_em != null, "Spike 'Em present")
-	if spike_em != null:
-		t.assert_eq(spike_em.play_mode, CardData.PLAY_MODE_ATTACK, "Spike 'Em is an attack card (1 hit)")
-		t.assert_eq(spike_em.statuses[0].status, "shock", "Spike 'Em applies Shock")
-		t.assert_eq(spike_em.statuses[0].stacks, 2, "Spike 'Em applies Shock x2")
-	t.assert_true(lock_on != null, "Lock On present")
-	if lock_on != null:
-		t.assert_eq(lock_on.heat_cost, 0, "Lock On's blank heat cost parses to 0")
-		t.assert_eq(lock_on.play_mode, CardData.PLAY_MODE_SELF, "Lock On is a self card")
-
-	t.group("Scrap Warden")
-	var warden := DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")
-	t.assert_true(warden != null, "scrap_warden.json loads")
-	if warden == null:
-		return
-	t.assert_eq(warden.cells.size(), 16, "Scrap Warden has a 4x4 (16 cell) chassis")
-	t.assert_eq(warden.max_heat, 8, "Scrap Warden max heat is 8")
-	t.assert_eq(warden.components.size(), 4, "Scrap Warden has 4 components")
-	t.assert_eq(warden.max_hp(), 140, "Scrap Warden total HP is 140")
-
-	var armor_plate := warden.get_component("armor_plate")
-	t.assert_true(armor_plate != null and not armor_plate.has_cards(), "Armor Plate has no cards (pure tank)")
-	var slag_reactor := warden.get_component("slag_reactor")
-	t.assert_true(slag_reactor != null and not slag_reactor.has_cards(), "Slag Reactor has no cards")
-	var scrap_cannon := warden.get_component("scrap_cannon")
-	t.assert_true(scrap_cannon != null, "Scrap Cannon found")
-	if scrap_cannon != null:
-		t.assert_eq(scrap_cannon.max_hp, 40, "Scrap Cannon has 40 HP")
-		t.assert_eq(scrap_cannon.cards.size(), 2, "Scrap Cannon grants 2 cards")
-
-	# AI walk order: left->right by leftmost column, tie -> topmost row.
-	# Armor Plate (col0,row0), Rivet Driver (col0,row2), Slag Reactor (col1),
-	# Scrap Cannon (col2) — skip the two with no cards -> Rivet Driver, Scrap Cannon.
-	var with_cards := warden.non_destroyed_components().filter(func(c): return c.has_cards())
-	with_cards.sort_custom(func(a, b):
-		if a.leftmost_column() != b.leftmost_column():
-			return a.leftmost_column() < b.leftmost_column()
-		return a.topmost_row() < b.topmost_row()
-	)
-	t.assert_eq(with_cards.size(), 2, "2 Warden components have cards")
-	if with_cards.size() == 2:
-		t.assert_eq(with_cards[0].id, "rivet_driver", "AI order: Rivet Driver first")
-		t.assert_eq(with_cards[1].id, "scrap_cannon", "AI order: Scrap Cannon second")
+	t.assert_eq(insulated_core.passive_type(), ComponentData.PASSIVE_REDUCE_INCOMING_STATUS, "Insulated Core's passive loads")
+	var extension: CardData = bastion.all_playable_cards().filter(func(c): return c.id == "extension")[0]
+	t.assert_eq(extension.play_mode, CardData.PLAY_MODE_SELF, "a 0-hit card on its own mech is a self card")
+	t.assert_eq(extension.statuses[0].target, StatusEffectData.TARGET_OWN_MECH, "and its status targets its own mech")
+	var spike_em: CardData = bastion.all_playable_cards().filter(func(c): return c.id == "spike_em")[0]
+	t.assert_eq(spike_em.play_mode, CardData.PLAY_MODE_ATTACK, "a card with hits is an attack card")
+	var passive_cards := 0
+	var overlaps := 0
+	var outside := 0
+	for id in ["bastion", "redline", "jackal", "scrap_warden"]:
+		var m := DataLoader.load_mech_from_file("res://data/mechs/%s.json" % id)
+		var chassis := GridUtils.cells_to_set(m.cells)
+		var seen := {}
+		for comp in m.components:
+			if comp.has_passive() and comp.has_cards():
+				passive_cards += 1
+			for cell in comp.placed_cells:
+				if seen.has(cell):
+					overlaps += 1
+				seen[cell] = true
+				if not chassis.has(cell):
+					outside += 1
+	t.assert_eq(passive_cards, 0, "a passive part never puts a card in the hand (player mechs and the Warden)")
+	t.assert_eq(overlaps, 0, "no two parts share a cell")
+	t.assert_eq(outside, 0, "every part cell is on its chassis")
 
 	t.group("Fresh instances are independent")
-	var b1 := DataLoader.load_mech_from_file("res://data/mechs/bastion.json")
-	var b2 := DataLoader.load_mech_from_file("res://data/mechs/bastion.json")
+	var b1 := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
+	var b2 := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
 	b1.get_component("neon_axe").current_hp = 1
 	t.assert_eq(b2.get_component("neon_axe").current_hp, 64, "mutating one fresh mech doesn't affect another")

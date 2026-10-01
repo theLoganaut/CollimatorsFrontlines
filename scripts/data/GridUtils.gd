@@ -49,3 +49,32 @@ static func cells_to_set(cells: Array[Vector2i]) -> Dictionary:
 	for c in cells:
 		set[c] = true
 	return set
+
+## Whether `local_cells` rotated by `steps` at `offset` lands only on
+## `allowed` cells (a set) that aren't in `occupied` (a set).
+## The smallest rectangle holding every cell (x = column, y = row).
+static func bounds_of(cells: Array[Vector2i]) -> Rect2i:
+	if cells.is_empty():
+		return Rect2i()
+	var lo := cells[0]
+	var hi := cells[0]
+	for c in cells:
+		lo = Vector2i(mini(lo.x, c.x), mini(lo.y, c.y))
+		hi = Vector2i(maxi(hi.x, c.x), maxi(hi.y, c.y))
+	return Rect2i(lo, hi - lo + Vector2i.ONE)
+
+static func can_place(local_cells: Array[Vector2i], steps: int, offset: Vector2i, allowed: Dictionary, occupied: Dictionary) -> bool:
+	for c in place_cells(local_cells, steps, offset):
+		if not allowed.has(c) or occupied.has(c):
+			return false
+	return true
+
+## The first placement (rotation, then row, then column) that fits, as
+## {"rotation", "offset"}, or {} if none does. `bounds` = rows × cols to scan.
+static func find_fit(local_cells: Array[Vector2i], allowed: Dictionary, occupied: Dictionary, bounds: Vector2i) -> Dictionary:
+	for rot in range(4):
+		for r in range(bounds.x):
+			for c in range(bounds.y):
+				if can_place(local_cells, rot, Vector2i(r, c), allowed, occupied):
+					return {"rotation": rot, "offset": Vector2i(r, c)}
+	return {}

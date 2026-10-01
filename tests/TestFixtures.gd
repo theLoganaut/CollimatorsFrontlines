@@ -42,8 +42,7 @@ static func make_card(id: String, owner_id: String, heat_cost: int, hits: int, d
 	card.owner_component_id = owner_id
 	return card
 
-## A RandomNumberGenerator that always rolls the maximum of any range —
-## useful when a test wants a deterministic, worst-case damage number.
+## A seeded RandomNumberGenerator, so a test's rolls are the same every run.
 static func rng(seed_value: int = 1) -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
 	r.seed = seed_value

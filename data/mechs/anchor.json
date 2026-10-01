@@ -1,0 +1,155 @@
+{
+  "id": "anchor",
+  "name": "Anchor",
+  "tier": "boss",
+  "weight_class": "general",
+  "max_heat": 12,
+  "defeat_hp_fraction": 0.2,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "reckless",
+    "cards": "damage",
+    "targets": "focus",
+    "slip": 0.45,
+    "protocols": 0.7,
+    "guard": 0.6,
+    "phase2": {
+      "cards": "heavy",
+      "targets": "hardpoints",
+      "slip": 0.2,
+      "guard": 0.0
+    },
+    "_why": "Vasquez: methodical. Picks your biggest part and takes it apart. At half HP the breach charges go off: biggest hits, straight at your weapons."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      0
+    ],
+    [
+      4,
+      1
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      4,
+      3
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      2
+    ],
+    [
+      5,
+      5
+    ]
+  ],
+  "components": [
+    {
+      "id": "impact_hammer",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "plated_housing",
+      "offset": [
+        3,
+        2
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "cluster_rockets",
+      "offset": [
+        1,
+        4
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "overpressure_valve",
+      "offset": [
+        4,
+        4
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "hell_dropper",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 1
+    }
+  ],
+  "title": "Collimator Vasquez",
+  "lines": {
+    "defeat": "Pull back. That's an order.",
+    "intro": "Breach team's behind me. You go through me first.",
+    "phase2": "Heat's redlining. Good. Charges are set."
+  }
+}

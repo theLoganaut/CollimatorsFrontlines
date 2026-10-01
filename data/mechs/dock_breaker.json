@@ -1,0 +1,127 @@
+{
+  "id": "dock_breaker",
+  "name": "Dock Breaker",
+  "tier": "elite",
+  "weight_class": "general",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "heavy",
+    "targets": "hardpoints",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Overdrives its biggest salvo into your weapons; the Redirect Spike soaks for it."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      4,
+      3
+    ]
+  ],
+  "components": [
+    {
+      "id": "railspike",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "cluster_rockets",
+      "offset": [
+        1,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "thermal_core",
+      "offset": [
+        1,
+        4
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "redirect_spike",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "overdrive_chip",
+      "offset": [
+        4,
+        2
+      ],
+      "rotation": 0
+    }
+  ]
+}

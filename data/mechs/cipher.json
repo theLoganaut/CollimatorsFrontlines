@@ -1,0 +1,162 @@
+{
+  "id": "cipher",
+  "name": "Cipher",
+  "tier": "boss",
+  "weight_class": "general",
+  "max_heat": 12,
+  "defeat_hp_fraction": 0.1,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "hardpoints",
+    "slip": 0.2,
+    "protocols": 0.95,
+    "guard": 0.4,
+    "phase2": {
+      "cards": "damage",
+      "targets": "hardpoints",
+      "slip": 0.1
+    },
+    "_why": "Sets up first: primes Lock On for a Railspike shot, Shocks your weapons with the Voltage Spike and HV Rifle, Replays the good ones, and picks at your weapons. Redirect Spike soaks hits aimed elsewhere. At half HP he cashes in: EMP Rounds into shocked weapons. (Reworked 2026-09-30, Logan: make Cipher harder; was HV Rifle, Arc Whip, Targeting Computer, Coolant Flush, Echo Buffer, Queue Processor.)"
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      4,
+      3
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      5,
+      2
+    ],
+    [
+      5,
+      3
+    ]
+  ],
+  "components": [
+    {
+      "id": "railspike",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "voltage_spike",
+      "offset": [
+        3,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "hv_rifle",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "targeting_computer",
+      "offset": [
+        3,
+        3
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "echo_buffer",
+      "offset": [
+        3,
+        3
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "redirect_spike",
+      "offset": [
+        1,
+        1
+      ],
+      "rotation": 0
+    }
+  ],
+  "title": "Collimator Chen",
+  "lines": {
+    "defeat": "Noted. Next time.",
+    "intro": "I read your last three sorties. You favour your left side.",
+    "phase2": "Adjusting. You're not the variable I expected."
+  }
+}

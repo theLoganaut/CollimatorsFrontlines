@@ -1,0 +1,470 @@
+{
+ "_note": "Hand-written mechanics for Refit Bay parts, keyed by component id (passives) and card id (cards). Refit Bay text stays verbatim in data/components.json; this file only says how each effect plays. Rulings: Notion Components & Cards, 'Rulings for implementing every Refit Bay part' (Decided) and 'Phase 2 rulings to vet' (Proposed).",
+ "_card_keys": {
+  "play_mode": "'self' or 'attack', overriding the one derived from hits/statuses",
+  "hit_chance": "chance each hit fires, by hit number; the last entry repeats (Logan's falloff: 100/90/70/40/20%)",
+  "status_chance": "chance the card's statuses apply",
+  "mult_if_target_status": "{status, mult, hardpoint_only}: damage multiplier if the targeted part has the status",
+  "mult_if_target_below": "{fraction, mult, hardpoint_only}: damage multiplier if the targeted part is at or below that share of its HP",
+  "on_hit_status": "{status, stacks, hardpoint_only}: put on the targeted part after the hits",
+  "repeat_turns": "the attack repeats on the same part at the start of the attacker's next N turns (Logan)",
+  "self_damage": "the card's damage lands on the part that played it (Self Splash, Logan: 'you take it all')",
+  "hits_all_enemies": "every hit also lands on one living part (picked when the card is played) of every other enemy mech",
+  "protocol": "a protocol effect; see scripts/combat/Protocols.gd",
+  "volley": "presentation only: its hits land all but at once (a salvo of rockets, a shotgun blast), not one by one (Logan, 2026-09-30)"
+ },
+ "passives": {
+  "redirect_spike": {
+   "type": "redirect"
+  },
+  "capacitor_bank": {
+   "type": "turn_start_status"
+  },
+  "insulated_core": {
+   "type": "reduce_incoming_status",
+   "statuses": [
+    "acid",
+    "shock"
+   ],
+   "amount": 1
+  },
+  "exhaust_fans": {
+   "type": "reduce_incoming_status",
+   "statuses": [
+    "smoke"
+   ],
+   "amount": 1
+  },
+  "thermal_core": {
+   "type": "heat_mods",
+   "max_heat": 2
+  },
+  "coolant_loop": {
+   "type": "heat_mods",
+   "decay": 1
+  },
+  "overpressure_valve": {
+   "type": "heat_mods",
+   "max_heat": 2,
+   "decay": -1
+  },
+  "recycling_loops": {
+   "type": "recycle_vent"
+  },
+  "plated_housing": {
+   "type": "facing_cover",
+   "facing": "up"
+  },
+  "nano_bots": {
+   "type": "turn_start_heal_lowest",
+   "amount": 5
+  },
+  "redundant_wiring": {
+   "type": "save_from_destruction"
+  },
+  "coolant_flush": {
+   "type": "facing_turn_start_status",
+   "facing": "down"
+  },
+  "reactive_plating": {
+   "type": "on_damaged_status"
+  },
+  "overclock_shunt": {
+   "type": "first_card_discount",
+   "amount": 1
+  },
+  "high_five": {
+   "type": "nth_attack_twice",
+   "n": 5
+  },
+  "afterburner": {
+   "type": "first_attack_bonus",
+   "mult": 1.5
+  },
+  "blowout_vent": {
+   "type": "kill_vent",
+   "amount": 4
+  },
+  "static_collector": {
+   "type": "status_on_attack",
+   "status": "shock",
+   "stacks": 1,
+   "chance": 0.5
+  },
+  "relay_booster": {
+   "type": "linked_damage_bonus",
+   "amount": 3
+  },
+  "spiked_plating": {
+   "type": "thorns",
+   "damage": 6,
+   "scope": "self"
+  },
+  "field_medic_unit": {
+   "type": "turn_start_heal_linked",
+   "amount": 6
+  },
+  "bulwark_frame": {
+   "type": "damage_cap_linked",
+   "cap": 10
+  },
+  "heat_sink_array": {
+   "type": "on_damaged_vent",
+   "amount": 3
+  },
+  "overheat_fuse": {
+   "type": "overheat_fuse"
+  },
+  "scrap_magnet": {
+   "type": "scrap_on_kill",
+   "amount": 6
+  },
+  "mirror_plating": {
+   "type": "thorns",
+   "damage": 5,
+   "scope": "mech"
+  },
+  "afterimage_emitter": {
+   "type": "turn_start_status"
+  },
+  "pressure_regulator": {
+   "type": "heat_mods",
+   "max_heat": 5,
+   "backlash_mult": 1.25
+  },
+  "repair_drone_bay": {
+   "type": "turn_start_heal_lowest",
+   "amount": 12
+  },
+  "harmonic_amplifier": {
+   "type": "linked_damage_bonus",
+   "amount": 4
+  },
+  "aegis_projector": {
+   "type": "turn_start_status"
+  },
+  "reinforced_bulkhead": {
+   "type": "save_once_per_fight",
+   "charges": 2
+  },
+  "singularity_core": {
+   "type": "heat_mods",
+   "max_heat": 8,
+   "decay": -1
+  },
+  "chaos_reactor": {
+   "type": "turn_start_chaos",
+   "burn": 5,
+   "coolant": 2
+  },
+  "blink_drive": {
+   "type": "dodge_first",
+   "hits": 2
+  },
+  "overclock_heart": {
+   "type": "heat_damage_bonus",
+   "per": 2
+  },
+  "phase_array": {
+   "type": "linked_cost_down",
+   "amount": 1
+  },
+  "neural_link": {
+   "type": "on_kill_refund"
+  },
+  "fortress_core": {
+   "type": "fortress",
+   "per": 5
+  },
+  "juggernaut_treads": {
+   "type": "momentum",
+   "amount": 3
+  }
+ },
+ "cards": {
+  "rapid_fire": {
+   "hit_chance": [
+    1.0,
+    0.9,
+    0.7,
+    0.4,
+    0.2
+   ]
+  },
+  "shock_round": {
+   "status_chance": 0.25
+  },
+  "emp_round": {
+   "mult_if_target_status": {
+    "status": "shock",
+    "mult": 3,
+    "hardpoint_only": true
+   }
+  },
+  "thrust_through": {
+   "mult_if_target_below": {
+    "fraction": 0.5,
+    "mult": 2,
+    "hardpoint_only": true
+   }
+  },
+  "optical_pinpoint": {
+   "on_hit_status": {
+    "status": "disabled",
+    "stacks": 1,
+    "hardpoint_only": true
+   }
+  },
+  "spillage": {
+   "repeat_turns": 2
+  },
+  "self_splash": {
+   "play_mode": "self",
+   "self_damage": true
+  },
+  "66_power_rail": {
+   "status_chance": 0.5
+  },
+  "lay_waste": {
+   "hits_all_enemies": true
+  },
+  "napalm_rain": {
+   "hits_all_enemies": true,
+   "hit_chance": [
+    0.5
+   ],
+   "volley": true
+  },
+  "lock_on": {
+   "protocol": "lock_on",
+   "mult": [
+    1.25,
+    1.35
+   ]
+  },
+  "split_feed": {
+   "protocol": "split_feed"
+  },
+  "catalyze": {
+   "protocol": "catalyze",
+   "stacks": 2
+  },
+  "reroute": {
+   "protocol": "reroute"
+  },
+  "standby": {
+   "protocol": "standby"
+  },
+  "overdrive": {
+   "protocol": "overdrive"
+  },
+  "replay": {
+   "protocol": "replay",
+   "extra_heat": 2
+  },
+  "salvo": {
+   "protocol": "salvo",
+   "play_mode": "attack"
+  },
+  "bleed_off": {
+   "protocol": "bleed_off"
+  },
+  "intercept": {
+   "protocol": "intercept",
+   "play_mode": "attack"
+  },
+  "needle_storm": {
+   "hit_chance": [
+    1,
+    1,
+    0.8,
+    0.6,
+    0.5
+   ]
+  },
+  "quick_draw": {
+   "double_if_first": true
+  },
+  "searing_line": {
+   "bonus_per_heat": {
+    "per": 2,
+    "bonus": 1
+   }
+  },
+  "redline_burst": {
+   "mult_if_over_max": 1.5
+  },
+  "discharge": {
+   "consume_status": {
+    "status": "shock",
+    "per_stack": 5
+   }
+  },
+  "blow_off": {
+   "vents": true
+  },
+  "steam_slug": {
+   "heat_to_target": 2
+  },
+  "quickload": {
+   "protocol": "discount",
+   "amount": 3
+  },
+  "fan_out": {
+   "protocol": "fan_out"
+  },
+  "arc": {
+   "arc_adjacent": true
+  },
+  "lob": {
+   "random_part_hits": true,
+   "volley": true
+  },
+  "reel_in": {
+   "mult_if_target_status": {
+    "status": "disabled",
+    "mult": 2
+   }
+  },
+  "siphon": {
+   "protocol": "siphon",
+   "fraction": 0.5
+  },
+  "breach": {
+   "protocol": "pierce",
+   "mult": 1.25
+  },
+  "chain": {
+   "protocol": "chain"
+  },
+  "barrage": {
+   "random_part_hits": true,
+   "volley": true
+  },
+  "chew": {
+   "heal_on_hit": 0.3
+  },
+  "ram": {
+   "protocol": "knockback"
+  },
+  "ballast": {
+   "protocol": "discount",
+   "amount": 4
+  },
+  "double_tap": {
+   "protocol": "double_hits"
+  },
+  "crush": {
+   "mult_if_target_status": {
+    "status": "freeze",
+    "mult": 2
+   }
+  },
+  "overheat_round": {
+   "heat_to_target": 3
+  },
+  "cool_shot": {
+   "vents": true
+  },
+  "ricochet": {
+   "random_part_hits": true
+  },
+  "trick_shot": {
+   "hits_per_target_status": true
+  },
+  "execute": {
+   "protocol": "execute",
+   "fraction": 0.5,
+   "mult": 3
+  },
+  "chain_lightning": {
+   "arc_adjacent": true
+  },
+  "ground_out": {
+   "cleanse": [
+    "shock",
+    "acid"
+   ],
+   "play_mode": "self"
+  },
+  "coordinated_strike": {
+   "protocol": "salvo"
+  },
+  "wreck": {
+   "pierce": true
+  },
+  "fortify": {
+   "protocol": "fortify",
+   "per_heat": 4
+  },
+  "loaded_dice": {
+   "protocol": "max_roll",
+   "mult": 1.5
+  },
+  "latch": {
+   "repeat_turns": 3,
+   "heal_on_hit": 0.5
+  },
+  "recall": {
+   "protocol": "recall"
+  },
+  "lunge": {
+   "bonus_per_heat": {
+    "per": 1,
+    "bonus": 2
+   }
+  },
+  "feedback": {
+   "protocol": "vent_on_hit",
+   "amount": 2
+  },
+  "nova": {
+   "hits_all_enemies": true,
+   "recoil": 6
+  },
+  "release_swarm": {
+   "random_part_hits": true,
+   "repeat_turns": 2,
+   "volley": true
+  },
+  "invert": {
+   "protocol": "invert"
+  },
+  "resonate": {
+   "stacking_damage": 4
+  },
+  "earthshaker": {
+   "hits_all_enemies": true
+  },
+  "last_stand": {
+   "protocol": "last_stand",
+   "per_tenth": 0.2
+  },
+  "cataclysm": {
+   "hits_all_enemies": true,
+   "random_part_hits": true,
+   "volley": true
+  },
+  "salvo_fire": {
+   "volley": true
+  },
+  "all_0ut_salvo": {
+   "volley": true
+  },
+  "blast_em": {
+   "volley": true
+  },
+  "empty_clip": {
+   "volley": true
+  },
+  "flak": {
+   "volley": true
+  },
+  "flechettes": {
+   "volley": true
+  },
+  "targeted_napalm": {
+   "volley": true
+  }
+ }
+}

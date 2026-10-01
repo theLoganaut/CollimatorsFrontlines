@@ -3,20 +3,20 @@ extends RefCounted
 ## Reproduces every worked heat example in Combat Rules / Combat Slice §4.2-4.3.
 
 static func run_all(t: TestContext) -> void:
-	t.group("HeatRules: ratio venting (Bastion, max heat 14)")
+	t.group("HeatRules: ratio venting, 80% at max (Bastion, max heat 14)")
 	t.assert_eq(HeatRules.heat_after_vent(3, 14), 3, "3 -> 3 (nothing vents)")
 	t.assert_eq(HeatRules.heat_after_vent(5, 14), 4, "5 -> 4")
-	t.assert_eq(HeatRules.heat_after_vent(7, 14), 4, "7 -> 4")
-	t.assert_eq(HeatRules.heat_after_vent(10, 14), 3, "10 -> 3")
-	t.assert_eq(HeatRules.heat_after_vent(12, 14), 2, "12 -> 2")
-	t.assert_eq(HeatRules.heat_after_vent(13, 14), 1, "13 -> 1")
-	t.assert_eq(HeatRules.heat_after_vent(14, 14), 0, "14 -> 0")
-	t.assert_eq(HeatRules.heat_after_vent(17, 14), 0, "17 (overheated) -> 0, vents 100%")
+	t.assert_eq(HeatRules.heat_after_vent(7, 14), 5, "7 -> 5")
+	t.assert_eq(HeatRules.heat_after_vent(10, 14), 5, "10 -> 5")
+	t.assert_eq(HeatRules.heat_after_vent(12, 14), 4, "12 -> 4")
+	t.assert_eq(HeatRules.heat_after_vent(13, 14), 4, "13 -> 4")
+	t.assert_eq(HeatRules.heat_after_vent(14, 14), 3, "14 -> 3 (80% vents at max)")
+	t.assert_eq(HeatRules.heat_after_vent(17, 14), 4, "17 (overheated) -> 4, still 80%")
 	t.assert_eq(HeatRules.heat_after_vent(0, 14), 0, "0 heat stays 0")
 
 	t.group("HeatRules: generic ratio example")
-	t.assert_eq(HeatRules.amount_vented(9, 10), 8, "9/10 vents 8")
-	t.assert_eq(HeatRules.heat_after_vent(9, 10), 1, "9/10 stays at 1")
+	t.assert_eq(HeatRules.amount_vented(9, 10), 6, "9/10 vents 6")
+	t.assert_eq(HeatRules.heat_after_vent(9, 10), 3, "9/10 stays at 3")
 
 	t.group("HeatRules: overheat state")
 	t.assert_true(not HeatRules.is_overheated(14, 14), "at exactly max heat is not overheated")

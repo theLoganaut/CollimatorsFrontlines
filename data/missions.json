@@ -1,0 +1,73 @@
+{
+  "_note": "Mission types (Logan, 2026-09-27/28). Numbers marked Proposed are Claude's starting values for tuning. rows = stops before the boss. Regular fights come from the location's encounter pools: the first weak_fights from `weak`, then `strong` (max_enemies caps a fight's size). Longer runs (Logan, 2026-09-30): Assault and Rescue 12 rows, Deep Recon 16, a refit after every 3rd row, and a repair bay every path goes through right before the boss (repair_before_boss). max_shops (Logan, 2026-09-30): at most that many autonomous bays on a map (at least one is always there); shops are a detour you choose, Slay-the-Spire style. An event stop also turns out to be a bay 10% of the time (balance.json map.event_shop_chance).",
+  "missions": {
+    "assault": {
+      "name": "Assault",
+      "summary": "A straight push to the target. Ends in a boss.",
+      "rows": 12,
+      "boss": true,
+      "refit_after_rows": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "elite_escort_from_row": 8,
+      "repair_before_boss": true,
+      "max_shops": 3
+    },
+    "deep_recon": {
+      "name": "Deep Recon",
+      "summary": "A longer route. Regular enemies are lighter, elites are tougher, and there's no boss: finishing it disables the next boss's weapons for its first turn.",
+      "rows": 16,
+      "weak_fights": 8,
+      "max_enemies": 2,
+      "boss": false,
+      "refit_after_rows": [
+        2,
+        5,
+        8,
+        11,
+        14
+      ],
+      "elite_escort_from_row": 0,
+      "grants_boss_intel": true,
+      "max_shops": 3
+    },
+    "rescue": {
+      "name": "Rescue",
+      "summary": "Get in and out fast: the Alert level rises with every turn spent fighting, and higher Alert makes every fight harder. Ends in a boss.",
+      "rows": 12,
+      "boss": true,
+      "refit_after_rows": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "elite_escort_from_row": 8,
+      "alert": {
+        "turns_per_tier": 12,
+        "max_tier": 4,
+        "deflect_per_tier": 2,
+        "extra_enemy_from_tier": 3
+      },
+      "repair_before_boss": true,
+      "max_shops": 3
+    },
+    "training": {
+      "name": "Training",
+      "summary": "Two short fights with a salvage and a refit between them. Doesn't count toward your record.",
+      "rows": 2,
+      "boss": false,
+      "refit_after_rows": [
+        0
+      ],
+      "elite_escort_from_row": 99,
+      "encounter": [
+        "scrap_warden"
+      ],
+      "training": true
+    }
+  }
+}

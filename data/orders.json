@@ -1,0 +1,191 @@
+{
+  "_note": "Deployment orders (Logan, 2026-09-29): the Operator offers three after Launch, one of each kind, shuffled, and the kind is never shown. boost = a plain boost; tradeoff = run-defining, with a cost; gamble = anything random. {name} in the text is filled from balance.json orders.<id>. Text is Claude's draft for Logan to vet.",
+  "orders": [
+    {
+      "id": "supply_drop",
+      "kind": "boost",
+      "name": "Supply Drop",
+      "text": "+{scraps} scraps."
+    },
+    {
+      "id": "requisition",
+      "kind": "boost",
+      "name": "Requisition",
+      "text": "Choose a category, then take 1 of 3 Salvaged parts from it."
+    },
+    {
+      "id": "extra_cell",
+      "kind": "boost",
+      "name": "Extra Frame Square",
+      "text": "Add a frame square wherever you want."
+    },
+    {
+      "id": "expanded_cargo",
+      "kind": "boost",
+      "name": "Expanded Cargo",
+      "text": "Cargo gets +{rows} row."
+    },
+    {
+      "id": "field_repair",
+      "kind": "boost",
+      "name": "Field Repair Kit",
+      "text": "Repair bays restore 50% more HP this run."
+    },
+    {
+      "id": "cold_start",
+      "kind": "boost",
+      "name": "Cold Start",
+      "text": "Your hardpoints start your first {fights} fights with Coolant {stacks}."
+    },
+    {
+      "id": "wider_picks",
+      "kind": "boost",
+      "name": "Wider Picks",
+      "text": "Salvage offers {options} parts instead of 3 after your first {fights} fights."
+    },
+    {
+      "id": "friendly_merchant",
+      "kind": "boost",
+      "name": "Friendly Merchant",
+      "text": "One part is free at your first autonomous bay."
+    },
+    {
+      "id": "stripped_frame",
+      "kind": "tradeoff",
+      "name": "Stripped Frame",
+      "text": "+{scraps} scraps. Choose one of your components to strip out; it's gone for the run."
+    },
+    {
+      "id": "modular_chassis",
+      "kind": "tradeoff",
+      "name": "Modular Chassis",
+      "text": "Add {cells} frame squares wherever you want. The components you launch with have 10 less max HP."
+    },
+    {
+      "id": "overclocked_core",
+      "kind": "tradeoff",
+      "name": "Overclocked Core",
+      "text": "+{max_heat} max heat. Venting drops from 80% to 60% at max heat."
+    },
+    {
+      "id": "hot_start",
+      "kind": "tradeoff",
+      "name": "Hot Start",
+      "text": "+{max_heat} max heat. Every fight starts with {start_heat} heat."
+    },
+    {
+      "id": "salvage_rights",
+      "kind": "tradeoff",
+      "name": "Salvage Rights",
+      "text": "Fights pay 50% more scraps. There are no repair bays on this route."
+    },
+    {
+      "id": "hunters_route",
+      "kind": "tradeoff",
+      "name": "Hunter's Route",
+      "text": "Elites roll rarity {elite_rolls} times and keep the best. Elites show up twice as often, from the second row on."
+    },
+    {
+      "id": "loan_shark",
+      "kind": "tradeoff",
+      "name": "Loan Shark",
+      "text": "+{scraps} scraps now. Your first {unpaid_fights} fights pay no scraps."
+    },
+    {
+      "id": "blind_drop",
+      "kind": "tradeoff",
+      "name": "Blind Drop",
+      "text": "+{scraps} scraps and take 1 of 3 Prototype parts. You only see {sight_rows} rows ahead on the map."
+    },
+    {
+      "id": "hot_insertion",
+      "kind": "tradeoff",
+      "name": "Hot Insertion",
+      "text": "Take 1 of 3 Salvaged parts, twice. Your first {strong_fights} fights are the tough ones."
+    },
+    {
+      "id": "heavy_hauler",
+      "kind": "tradeoff",
+      "name": "Heavy Hauler",
+      "text": "Cargo gets +{rows} rows and +{cols} column. 1 less max heat."
+    },
+    {
+      "id": "spare_parts",
+      "kind": "gamble",
+      "name": "Spare Parts Crate",
+      "text": "{parts} random Surplus parts, stowed in Cargo."
+    },
+    {
+      "id": "prototype_contract",
+      "kind": "gamble",
+      "name": "Prototype Contract",
+      "text": "A random Prototype part. Your installed components start at 60% HP."
+    },
+    {
+      "id": "scramble",
+      "kind": "gamble",
+      "name": "Scramble",
+      "text": "Every installed component is swapped for a random one of the same type, one rarity higher. You refit before you drop."
+    },
+    {
+      "id": "transmute",
+      "kind": "gamble",
+      "name": "Transmute",
+      "text": "Choose one installed component. It becomes a random one of the same type, one rarity higher. You refit before you drop."
+    },
+    {
+      "id": "heat_sinks",
+      "kind": "boost",
+      "name": "Heat Sinks",
+      "text": "+{max_heat} max heat."
+    },
+    {
+      "id": "wide_cargo",
+      "kind": "boost",
+      "name": "Wide Cargo",
+      "text": "Cargo gets +{cols} column."
+    },
+    {
+      "id": "black_market",
+      "kind": "tradeoff",
+      "name": "Black Market",
+      "text": "{free_parts} parts are free at your first autonomous bay. Fights pay 25% fewer scraps."
+    },
+    {
+      "id": "heavy_plating",
+      "kind": "tradeoff",
+      "name": "Heavy Plating",
+      "text": "The components you launch with get +{part_hp} max HP. Venting drops from 80% to 70% at max heat."
+    },
+    {
+      "id": "forced_march",
+      "kind": "tradeoff",
+      "name": "Forced March",
+      "text": "+{scraps} scraps. Half as many repair bays on this route."
+    },
+    {
+      "id": "special_requisition",
+      "kind": "tradeoff",
+      "name": "Special Requisition",
+      "text": "Choose a category, then take 1 of 3 Prototype parts from it. Every fight starts with {start_heat} heat."
+    },
+    {
+      "id": "mystery_crate",
+      "kind": "gamble",
+      "name": "Mystery Crate",
+      "text": "{parts} random parts of any type and rarity, stowed in Cargo."
+    },
+    {
+      "id": "coin_flip",
+      "kind": "gamble",
+      "name": "Coin Flip",
+      "text": "Heads: +{scraps} scraps. Tails: your components start at 70% HP."
+    },
+    {
+      "id": "unmapped_route",
+      "kind": "gamble",
+      "name": "Unmapped Route",
+      "text": "Nobody has charted this route: repair bays, autonomous bays, events and elites each show up anywhere from half as often to twice as often."
+    }
+  ]
+}

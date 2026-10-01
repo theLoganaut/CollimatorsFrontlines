@@ -1,0 +1,260 @@
+{
+  "_note": "Every tuning number in one place (Logan tunes; Claude's values are Proposed). Read through scripts/core/Balance.gd. Rerun the sim after changes: tools/balance_sim.sh.",
+  "combat": {
+    "_why": "Logan 2026-09-30: fights should run about 6 turns. Applied to every Refit Bay part as it loads (ComponentLibrary), player and enemy alike, so card faces show the scaled numbers; Refit Bay keeps the originals. damage_mult scales each card's damage range (rounded, at least 1). heat_add is added to every card that costs heat (Logan: +1 across the board); vent cards (negative cost) and free cards (protocols, Quick Draw) keep theirs. hp_mult scales every part's HP (rounded): with damage_mult 0.75 and heat_add 1 it brings fights to about 6 turns (Logan's target; sim, Bastion and Jackal, 2026-09-30). heat_mult then scales the heat cost of damage-dealing cards that cost heat (rounded).",
+    "damage_mult": 0.75,
+    "heat_add": 1,
+    "heat_mult": 1.0,
+    "hp_mult": 1.25
+  },
+  "heat": {
+    "_why": "Ratio venting: at max heat (or over) this share vents; below max it scales down with the heat % (Logan, 2026-09-28).",
+    "vent_at_max": 0.8,
+    "_why_vent_action": "The Vent action (Proposed default, 2026-09-30): a mech that spends its turn venting (the player before playing any card; an enemy with nothing it can play) vents this share of its heat at its next dispersal, as if it were at max.",
+    "vent_action_share": 0.8
+  },
+  "economy": {
+    "rarity_weights": {
+      "surplus": 0.7,
+      "salvaged": 0.25,
+      "prototype": 0.05
+    },
+    "options_per_pick": 3,
+    "elite_boss_rarity_rolls": 2,
+    "cell_price_base": 25,
+    "cell_price_step": 25,
+    "_scraps_why": "Doubled 2026-09-30 (Logan: double the scrap so shops are worth it; runs are twice as long too).",
+    "scraps_base": 20,
+    "scraps_per_enemy": 10,
+    "scraps_spread": 10,
+    "scraps_mult": {
+      "elite": 2.0
+    },
+    "prices": {
+      "surplus": 40,
+      "salvaged": 70,
+      "prototype": 120
+    },
+    "cargo_upgrade_base": 50,
+    "cargo_upgrade_growth": 1.5,
+    "repair_pool_fraction": 0.5,
+    "_shop_note": "Shop rework (Logan 2026-09-29/30: more options to buy from, no rerolls): shop_offers parts per category, each rolled for rarity; any part in Cargo or on the bench sells for its scrap value; once a visit, refine a part into a random one of its type one rarity up (refine_prices by its current rarity).",
+    "shop_offers": 2,
+    "refine_prices": {
+      "surplus": 60,
+      "salvaged": 120
+    },
+    "scrap_fraction": 0.5,
+    "_scrap_note": "Proposed (Claude, 2026-09-28): a part left on the refit / autonomous bay workbench is scrapped for scrap_fraction of its price, times its HP share.",
+    "_skip_why": "Skipping a salvage pick pays scraps (Logan, 2026-09-30: 10). At least the sell value of the cheapest part offered, so taking a part only to sell it never beats skipping.",
+    "skip_scraps": 10
+  },
+  "map": {
+    "min_per_row": 2,
+    "max_per_row": 4,
+    "start_min": 3,
+    "branch_chance": 0.4,
+    "repair_chance": 0.15,
+    "shop_chance": 0.12,
+    "event_chance": 0.14,
+    "elite_chance": 0.1,
+    "elite_min_row": 2,
+    "_event_shop_note": "Logan, 2026-09-30: some event stops turn out to be an abandoned autonomous bay (a shop), this often.",
+    "event_shop_chance": 0.1
+  },
+  "encounters": {
+    "_note": "Slay-the-Spire style: a run's first `weak_fights` regular fights draw from the location's weak pool, the rest from its strong pool (a mission can override). An encounter isn't repeated within `no_repeat` fights.",
+    "weak_fights": 6,
+    "no_repeat": 2
+  },
+  "enemy_ai": {
+    "reckless_overheat": 4,
+    "boss_phase_at": 0.5,
+    "_self_cost_note": "How much an enemy's card choice counts what the card costs its own part (EnemyAI._self_cost): subtracted from its score. self_offline_penalty for taking the part Offline for the rest of the fight (Precision Throw), self_disable_penalty per turn of Disabled or Freeze (Wrap Up). 0 = ignored (the AI before 2026-09-30). Claude's proposal for Logan: 30 and 0 (Balance Targets; a Disable penalty made Cipher easier).",
+    "self_offline_penalty": 0,
+    "self_disable_penalty": 0
+  },
+  "meta": {
+    "_note": "Chips: the meta currency (Logan, 2026-09-28). A day of 1-2 hours \u2248 2-3 runs + that day's Directives; a cosmetic should take several days.",
+    "_chips_why": "Halved 2026-09-30 (Logan: runs are longer, and Directives should be the main way to earn Chips).",
+    "chips_per_fight": 2,
+    "chips_per_elite": 5,
+    "chips_per_boss": 12,
+    "chips_for_clear": 15,
+    "directives_per_day": 3,
+    "livery_prices": {
+      "standard": 900,
+      "premium": 1500
+    },
+    "_memorial_note": "War Room Memorial Wall (Logan: starts empty, grows a bit every run and more per elite and boss). Its first trophy (the candle) shows at 1 point, then one more per memorial_per_trophy points, up to all 14. Point values are Proposed.",
+    "memorial_per_run": 1,
+    "memorial_per_elite": 2,
+    "memorial_per_boss": 5,
+    "memorial_per_trophy": 5,
+    "_weekly_note": "Weekly directives and streaks (Claude, 2026-09-30, Proposed): weekly_per_week goals a week; finishing all of a day's directives on consecutive days pays streak_chips_per_day \u00d7 the streak's days (capped at streak_max_days).",
+    "weekly_per_week": 2,
+    "streak_chips_per_day": 5,
+    "streak_max_days": 5
+  },
+  "orders": {
+    "_x2_note": "2026-09-30: runs doubled and scraps doubled, so Claude's scrap grants (Supply Drop, Loan Shark, Blind Drop) and fight-count durations (Cold Start, Wider Picks, Loan Shark, Hot Insertion) were doubled too. Logan's own numbers (Stripped Frame 200) are unchanged: vet.",
+    "_note": "Deployment orders (Logan, 2026-09-29): after Launch the Operator offers three, one boost, one tradeoff and one gamble (anything random is a gamble), shown in a shuffled order without saying which is which. Numbers are Proposed (Claude) unless Logan gave them. Names and text are in data/orders.json. Orders that hand out parts open the run with a refit, with Cargo 5\u00d75 for that refit (Logan, 2026-09-29).",
+    "supply_drop": {
+      "scraps": 150
+    },
+    "requisition": {
+      "rarity": "salvaged"
+    },
+    "extra_cell": {
+      "cells": 1
+    },
+    "expanded_cargo": {
+      "rows": 1
+    },
+    "field_repair": {
+      "repair_mult": 1.5
+    },
+    "cold_start": {
+      "fights": 4,
+      "stacks": 2
+    },
+    "wider_picks": {
+      "fights": 6,
+      "options": 4
+    },
+    "friendly_merchant": {
+      "free_parts": 1
+    },
+    "stripped_frame": {
+      "scraps": 200,
+      "_why": "Logan's numbers"
+    },
+    "modular_chassis": {
+      "cells": 2,
+      "part_hp": -10,
+      "_why": "Logan's numbers; the HP cut is only on the parts you launch with (Logan, 2026-09-29), so swapping them out escapes it (a part keeps at least 1)"
+    },
+    "overclocked_core": {
+      "max_heat": 3,
+      "vent_at_max": 0.6
+    },
+    "hot_start": {
+      "max_heat": 2,
+      "start_heat": 3
+    },
+    "salvage_rights": {
+      "scraps_mult": 1.5
+    },
+    "hunters_route": {
+      "elite_rolls": 3,
+      "elite_chance_mult": 2.0,
+      "elite_min_row": 1
+    },
+    "loan_shark": {
+      "scraps": 300,
+      "unpaid_fights": 6
+    },
+    "blind_drop": {
+      "scraps": 300,
+      "rarity": "prototype",
+      "sight_rows": 2,
+      "_why": "Logan 2026-09-29: planning matters, so it needs a huge upside; you still see two rows ahead"
+    },
+    "hot_insertion": {
+      "picks": 2,
+      "rarity": "salvaged",
+      "strong_fights": 4
+    },
+    "heavy_hauler": {
+      "rows": 2,
+      "cols": 1,
+      "max_heat": -1
+    },
+    "spare_parts": {
+      "parts": 2,
+      "rarity": "surplus"
+    },
+    "prototype_contract": {
+      "rarity": "prototype",
+      "hp_share": 0.6
+    },
+    "scramble": {},
+    "transmute": {},
+    "_2026_09_30_note": "Claude's 9 new orders (2026-09-30, Proposed): built only from effects the other orders already use. One order a run, so orders never stack (Logan, 2026-09-30).",
+    "heat_sinks": {
+      "max_heat": 1
+    },
+    "wide_cargo": {
+      "cols": 1
+    },
+    "black_market": {
+      "free_parts": 2,
+      "scraps_mult": 0.75
+    },
+    "heavy_plating": {
+      "part_hp": 12,
+      "vent_at_max": 0.7
+    },
+    "forced_march": {
+      "scraps": 120,
+      "repair_chance_mult": 0.5
+    },
+    "special_requisition": {
+      "start_heat": 2
+    },
+    "mystery_crate": {
+      "parts": 2
+    },
+    "coin_flip": {
+      "chance": 0.5,
+      "scraps": 250,
+      "hp_share": 0.7
+    },
+    "unmapped_route": {
+      "odds_min": 0.5,
+      "odds_max": 2.0
+    }
+  },
+  "conditions": {
+    "_note": "Location modifiers and mission variants (data/conditions.json), Proposed (Claude, 2026-09-30). variant_weights: how often each variant rolls. Sim (builder, 200 runs): with Rain 10% / Jam 1 / Smoke 2 clears fell ~8 points; at Rain 5% / Jam 1 / Smoke 1 about 2-4 (Jamming is most of it).",
+    "rain": {
+      "vent_drop": 0.05,
+      "vent_drop_pct": 5
+    },
+    "jamming": {
+      "stacks": 1
+    },
+    "dust": {
+      "stacks": 1
+    },
+    "braced": {
+      "stacks": 3
+    },
+    "blackout": {
+      "stacks": 2
+    },
+    "supply_line": {
+      "scraps_mult": 1.25,
+      "scraps_pct": 25,
+      "elite_chance_mult": 1.5
+    },
+    "low_visibility": {
+      "sight_rows": 3
+    },
+    "variant_weights": {
+      "standard": 4,
+      "hardened": 1,
+      "supply_line": 1,
+      "low_visibility": 1,
+      "blackout": 1
+    }
+  },
+  "daily": {
+    "_note": "Daily Operation score (Claude's draft, 2026-09-30, Proposed): points per stop, elite and boss, a bonus for clearing, and 1 point per damage_per_point damage dealt.",
+    "per_stop": 10,
+    "per_elite": 30,
+    "per_boss": 100,
+    "clear_bonus": 200,
+    "damage_per_point": 50
+  }
+}

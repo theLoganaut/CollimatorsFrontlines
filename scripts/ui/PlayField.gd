@@ -1,29 +1,64 @@
 class_name PlayField
 extends Control
-## Background catch-all covering the whole combat screen, added first (so
-## every other interactive element sits on top of it in the same viewport).
-## A self card released here — meaning "anywhere outside the hand" that
-## isn't a more specific drop target — resolves (Combat Rules §4.4). An
-## attack card released here has nowhere valid to land, so it's a no-op:
-## the drag simply ends via CardUI's own fallback and the card snaps back.
+## The combat screen's background, added first so everything else sits on
+## top of it. Card drops no longer route through here — see CardUI.gd.
+##
+## With a background from data/backgrounds.json it draws that image
+## (covering the screen, enlarged by its zoom from the bottom edge) and knows
+## where enemies' feet stand on its floor; without one it's the plain field.
+## A background with `weather` "rain" gets a Rain layer over the image (under
+## everything else on the screen).
 
-signal self_card_dropped(card: CardData)
+var background: Dictionary = {}
+var _texture: Texture2D = null
+var _rain: Rain = null
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	gui_input.connect(_on_gui_input)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	resized.connect(_fit_weather)
+
+func set_background(bg: Dictionary) -> void:
+	background = bg
+	var path: String = bg.get("image", "")
+	_texture = load(path) if path != "" and ResourceLoader.exists(path) else null
+	if _rain != null:
+		_rain.queue_free()
+		_rain = null
+	if _texture != null and bg.get("weather", "") == "rain":
+		_rain = Rain.new()
+		add_child(_rain)
+		_fit_weather()
+	queue_redraw()
+
+## The rain covers the field, lands on the background's ground and falls in
+## its pixel size.
+func _fit_weather() -> void:
+	if _rain == null:
+		return
+	var rect := image_rect()
+	_rain.size = size
+	_rain.setup(rect.position.y + float(background.get("ground", 0.5)) * rect.size.y, rect.size.x / _texture.get_width())
+
+## Where the background image sits on the screen.
+func image_rect() -> Rect2:
+	var tex_size := _texture.get_size()
+	var s := maxf(size.x / tex_size.x, size.y / tex_size.y) * float(background.get("zoom", 1.0))
+	var rect_size := tex_size * s
+	return Rect2(Vector2((size.x - rect_size.x) / 2.0, size.y - rect_size.y), rect_size)
+
+## Where n enemies' feet stand, left to right ([] = no background, or no
+## slots for n enemies).
+func feet_points(n: int) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	if _texture == null:
+		return out
+	var rect := image_rect()
+	for p in background.get("slots", {}).get(str(n), []):
+		out.append(rect.position + Vector2(p[0], p[1]) * rect.size)
+	return out
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Palette.BG, true)
-
-func _on_gui_input(event: InputEvent) -> void:
-	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
-		return
-	if UIState.dragging_card == null:
-		return
-	var card := UIState.dragging_card
-	if not card.is_attack():
-		self_card_dropped.emit(card)
-		get_viewport().set_input_as_handled()
-	# an attack card with nowhere valid to land is left alone — CardUI's own
-	# per-frame fallback notices the button is up and snaps it back.
+	if _texture != null:
+		draw_texture_rect(_texture, image_rect(), false)

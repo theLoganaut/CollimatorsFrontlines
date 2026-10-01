@@ -1,0 +1,119 @@
+{
+  "id": "caustic_engine",
+  "name": "Caustic Engine",
+  "tier": "elite",
+  "weight_class": "general",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "status",
+    "targets": "spread",
+    "slip": 0.2,
+    "protocols": 0.7,
+    "guard": 0.4,
+    "_why": "Coats everything in Burn and Acid, then splashes itself to vent."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "firestorm",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "caustic_schism",
+      "offset": [
+        1,
+        3
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "redirect_spike",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "reactive_plating",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 1
+    }
+  ]
+}

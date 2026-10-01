@@ -1,0 +1,127 @@
+{
+  "id": "bore_crawler",
+  "name": "Bore Crawler",
+  "tier": "elite",
+  "weight_class": "general",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "focus",
+    "slip": 0.2,
+    "protocols": 0.6,
+    "guard": 0.5,
+    "_why": "Slow and relentless: sets its drill aside with Standby and keeps burning the same part."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      0
+    ],
+    [
+      4,
+      1
+    ]
+  ],
+  "components": [
+    {
+      "id": "laser_drive",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "thermal_lance",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "thermal_core",
+      "offset": [
+        0,
+        3
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "queue_processor",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "nano_bots",
+      "offset": [
+        3,
+        3
+      ],
+      "rotation": 0
+    }
+  ]
+}

@@ -1,0 +1,989 @@
+{
+  "_note": "Event stops on the location map (Claude's drafts, vetted by Logan 2026-09-30: every choice that gains something also costs something, now or in the next fight, and the button says both). Outcomes only use existing mechanics and Refit Bay parts. Event keys (2026-09-30): sectors / missions limit where it comes up, requires_alert (on an event or a choice) needs the Alert (Rescue), steps + an outcome's goto make a multi-step event; a run doesn't repeat an event until it has seen them all. Outcome keys: scraps (negative = a cost, capped at what the pilot has), damage_random_part, repair, gain_part {category, rarity}, next_fight [{side, status, stacks, parts: hardpoints|all|mech}], alert_turns, chance + then/else, goto. Button text is built from the outcome (EventOutcome.summary).",
+  "events": [
+    {
+      "id": "derelict_frame",
+      "title": "Derelict Frame",
+      "text": "A downed frame, half buried. Its reactor housing is still warm.",
+      "choices": [
+        {
+          "label": "Strip the reactor",
+          "result": "You pry the housing loose. The frame gives way as you pull.",
+          "outcome": {
+            "gain_part": {
+              "category": "reactor",
+              "rarity": "surplus"
+            },
+            "damage_random_part": 8
+          }
+        },
+        {
+          "label": "Pull its scrap cache",
+          "result": "Fifty scraps, still sealed. The noise carries.",
+          "outcome": {
+            "scraps": 50,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 4,
+                "parts": "mech"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "sealed_cache",
+      "title": "Sealed Supply Cache",
+      "text": "A hardened cache, rigged to vent if forced.",
+      "choices": [
+        {
+          "label": "Cut it open",
+          "result": "It vents in your face. The scraps are worth it.",
+          "outcome": {
+            "scraps": 90,
+            "damage_random_part": 12
+          }
+        },
+        {
+          "label": "Leave it",
+          "result": "Not worth the risk.",
+          "outcome": {}
+        }
+      ]
+    },
+    {
+      "id": "distress_beacon",
+      "title": "Distress Beacon",
+      "text": "A friendly beacon, looping. Could be a survivor. Could be bait.",
+      "choices": [
+        {
+          "label": "Answer it",
+          "outcome": {
+            "chance": 0.5,
+            "then": {
+              "result": "A stranded pilot. They hand over what they carried.",
+              "gain_part": {
+                "category": "hardpoint",
+                "rarity": "surplus"
+              }
+            },
+            "else": {
+              "result": "Bait. They were waiting. Your next fight starts with the enemy braced.",
+              "next_fight": [
+                {
+                  "side": "enemy",
+                  "status": "deflect",
+                  "stacks": 3,
+                  "parts": "mech"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Keep moving",
+          "result": "You mark it and move on.",
+          "outcome": {}
+        }
+      ]
+    },
+    {
+      "id": "coolant_leak",
+      "title": "Coolant Leak",
+      "text": "A ruptured coolant main, still pressurized.",
+      "choices": [
+        {
+          "label": "Flush your systems",
+          "result": "Cold runs through the frame. Repairs hold, but sludge settles in the actuators.",
+          "outcome": {
+            "repair": 20,
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "jam",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Bottle it for later",
+          "result": "Your hardpoints run cold next fight. The canister bursts as you seal it.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "coolant",
+                "stacks": 2,
+                "parts": "hardpoints"
+              }
+            ],
+            "damage_random_part": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "abandoned_bay",
+      "title": "Abandoned Autonomous Bay",
+      "text": "A bay with its power cut. One locker still answers.",
+      "choices": [
+        {
+          "label": "Force the locker",
+          "outcome": {
+            "chance": 0.6,
+            "then": {
+              "result": "A protocol module, intact.",
+              "gain_part": {
+                "category": "protocol",
+                "rarity": "surplus"
+              }
+            },
+            "else": {
+              "result": "Empty. The door takes a piece of you on the way out.",
+              "damage_random_part": 10
+            }
+          }
+        },
+        {
+          "label": "Sell its scrap",
+          "result": "Thirty scraps. The salvage takes time.",
+          "outcome": {
+            "scraps": 30,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 3,
+                "parts": "mech"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "live_relay",
+      "title": "Live Relay",
+      "text": "A relay tower, still humming. You could draw from it.",
+      "choices": [
+        {
+          "label": "Charge your shielding",
+          "result": "Absorb banked for the next fight. The relay broadcasts your position.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "absorb",
+                "stacks": 40,
+                "parts": "mech"
+              },
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 4,
+                "parts": "mech"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Overload it toward them",
+          "result": "The next enemy group's hardpoints will be Jammed. The feedback bites back.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "jam",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ],
+            "damage_random_part": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "minefield",
+      "title": "Minefield",
+      "text": "The fast route runs through an old minefield.",
+      "choices": [
+        {
+          "label": "Push through",
+          "result": "Something goes off under you.",
+          "outcome": {
+            "damage_random_part": 15
+          }
+        },
+        {
+          "label": "Take the long way",
+          "result": "Slower. They've dug in by the time you arrive.",
+          "outcome": {
+            "alert_turns": 12,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 4,
+                "parts": "mech"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "corrupted_signal",
+      "title": "Corrupted Signal",
+      "text": "Chatter on an old squad channel. The voice is wrong.",
+      "choices": [
+        {
+          "label": "Trace it",
+          "result": "You find where they're staging. Their next group starts Shocked, and so do you: it runs both ways.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "shock",
+                "stacks": 2,
+                "parts": "hardpoints"
+              },
+              {
+                "side": "player",
+                "status": "shock",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Cut the channel",
+          "result": "Silence. Better that way.",
+          "outcome": {}
+        }
+      ]
+    },
+    {
+      "id": "wrecked_convoy",
+      "title": "Wrecked Convoy",
+      "text": "A supply convoy, picked over but not clean.",
+      "choices": [
+        {
+          "label": "Search the trucks",
+          "result": "A hardpoint, still boxed. Scavengers arrive while you dig.",
+          "outcome": {
+            "gain_part": {
+              "category": "hardpoint",
+              "rarity": "surplus"
+            },
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 4,
+                "parts": "mech"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Drain the fuel cells",
+          "result": "Sixty scraps. Fuel on the frame.",
+          "outcome": {
+            "scraps": 60,
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "burn",
+                "stacks": 2,
+                "parts": "hardpoints"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "field_repair_rig",
+      "title": "Field Repair Rig",
+      "text": "A repair rig left running. One charge left.",
+      "choices": [
+        {
+          "label": "Use it",
+          "result": "Patched and sealed. The rig takes power to run.",
+          "outcome": {
+            "repair": 30,
+            "scraps": -20
+          }
+        },
+        {
+          "label": "Strip it for scraps",
+          "result": "Forty scraps. It arcs as you cut.",
+          "outcome": {
+            "scraps": 40,
+            "damage_random_part": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "flooded_drydock",
+      "title": "Flooded Dry Dock",
+      "sectors": [
+        "shipyard"
+      ],
+      "text": "A dry dock, half flooded. Something big is still clamped in the cradle.",
+      "choices": [
+        {
+          "label": "Pump it out",
+          "result": "The pumps grind for an hour. Whatever's out there heard them.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 3,
+                "parts": "mech"
+              }
+            ],
+            "goto": "cradle"
+          }
+        },
+        {
+          "label": "Leave it",
+          "result": "Not worth the noise.",
+          "outcome": {}
+        }
+      ],
+      "steps": {
+        "cradle": {
+          "text": "The water drains off a Salvaged frame in the cradle, and a sealed tool locker.",
+          "choices": [
+            {
+              "label": "Cut the frame free",
+              "result": "The cradle's clamps snap as it comes loose.",
+              "outcome": {
+                "gain_part": {
+                  "category": "hardpoint",
+                  "rarity": "salvaged"
+                },
+                "damage_random_part": 10
+              }
+            },
+            {
+              "label": "Crack the locker",
+              "result": "Seventy scraps of tools. Their grease gets into everything.",
+              "outcome": {
+                "scraps": 70,
+                "next_fight": [
+                  {
+                    "side": "player",
+                    "status": "jam",
+                    "stacks": 1,
+                    "parts": "hardpoints"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "gantry_crane",
+      "title": "Gantry Crane",
+      "sectors": [
+        "shipyard"
+      ],
+      "text": "A gantry crane on autopilot, still swinging containers over the yard.",
+      "choices": [
+        {
+          "label": "Ride it up for a look",
+          "result": "From the top you see their patrol lines. The crane drops you hard on the way down.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "disabled",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ],
+            "damage_random_part": 14
+          }
+        },
+        {
+          "label": "Drop a container on their route",
+          "outcome": {
+            "chance": 0.5,
+            "then": {
+              "result": "It lands square on their column. The next group comes in dented.",
+              "next_fight": [
+                {
+                  "side": "enemy",
+                  "status": "acid",
+                  "stacks": 2,
+                  "parts": "all"
+                }
+              ]
+            },
+            "else": {
+              "result": "It swings back the wrong way.",
+              "damage_random_part": 12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "cold_storage",
+      "title": "Cold Storage Vault",
+      "sectors": [
+        "data_archives"
+      ],
+      "text": "Server racks in a vault kept near freezing. The cooling plant still answers.",
+      "choices": [
+        {
+          "label": "Tap the coolant lines",
+          "result": "Your hardpoints run cold. The vapor clogs your vents.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "coolant",
+                "stacks": 2,
+                "parts": "hardpoints"
+              },
+              {
+                "side": "player",
+                "status": "smoke",
+                "stacks": 3,
+                "parts": "mech"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Pull the drives",
+          "result": "Sixty scraps of storage. The vault's alarm trips as you leave.",
+          "outcome": {
+            "scraps": 60,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 3,
+                "parts": "mech"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "live_terminal",
+      "title": "Live Terminal",
+      "sectors": [
+        "data_archives"
+      ],
+      "text": "A terminal still logged in to their network. The session could time out any second.",
+      "choices": [
+        {
+          "label": "Open their patrol logs",
+          "result": "Routes scroll past faster than you can read them.",
+          "outcome": {
+            "goto": "logs"
+          }
+        },
+        {
+          "label": "Rip out its power cells",
+          "result": "Thirty scraps. The terminal arcs as you pull.",
+          "outcome": {
+            "scraps": 30,
+            "damage_random_part": 6
+          }
+        }
+      ],
+      "steps": {
+        "logs": {
+          "text": "You have a few seconds. Burn a decryption key to lock their weapons' firmware, or plant a false route and hope they take it.",
+          "choices": [
+            {
+              "label": "Burn a decryption key",
+              "result": "Their next group's weapons are stuck in a firmware loop. The key cost you.",
+              "outcome": {
+                "scraps": -30,
+                "next_fight": [
+                  {
+                    "side": "enemy",
+                    "status": "jam",
+                    "stacks": 1,
+                    "parts": "hardpoints"
+                  }
+                ]
+              }
+            },
+            {
+              "label": "Plant a false route",
+              "outcome": {
+                "chance": 0.6,
+                "then": {
+                  "result": "They take it. You catch the next group out of position.",
+                  "next_fight": [
+                    {
+                      "side": "enemy",
+                      "status": "disabled",
+                      "stacks": 1,
+                      "parts": "hardpoints"
+                    }
+                  ]
+                },
+                "else": {
+                  "result": "They trace it back to you. The next group is waiting, and your systems are spiked.",
+                  "next_fight": [
+                    {
+                      "side": "player",
+                      "status": "shock",
+                      "stacks": 2,
+                      "parts": "hardpoints"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "runaway_hauler",
+      "title": "Runaway Ore Hauler",
+      "sectors": [
+        "mining_grounds"
+      ],
+      "text": "An ore hauler rolls downhill with no one at the wheel. There's a sealed parts crate on the back.",
+      "choices": [
+        {
+          "label": "Board it and grab the crate",
+          "result": "You get the crate. The hauler takes a piece of you when it hits the pit wall.",
+          "outcome": {
+            "gain_part": {
+              "category": "reactor",
+              "rarity": "salvaged"
+            },
+            "damage_random_part": 14
+          }
+        },
+        {
+          "label": "Steer it into their line",
+          "result": "It plows into their next group and burns. The debris comes back your way.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "burn",
+                "stacks": 2,
+                "parts": "all"
+              }
+            ],
+            "damage_random_part": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "blasting_charges",
+      "title": "Blasting Charges",
+      "sectors": [
+        "mining_grounds"
+      ],
+      "text": "A crate of mining charges, sweating in the heat.",
+      "choices": [
+        {
+          "label": "Take them",
+          "result": "You strap the crate down. It runs hot against your frame.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "burn",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ],
+            "goto": "use"
+          }
+        },
+        {
+          "label": "Leave them",
+          "result": "You give the crate a wide berth.",
+          "outcome": {}
+        }
+      ],
+      "steps": {
+        "use": {
+          "text": "Where do they go?",
+          "choices": [
+            {
+              "label": "Mine their next approach",
+              "result": "Most go off under them. One goes off early.",
+              "outcome": {
+                "next_fight": [
+                  {
+                    "side": "enemy",
+                    "status": "acid",
+                    "stacks": 2,
+                    "parts": "all"
+                  }
+                ],
+                "damage_random_part": 6
+              }
+            },
+            {
+              "label": "Sell them to a mining crew",
+              "result": "Eighty scraps. The crew talks, and the next group is ready.",
+              "outcome": {
+                "scraps": 80,
+                "next_fight": [
+                  {
+                    "side": "enemy",
+                    "status": "deflect",
+                    "stacks": 3,
+                    "parts": "mech"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "listening_post",
+      "title": "Listening Post",
+      "missions": [
+        "deep_recon"
+      ],
+      "text": "An abandoned listening post on a ridge, its dish still pointed at their backline.",
+      "choices": [
+        {
+          "label": "Recalibrate the dish",
+          "result": "You feed it spare parts until it locks on. Their next group's weapons are blind for a turn.",
+          "outcome": {
+            "scraps": -40,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "disabled",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Strip the dish",
+          "result": "A working protocol module. The dish tears loose and clips you.",
+          "outcome": {
+            "gain_part": {
+              "category": "protocol",
+              "rarity": "surplus"
+            },
+            "damage_random_part": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "pinned_squad",
+      "title": "Pinned-Down Squad",
+      "requires_alert": true,
+      "text": "Friendly infantry, pinned down, calling for any frame in range.",
+      "choices": [
+        {
+          "label": "Break them out",
+          "result": "You clear the position. Their tech patches you up, and they pay what they carry. It takes time.",
+          "outcome": {
+            "repair": 25,
+            "scraps": 40,
+            "alert_turns": 12,
+            "damage_random_part": 10
+          }
+        },
+        {
+          "label": "Mark them for extraction",
+          "result": "They'll cover your flank on the next push while the pickup comes.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "deflect",
+                "stacks": 5,
+                "parts": "mech"
+              }
+            ],
+            "alert_turns": 6
+          }
+        },
+        {
+          "label": "Keep moving",
+          "result": "You log their position and go.",
+          "outcome": {}
+        }
+      ]
+    },
+    {
+      "id": "jammer_array",
+      "title": "Jammer Array",
+      "requires_alert": true,
+      "text": "A jamming array on a hill, painting your position for their patrols.",
+      "choices": [
+        {
+          "label": "Wreck it",
+          "result": "It goes down fighting. Their next group loses its targeting links.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "jam",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ],
+            "damage_random_part": 12
+          }
+        },
+        {
+          "label": "Turn it on them",
+          "outcome": {
+            "chance": 0.5,
+            "then": {
+              "result": "Their next group's systems spike.",
+              "next_fight": [
+                {
+                  "side": "enemy",
+                  "status": "shock",
+                  "stacks": 2,
+                  "parts": "hardpoints"
+                }
+              ]
+            },
+            "else": {
+              "result": "It screams your position to everyone.",
+              "alert_turns": 12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "unmarked_crate",
+      "title": "Unmarked Crate",
+      "text": "A crate with a prototype stencil and a bio-lock that has seen better days.",
+      "choices": [
+        {
+          "label": "Force the lock",
+          "outcome": {
+            "chance": 0.35,
+            "then": {
+              "result": "Prototype hardware, still in the foam.",
+              "gain_part": {
+                "category": "hardpoint",
+                "rarity": "prototype"
+              }
+            },
+            "else": {
+              "result": "The lock's charge goes off in your hands.",
+              "damage_random_part": 16
+            }
+          }
+        },
+        {
+          "label": "Haul it to a broker",
+          "result": "Sixty scraps. You spend the day hauling it, and grit gets in the actuators.",
+          "outcome": {
+            "scraps": 60,
+            "next_fight": [
+              {
+                "side": "player",
+                "status": "jam",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scavenger_frame",
+      "title": "Scavenger Frame",
+      "text": "A scavenger frame is stripping a wreck. It hasn't seen you.",
+      "choices": [
+        {
+          "label": "Chase it off",
+          "result": "It drops fifty scraps and runs. It comes back with friends, shields up.",
+          "outcome": {
+            "scraps": 50,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "absorb",
+                "stacks": 20,
+                "parts": "mech"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Trade with it",
+          "result": "It wants scraps for a reactor it pulled.",
+          "outcome": {
+            "scraps": -40,
+            "gain_part": {
+              "category": "reactor",
+              "rarity": "surplus"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio_silence",
+      "title": "Radio Silence",
+      "text": "Command orders silence while a patrol passes overhead.",
+      "choices": [
+        {
+          "label": "Hold still and patch up",
+          "result": "You make field repairs in the dark. The patrol settles in ahead of you.",
+          "outcome": {
+            "repair": 15,
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "deflect",
+                "stacks": 2,
+                "parts": "mech"
+              }
+            ],
+            "alert_turns": 6
+          }
+        },
+        {
+          "label": "Break silence for a supply drop",
+          "result": "Sixty scraps in the pod. It lands too close.",
+          "outcome": {
+            "scraps": 60,
+            "damage_random_part": 8
+          }
+        },
+        {
+          "label": "Ride the patrol's wake",
+          "requires_alert": true,
+          "result": "You follow them in and hit the next group before it's ready. The patrol notices on the way out.",
+          "outcome": {
+            "next_fight": [
+              {
+                "side": "enemy",
+                "status": "disabled",
+                "stacks": 1,
+                "parts": "hardpoints"
+              }
+            ],
+            "alert_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "collapsed_depot",
+      "title": "Collapsed Depot",
+      "text": "A depot roof has come down on its stock. There's a way in, barely.",
+      "choices": [
+        {
+          "label": "Squeeze in",
+          "result": "Tight. Something scrapes your frame the whole way.",
+          "outcome": {
+            "damage_random_part": 6,
+            "goto": "inside"
+          }
+        },
+        {
+          "label": "Leave it",
+          "result": "You don't trust that roof.",
+          "outcome": {}
+        }
+      ],
+      "steps": {
+        "inside": {
+          "text": "Two shelves survived: a boxed part, and sealed repair kits.",
+          "choices": [
+            {
+              "label": "Take the part",
+              "result": "A hardpoint, still boxed. The dust gets into your actuators on the way out.",
+              "outcome": {
+                "gain_part": {
+                  "category": "hardpoint",
+                  "rarity": "surplus"
+                },
+                "next_fight": [
+                  {
+                    "side": "player",
+                    "status": "jam",
+                    "stacks": 1,
+                    "parts": "hardpoints"
+                  }
+                ]
+              }
+            },
+            {
+              "label": "Take the kits",
+              "result": "You patch up, and leave scrap behind to prop the roof.",
+              "outcome": {
+                "repair": 30,
+                "scraps": -15
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "field_tech",
+      "title": "Field Tech",
+      "text": "A frightened field tech with a working rig, charging for anything.",
+      "choices": [
+        {
+          "label": "Pay for repairs",
+          "result": "Careful work, at a price.",
+          "outcome": {
+            "repair": 40,
+            "scraps": -50
+          }
+        },
+        {
+          "label": "Pay for a module",
+          "result": "The tech pulls a Salvaged protocol from under the bench.",
+          "outcome": {
+            "scraps": -60,
+            "gain_part": {
+              "category": "protocol",
+              "rarity": "salvaged"
+            }
+          }
+        },
+        {
+          "label": "Move on",
+          "result": "The tech watches you go.",
+          "outcome": {}
+        }
+      ]
+    }
+  ]
+}

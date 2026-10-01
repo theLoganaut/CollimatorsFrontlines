@@ -1,0 +1,5283 @@
+{
+ "_source": "Refit Bay export, verbatim (tools/import_refit_bay.py). Mechanics: data/component_rules.json.",
+ "components": [
+  {
+   "id": "autocannon",
+   "name": "Autocannon",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "single_shot",
+     "name": "Single Shot",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "rapid_fire",
+     "name": "Rapid Fire",
+     "heat_cost": "4",
+     "hits": "5",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": "Reduces chance to fire by 20% each hit after the second."
+    }
+   ]
+  },
+  {
+   "id": "hv_rifle",
+   "name": "HV Rifle",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "shock_round",
+     "name": "Shock Round",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "12-16",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": "25% chance to apply."
+    },
+    {
+     "id": "emp_round",
+     "name": "EMP Round",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Deals triple damage if the targeted hard point is already shocked."
+    }
+   ]
+  },
+  {
+   "id": "ion_blade",
+   "name": "Ion Blade",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 40,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "swipe",
+     "name": "Swipe",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "6-12",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "thrust_through",
+     "name": "Thrust Through",
+     "heat_cost": "6",
+     "hits": "1",
+     "damage": "12-16",
+     "statuses": [],
+     "effect_text": "Deals double damage to hard points at half or lower."
+    },
+    {
+     "id": "foresight",
+     "name": "Foresight",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "0",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "1",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "laser_drive",
+   "name": "Laser Drive",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 44,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "helix_drum",
+     "name": "Helix Drum",
+     "heat_cost": "4",
+     "hits": "2",
+     "damage": "10-12",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "optical_pinpoint",
+     "name": "Optical Pinpoint",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "22-28",
+     "statuses": [],
+     "effect_text": "Disables the target hardpoint for one round."
+    },
+    {
+     "id": "rainbow_rain",
+     "name": "Rainbow Rain",
+     "heat_cost": "8",
+     "hits": "6",
+     "damage": "4-8",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "neon_axe",
+   "name": "Neon Axe",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 64,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "wide_swing",
+     "name": "Wide Swing",
+     "heat_cost": "4",
+     "hits": "3",
+     "damage": "6-10",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "cross_chop",
+     "name": "Cross Chop",
+     "heat_cost": "6",
+     "hits": "2",
+     "damage": "14-20",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "extension",
+     "name": "Extension",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "0",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "1",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "caustic_schism",
+   "name": "Caustic Schism",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 50,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "spillage",
+     "name": "Spillage",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": "Repeat this effect the next two turns."
+    },
+    {
+     "id": "self_splash",
+     "name": "Self Splash",
+     "heat_cost": "-3",
+     "hits": "1",
+     "damage": "24-32",
+     "statuses": [],
+     "effect_text": "Vents heat at the cost of taking damage."
+    },
+    {
+     "id": "acid_rain",
+     "name": "Acid Rain",
+     "heat_cost": "3",
+     "hits": "3",
+     "damage": "5-10",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "railspike",
+   "name": "Railspike",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 42,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "33_power_rail",
+     "name": "33% Power Rail",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "8-14",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "66_power_rail",
+     "name": "66% Power Rail",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "20-32",
+     "statuses": [
+      {
+       "status": "offline",
+       "stacks": "",
+       "target": "self"
+      }
+     ],
+     "effect_text": "50% chance to apply."
+    },
+    {
+     "id": "100_power_rail",
+     "name": "100% Power Rail",
+     "heat_cost": "6",
+     "hits": "1",
+     "damage": "40-54",
+     "statuses": [
+      {
+       "status": "offline",
+       "stacks": "",
+       "target": "self"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "cluster_rockets",
+   "name": "Cluster Rockets",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 40,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "salvo_fire",
+     "name": "Salvo Fire",
+     "heat_cost": "3",
+     "hits": "6",
+     "damage": "3-6",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "all_0ut_salvo",
+     "name": "All 0ut Salvo",
+     "heat_cost": "5",
+     "hits": "10",
+     "damage": "3-6",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "firestorm",
+   "name": "FireStorm",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "set_ablaze",
+     "name": "Set Ablaze",
+     "heat_cost": "3",
+     "hits": "3",
+     "damage": "6-10",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "3",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "lay_waste",
+     "name": "Lay Waste",
+     "heat_cost": "5",
+     "hits": "2",
+     "damage": "8-12",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "1",
+       "target": "allEnemies"
+      }
+     ],
+     "effect_text": "Hits all enemies."
+    }
+   ]
+  },
+  {
+   "id": "thermal_lance",
+   "name": "Thermal Lance",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "piercing_rush",
+     "name": "Piercing Rush",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "precision_throw",
+     "name": "Precision Throw",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "16-22",
+     "statuses": [
+      {
+       "status": "offline",
+       "stacks": "",
+       "target": "self"
+      },
+      {
+       "status": "burn",
+       "stacks": "3",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "voltage_spike",
+   "name": "Voltage Spike",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 54,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "spike_em",
+     "name": "Spike 'Em",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "6-10",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "spike_setup",
+     "name": "Spike Setup",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "0",
+     "statuses": [
+      {
+       "status": "absorb",
+       "stacks": "5",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "hell_dropper",
+   "name": "Hell Dropper",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "targeted_napalm",
+     "name": "Targeted Napalm",
+     "heat_cost": "4",
+     "hits": "3",
+     "damage": "7-10",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "napalm_rain",
+     "name": "Napalm Rain",
+     "heat_cost": "4",
+     "hits": "2",
+     "damage": "7-10",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "1",
+       "target": "allEnemies"
+      }
+     ],
+     "effect_text": "Hits all enemies; 50% chance per hit."
+    }
+   ]
+  },
+  {
+   "id": "arc_whip",
+   "name": "Arc Whip",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "whiplash",
+     "name": "Whiplash",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "7-11",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "wrap_up",
+     "name": "Wrap Up",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "8-13",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "4",
+       "target": "enemy"
+      },
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "fang_blade",
+   "name": "Fang Blade",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "embed",
+     "name": "Embed",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "7-14",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "enemy"
+      },
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "jab_jab_jab",
+     "name": "Jab Jab Jab!",
+     "heat_cost": "4",
+     "hits": "4",
+     "damage": "6-9",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "impact_hammer",
+   "name": "Impact Hammer",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 70,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "hammer_down",
+     "name": "Hammer Down",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "14-22",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "leap_slam",
+     "name": "Leap Slam",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "22-30",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "flare_array",
+   "name": "Flare Array",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 58,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "eject_flares",
+     "name": "Eject Flares",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "0",
+     "statuses": [
+      {
+       "status": "absorb",
+       "stacks": "10",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "heat_eject",
+     "name": "Heat Eject",
+     "heat_cost": "-3",
+     "hits": "0",
+     "damage": "0",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "scatter_shot",
+   "name": "Scatter Shot",
+   "claude_draft": false,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 46,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "blast_em",
+     "name": "Blast 'Em",
+     "heat_cost": "2",
+     "hits": "4",
+     "damage": "2-6",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "empty_clip",
+     "name": "Empty Clip",
+     "heat_cost": "3",
+     "hits": "6",
+     "damage": "2-6",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "thermal_core",
+   "name": "Thermal Core",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "thermal_core",
+     "name": "Thermal Core",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "+2 Max Heat while installed."
+    }
+   ]
+  },
+  {
+   "id": "coolant_loop",
+   "name": "Coolant Loop",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "coolant_loop",
+     "name": "Coolant Loop",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "+1 Heat decay at turn start while installed."
+    }
+   ]
+  },
+  {
+   "id": "recycling_loops",
+   "name": "Recycling Loops",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 22,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Venturi Injector.",
+   "cards": [
+    {
+     "id": "recycling_loops",
+     "name": "Recycling Loops",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Whenever you vent, your next attack card played this turn deals bonus damage equal to the amount of heat vented."
+    }
+   ]
+  },
+  {
+   "id": "exhaust_fans",
+   "name": "Exhaust Fans",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 22,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Choke Ward.",
+   "cards": [
+    {
+     "id": "exhaust_fans",
+     "name": "Exhaust Fans",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Reduces incoming Smoke stacks by 1 whenever Smoke is applied to this mech."
+    }
+   ]
+  },
+  {
+   "id": "overpressure_valve",
+   "name": "Overpressure Valve",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Heat decay's baseline rule is still open — revisit once that's settled.",
+   "cards": [
+    {
+     "id": "overpressure_valve",
+     "name": "Overpressure Valve",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "+Max Heat while installed. −1 Heat decay at turn start while installed."
+    }
+   ]
+  },
+  {
+   "id": "plated_housing",
+   "name": "Plated Housing",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Resolved: reframed from a static +HP grant to a directional damage-soak. Needs a per-component \"facing\" attribute in the shape editor (which edge the arrow is on) plus adjacency-check logic in Loadout Test to actually enforce — not yet supported by the tool. First of the new adjacent/pointing/row-or-column family of component-interaction mechanics.",
+   "cards": [
+    {
+     "id": "plated_housing",
+     "name": "Plated Housing",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Has a direction (a yellow arrow on one edge of its shape). Give the HP of this reactor to the component its facing."
+    }
+   ]
+  },
+  {
+   "id": "redirect_spike",
+   "name": "Redirect Spike",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Reinforced Spar. HP set to 35.",
+   "cards": [
+    {
+     "id": "redirect_spike",
+     "name": "Redirect Spike",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Whenever another component on this mech would take damage, redirect that damage to this component instead."
+    }
+   ]
+  },
+  {
+   "id": "nano_bots",
+   "name": "Nano Bots",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Autorepair Cell.",
+   "cards": [
+    {
+     "id": "nano_bots",
+     "name": "Nano Bots",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Heals a small flat amount to the lowest-HP component on this mech at turn start."
+    }
+   ]
+  },
+  {
+   "id": "redundant_wiring",
+   "name": "Redundant Wiring",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Resolved: Redundant Wiring is destroyed the moment it triggers, so it saves one component once and is gone.",
+   "cards": [
+    {
+     "id": "redundant_wiring",
+     "name": "Redundant Wiring",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "The first time a component on this mech would be destroyed, it is left at 1 HP instead — then Redundant Wiring itself is destroyed."
+    }
+   ]
+  },
+  {
+   "id": "coolant_flush",
+   "name": "Coolant Flush",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Cryo Bleed. Resolved: targets via facing/pointing (same family as Plated Housing), not a random hardpoint. The status entry below still uses \"self\" as a placeholder — needs a \"pointed target\" status-target option once the facing mechanic is built.",
+   "cards": [
+    {
+     "id": "coolant_flush",
+     "name": "Coolant Flush",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "coolant",
+       "stacks": "1",
+       "target": "linked"
+      }
+     ],
+     "effect_text": "At the start of combat, applies Coolant to whatever component it points at (its facing arrow) — not this component itself."
+    }
+   ]
+  },
+  {
+   "id": "insulated_core",
+   "name": "Insulated Core",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 18,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "insulated_core",
+     "name": "Insulated Core",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Reduces incoming Acid and Shock stacks by 1 whenever applied to this mech."
+    }
+   ]
+  },
+  {
+   "id": "capacitor_bank",
+   "name": "Capacitor Bank",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "capacitor_bank",
+     "name": "Capacitor Bank",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "absorb",
+       "stacks": "25",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Triggers automatically at turn start (not a played card)."
+    }
+   ]
+  },
+  {
+   "id": "reactive_plating",
+   "name": "Reactive Plating",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "reactive_plating",
+     "name": "Reactive Plating",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "5",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Triggers automatically whenever this mech takes damage (not a played card)."
+    }
+   ]
+  },
+  {
+   "id": "overclock_shunt",
+   "name": "Overclock Shunt",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "",
+   "cards": [
+    {
+     "id": "overclock_shunt",
+     "name": "Overclock Shunt",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "The first card you play each turn costs 1 less Heat."
+    }
+   ]
+  },
+  {
+   "id": "high_five",
+   "name": "High Five",
+   "claude_draft": false,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Formerly Twin Feed.",
+   "cards": [
+    {
+     "id": "high_five",
+     "name": "High Five",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "The 5th attack card you play in a single turn hits twice at no extra Heat cost."
+    }
+   ]
+  },
+  {
+   "id": "echo_buffer",
+   "name": "Echo Buffer",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Most direct route to going infinite; the rising cost keeps it risky.",
+   "cards": [
+    {
+     "id": "replay",
+     "name": "Replay",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Play the last card you used this turn again, for +2 Heat."
+    }
+   ]
+  },
+  {
+   "id": "targeting_computer",
+   "name": "Targeting Computer",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Turns spread weapons (Scatter Shot, Cluster Rockets) into precision component-killers.",
+   "cards": [
+    {
+     "id": "lock_on",
+     "name": "Lock On",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack deals +25–35% damage."
+    }
+   ]
+  },
+  {
+   "id": "munitions_splitter",
+   "name": "Munitions Splitter",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Bad for raw damage; great for status stacking and reaching High Five's fifth attack.",
+   "cards": [
+    {
+     "id": "split_feed",
+     "name": "Split Feed",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next card gets double the hits at half the damage per hit."
+    }
+   ]
+  },
+  {
+   "id": "catalyst_injector",
+   "name": "Catalyst Injector",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 28,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Burn/Acid build payoff.",
+   "cards": [
+    {
+     "id": "catalyze",
+     "name": "Catalyze",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next card applies +2 stacks of every status it already applies."
+    }
+   ]
+  },
+  {
+   "id": "payload_converter",
+   "name": "Payload Converter",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Lets a strong weapon stay useful when its normal status doesn't suit the fight.",
+   "cards": [
+    {
+     "id": "reroute",
+     "name": "Reroute",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Swap the status on your next card for a different one (e.g. Burn into Shock)."
+    }
+   ]
+  },
+  {
+   "id": "queue_processor",
+   "name": "Queue Processor",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 22,
+   "cells": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Plays around heat-check timings, especially Redline's end-of-turn check.",
+   "cards": [
+    {
+     "id": "standby",
+     "name": "Standby",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Set a card aside; it plays automatically at the start of your next turn for 0 Heat."
+    }
+   ]
+  },
+  {
+   "id": "overdrive_chip",
+   "name": "Overdrive Chip",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Big spike, real cost.",
+   "cards": [
+    {
+     "id": "overdrive",
+     "name": "Overdrive",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next card deals double damage, then the component that played it is Disabled."
+    }
+   ]
+  },
+  {
+   "id": "fire_control_relay",
+   "name": "Fire Control Relay",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "multi",
+    "dirs": [
+     "left",
+     "right"
+    ],
+    "reach": "vector"
+   },
+   "notes": "Link set to Left + Right / Vector (its whole row) as a starting point — the payoff is all about row/column placement.",
+   "cards": [
+    {
+     "id": "salvo",
+     "name": "Salvo",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Every hardpoint this protocol reaches fires its cheapest card at once."
+    }
+   ]
+  },
+  {
+   "id": "thermal_transfer_bus",
+   "name": "Thermal Transfer Bus",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 22,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "up",
+    "dirs": [
+     "up"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Link set to Up / Adjacent as a starting point. Keeps you out of overheat by damaging your own parts.",
+   "cards": [
+    {
+     "id": "bleed_off",
+     "name": "Bleed Off",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Pay your next card's Heat cost with HP from the linked component instead."
+    }
+   ]
+  },
+  {
+   "id": "signal_interceptor",
+   "name": "Signal Interceptor",
+   "claude_draft": false,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "general",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Counterplay card that rewards reading enemy intent.",
+   "cards": [
+    {
+     "id": "intercept",
+     "name": "Intercept",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Copy the enemy's telegraphed attack as a one-use card, damage range included."
+    }
+   ]
+  },
+  {
+   "id": "needle_carbine",
+   "name": "Needle Carbine",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "prick",
+     "name": "Prick",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "needle_storm",
+     "name": "Needle Storm",
+     "heat_cost": "3",
+     "hits": "5",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Hits after the 2nd may miss."
+    }
+   ]
+  },
+  {
+   "id": "flash_pistol",
+   "name": "Flash Pistol",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "flashbang",
+     "name": "Flashbang",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "8-11",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "quick_draw",
+     "name": "Quick Draw",
+     "heat_cost": "0",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "First card this turn: double damage."
+    }
+   ]
+  },
+  {
+   "id": "heat_lance",
+   "name": "Heat Lance",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 50,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28). Built for Redline's end-of-turn check: go over max, fire, vent before the turn ends.",
+   "cards": [
+    {
+     "id": "searing_line",
+     "name": "Searing Line",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "12-16",
+     "statuses": [],
+     "effect_text": "+1 damage per 2 Heat you have."
+    },
+    {
+     "id": "redline_burst",
+     "name": "Redline Burst",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "22-28",
+     "statuses": [],
+     "effect_text": "+50% damage while over max Heat."
+    }
+   ]
+  },
+  {
+   "id": "coil_whip",
+   "name": "Coil Whip",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "crackle",
+     "name": "Crackle",
+     "heat_cost": "2",
+     "hits": "2",
+     "damage": "4-6",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "discharge",
+     "name": "Discharge",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "8-11",
+     "statuses": [],
+     "effect_text": "Consume the target's Shock: +5 damage per stack."
+    }
+   ]
+  },
+  {
+   "id": "vent_cannon",
+   "name": "Vent Cannon",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "blow_off",
+     "name": "Blow-Off",
+     "heat_cost": "-2",
+     "hits": "1",
+     "damage": "7-10",
+     "statuses": [],
+     "effect_text": "Vent 2."
+    },
+    {
+     "id": "steam_slug",
+     "name": "Steam Slug",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [],
+     "effect_text": "Enemy gains 2 Heat."
+    }
+   ]
+  },
+  {
+   "id": "afterburner",
+   "name": "Afterburner",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "afterburner",
+     "name": "Afterburner",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "First attack each turn: +50% damage."
+    }
+   ]
+  },
+  {
+   "id": "blowout_vent",
+   "name": "Blowout Vent",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "blowout_vent",
+     "name": "Blowout Vent",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Destroy a part: Vent 4."
+    }
+   ]
+  },
+  {
+   "id": "static_collector",
+   "name": "Static Collector",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "static_collector",
+     "name": "Static Collector",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Attacks have a 50% chance to Shock 1."
+    }
+   ]
+  },
+  {
+   "id": "quickload_chip",
+   "name": "Quickload Chip",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "quickload",
+     "name": "Quickload",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next card costs 3 less Heat."
+    }
+   ]
+  },
+  {
+   "id": "scatter_link",
+   "name": "Scatter Link",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "light",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "fan_out",
+     "name": "Fan Out",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack also hits every other enemy."
+    }
+   ]
+  },
+  {
+   "id": "arc_thrower",
+   "name": "Arc Thrower",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 50,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "arc",
+     "name": "Arc",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "11-15",
+     "statuses": [],
+     "effect_text": "Also hits an adjacent part."
+    },
+    {
+     "id": "overload",
+     "name": "Overload",
+     "heat_cost": "4",
+     "hits": "2",
+     "damage": "8-11",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "buzzsaw_arm",
+   "name": "Buzzsaw Arm",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "grind",
+     "name": "Grind",
+     "heat_cost": "2",
+     "hits": "3",
+     "damage": "4-5",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "shred",
+     "name": "Shred",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "7-10",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "mortar_pod",
+   "name": "Mortar Pod",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 40,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "lob",
+     "name": "Lob",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "8-11",
+     "statuses": [],
+     "effect_text": "Hits random parts."
+    },
+    {
+     "id": "smoke_shell",
+     "name": "Smoke Shell",
+     "heat_cost": "1",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "3",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "hook_lance",
+   "name": "Hook Lance",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 50,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "harpoon",
+     "name": "Harpoon",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "12-16",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "reel_in",
+     "name": "Reel In",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "6-9",
+     "statuses": [],
+     "effect_text": "Double damage vs Disabled."
+    }
+   ]
+  },
+  {
+   "id": "relay_booster",
+   "name": "Relay Booster",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "right",
+    "dirs": [
+     "right"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "relay_booster",
+     "name": "Relay Booster",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Linked hardpoints: +3 damage per hit."
+    }
+   ]
+  },
+  {
+   "id": "spiked_plating",
+   "name": "Spiked Plating",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "spiked_plating",
+     "name": "Spiked Plating",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "When this part is hit: deal 6 to the attacker."
+    }
+   ]
+  },
+  {
+   "id": "field_medic_unit",
+   "name": "Field Medic Unit",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "up",
+    "dirs": [
+     "up"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "field_medic_unit",
+     "name": "Field Medic Unit",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Turn start: heal linked parts 6."
+    }
+   ]
+  },
+  {
+   "id": "siphon_driver",
+   "name": "Siphon Driver",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "siphon",
+     "name": "Siphon",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: Lifesteal 50%."
+    }
+   ]
+  },
+  {
+   "id": "breach_charge",
+   "name": "Breach Charge",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 26,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "breach",
+     "name": "Breach",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: Pierce, +25% damage."
+    }
+   ]
+  },
+  {
+   "id": "chain_relay",
+   "name": "Chain Relay",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "medium",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "chain",
+     "name": "Chain",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack also hits an adjacent part."
+    }
+   ]
+  },
+  {
+   "id": "pile_driver",
+   "name": "Pile Driver",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 56,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "drive",
+     "name": "Drive",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "22-28",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "aftershock",
+     "name": "Aftershock",
+     "heat_cost": "6",
+     "hits": "1",
+     "damage": "28-36",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "enemy"
+      },
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "flak_wall",
+   "name": "Flak Wall",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 54,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "flak",
+     "name": "Flak",
+     "heat_cost": "3",
+     "hits": "5",
+     "damage": "3-5",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "brace",
+     "name": "Brace",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "5",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "siege_mortar",
+   "name": "Siege Mortar",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 56,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "barrage",
+     "name": "Barrage",
+     "heat_cost": "5",
+     "hits": "3",
+     "damage": "10-13",
+     "statuses": [],
+     "effect_text": "Hits random parts."
+    },
+    {
+     "id": "zero_in",
+     "name": "Zero In",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "16-20",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "grinder_maw",
+   "name": "Grinder Maw",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 60,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "chew",
+     "name": "Chew",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "8-11",
+     "statuses": [],
+     "effect_text": "Lifesteal 30%."
+    },
+    {
+     "id": "maul",
+     "name": "Maul",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "24-30",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "rivet_gun",
+   "name": "Rivet Gun",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 42,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "rivet",
+     "name": "Rivet",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "weld_shut",
+     "name": "Weld Shut",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "11-14",
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "bulwark_frame",
+   "name": "Bulwark Frame",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "up",
+    "dirs": [
+     "up"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "bulwark_frame",
+     "name": "Bulwark Frame",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Linked parts take at most 10 per hit."
+    }
+   ]
+  },
+  {
+   "id": "heat_sink_array",
+   "name": "Heat Sink Array",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "heat_sink_array",
+     "name": "Heat Sink Array",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "When an attack damages you: Vent 3."
+    }
+   ]
+  },
+  {
+   "id": "overheat_fuse",
+   "name": "Overheat Fuse",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 24,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28). Made for Bastion's live heat check.",
+   "cards": [
+    {
+     "id": "overheat_fuse",
+     "name": "Overheat Fuse",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Prevents your first overheat (Heat drops to max), then burns out."
+    }
+   ]
+  },
+  {
+   "id": "hydraulic_ram",
+   "name": "Hydraulic Ram",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "ram",
+     "name": "Ram",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack also applies Disabled 1."
+    }
+   ]
+  },
+  {
+   "id": "ballast_tank",
+   "name": "Ballast Tank",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "surplus",
+   "weight_class": "heavy",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "ballast",
+     "name": "Ballast",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next card costs 4 less Heat."
+    }
+   ]
+  },
+  {
+   "id": "twin_linked_autocannon",
+   "name": "Twin-Linked Autocannon",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 68,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "twin_burst",
+     "name": "Twin Burst",
+     "heat_cost": "3",
+     "hits": "4",
+     "damage": "5-8",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "suppress",
+     "name": "Suppress",
+     "heat_cost": "2",
+     "hits": "2",
+     "damage": "6-8",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "scrap_magnet",
+   "name": "Scrap Magnet",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "scrap_magnet",
+     "name": "Scrap Magnet",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Destroy a part: +6 Scraps."
+    }
+   ]
+  },
+  {
+   "id": "mirror_plating",
+   "name": "Mirror Plating",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "mirror_plating",
+     "name": "Mirror Plating",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "When your mech is hit: deal 5 to the attacker."
+    }
+   ]
+  },
+  {
+   "id": "tactical_uplink",
+   "name": "Tactical Uplink",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "double_tap",
+     "name": "Double Tap",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: double the hits."
+    }
+   ]
+  },
+  {
+   "id": "grav_anchor",
+   "name": "Grav Anchor",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "general",
+   "hp": 68,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "pin",
+     "name": "Pin",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "17-21",
+     "statuses": [
+      {
+       "status": "freeze",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "crush",
+     "name": "Crush",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "24-30",
+     "statuses": [],
+     "effect_text": "Double damage vs Frozen."
+    }
+   ]
+  },
+  {
+   "id": "afterimage_emitter",
+   "name": "Afterimage Emitter",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "light",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "afterimage_emitter",
+     "name": "Afterimage Emitter",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "7",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Turn start:"
+    }
+   ]
+  },
+  {
+   "id": "thermal_spike_rifle",
+   "name": "Thermal Spike Rifle",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "light",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "overheat_round",
+     "name": "Overheat Round",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "28-34",
+     "statuses": [],
+     "effect_text": "Enemy gains 3 Heat."
+    },
+    {
+     "id": "cool_shot",
+     "name": "Cool Shot",
+     "heat_cost": "-3",
+     "hits": "1",
+     "damage": "10-13",
+     "statuses": [],
+     "effect_text": "Vent 3."
+    }
+   ]
+  },
+  {
+   "id": "ricochet_pistols",
+   "name": "Ricochet Pistols",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "light",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "ricochet",
+     "name": "Ricochet",
+     "heat_cost": "2",
+     "hits": "3",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": "Hits random parts."
+    },
+    {
+     "id": "trick_shot",
+     "name": "Trick Shot",
+     "heat_cost": "3",
+     "hits": "3",
+     "damage": "7-10",
+     "statuses": [],
+     "effect_text": "+1 hit per different status on the target."
+    }
+   ]
+  },
+  {
+   "id": "pressure_regulator",
+   "name": "Pressure Regulator",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "light",
+   "hp": 46,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "pressure_regulator",
+     "name": "Pressure Regulator",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "+5 Max Heat. Overheating hurts 25% more."
+    }
+   ]
+  },
+  {
+   "id": "kill_switch",
+   "name": "Kill Switch",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "salvaged",
+   "weight_class": "light",
+   "hp": 30,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "execute",
+     "name": "Execute",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: triple damage vs a part at or below half HP."
+    }
+   ]
+  },
+  {
+   "id": "tesla_coil_tower",
+   "name": "Tesla Coil Tower",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "medium",
+   "hp": 66,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "chain_lightning",
+     "name": "Chain Lightning",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "15-19",
+     "statuses": [
+      {
+       "status": "shock",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": "Also hits an adjacent part."
+    },
+    {
+     "id": "ground_out",
+     "name": "Ground Out",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Remove Shock and Acid from your parts."
+    }
+   ]
+  },
+  {
+   "id": "repair_drone_bay",
+   "name": "Repair Drone Bay",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "medium",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "repair_drone_bay",
+     "name": "Repair Drone Bay",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Turn start: heal your most damaged part 12."
+    }
+   ]
+  },
+  {
+   "id": "harmonic_amplifier",
+   "name": "Harmonic Amplifier",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "medium",
+   "hp": 32,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "multi",
+    "dirs": [
+     "left",
+     "right"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "harmonic_amplifier",
+     "name": "Harmonic Amplifier",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Linked hardpoints: +4 damage per hit."
+    }
+   ]
+  },
+  {
+   "id": "coordinated_strike_suite",
+   "name": "Coordinated Strike Suite",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "salvaged",
+   "weight_class": "medium",
+   "hp": 42,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "multi",
+    "dirs": [
+     "up",
+     "right",
+     "down",
+     "left"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "coordinated_strike",
+     "name": "Coordinated Strike",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Linked hardpoints fire their cheapest card."
+    }
+   ]
+  },
+  {
+   "id": "flechette_launcher",
+   "name": "Flechette Launcher",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "medium",
+   "hp": 50,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "flechettes",
+     "name": "Flechettes",
+     "heat_cost": "3",
+     "hits": "6",
+     "damage": "3-5",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "pin_down",
+     "name": "Pin Down",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "11-14",
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "aegis_projector",
+   "name": "Aegis Projector",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "heavy",
+   "hp": 64,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "aegis_projector",
+     "name": "Aegis Projector",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "10",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Turn start:"
+    }
+   ]
+  },
+  {
+   "id": "demolition_hammer",
+   "name": "Demolition Hammer",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "heavy",
+   "hp": 92,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "wreck",
+     "name": "Wreck",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "34-42",
+     "statuses": [],
+     "effect_text": "Pierce."
+    },
+    {
+     "id": "topple",
+     "name": "Topple",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "22-28",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "lockdown_cannon",
+   "name": "Lockdown Cannon",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "salvaged",
+   "weight_class": "heavy",
+   "hp": 74,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "lockdown",
+     "name": "Lockdown",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "22-28",
+     "statuses": [
+      {
+       "status": "freeze",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "heavy_round",
+     "name": "Heavy Round",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "21-27",
+     "statuses": [],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "reinforced_bulkhead",
+   "name": "Reinforced Bulkhead",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "salvaged",
+   "weight_class": "heavy",
+   "hp": 48,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "reinforced_bulkhead",
+     "name": "Reinforced Bulkhead",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Twice per fight, a part that would be destroyed is left at 1 HP."
+    }
+   ]
+  },
+  {
+   "id": "rampart_protocol",
+   "name": "Rampart Protocol",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "salvaged",
+   "weight_class": "heavy",
+   "hp": 42,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "fortify",
+     "name": "Fortify",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next card: gain Deflect 4 per Heat it costs."
+    }
+   ]
+  },
+  {
+   "id": "singularity_core",
+   "name": "Singularity Core",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "general",
+   "hp": 76,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "singularity_core",
+     "name": "Singularity Core",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "+8 Max Heat. −1 Heat decay."
+    }
+   ]
+  },
+  {
+   "id": "probability_engine",
+   "name": "Probability Engine",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "prototype",
+   "weight_class": "general",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "loaded_dice",
+     "name": "Loaded Dice",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: never misses, max damage, +50% damage."
+    }
+   ]
+  },
+  {
+   "id": "parasite_leech",
+   "name": "Parasite Leech",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "general",
+   "hp": 62,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "latch",
+     "name": "Latch",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "9-12",
+     "statuses": [],
+     "effect_text": "Repeats on the same part your next 3 turns. Lifesteal 50%."
+    }
+   ]
+  },
+  {
+   "id": "salvage_recursor",
+   "name": "Salvage Recursor",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "prototype",
+   "weight_class": "general",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "recall",
+     "name": "Recall",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next card plays again next turn for 0 Heat."
+    }
+   ]
+  },
+  {
+   "id": "chaos_reactor",
+   "name": "Chaos Reactor",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "general",
+   "hp": 58,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "chaos_reactor",
+     "name": "Chaos Reactor",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Turn start: Burn 5 a random enemy part, Coolant 2 a random part of yours."
+    }
+   ]
+  },
+  {
+   "id": "blink_drive",
+   "name": "Blink Drive",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "light",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "blink_drive",
+     "name": "Blink Drive",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Dodge the first 2 hits each turn."
+    }
+   ]
+  },
+  {
+   "id": "plasma_rapier",
+   "name": "Plasma Rapier",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "light",
+   "hp": 58,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "flurry",
+     "name": "Flurry",
+     "heat_cost": "3",
+     "hits": "5",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "lunge",
+     "name": "Lunge",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [],
+     "effect_text": "+2 damage per Heat you have."
+    }
+   ]
+  },
+  {
+   "id": "overclock_heart",
+   "name": "Overclock Heart",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "light",
+   "hp": 56,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "overclock_heart",
+     "name": "Overclock Heart",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Attacks: +1 damage per hit per 2 Heat you have."
+    }
+   ]
+  },
+  {
+   "id": "feedback_loop",
+   "name": "Feedback Loop",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "prototype",
+   "weight_class": "light",
+   "hp": 36,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "feedback",
+     "name": "Feedback",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: Vent 2 per hit."
+    }
+   ]
+  },
+  {
+   "id": "nova_cannon",
+   "name": "Nova Cannon",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "light",
+   "hp": 78,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "nova",
+     "name": "Nova",
+     "heat_cost": "7",
+     "hits": "1",
+     "damage": "48-60",
+     "statuses": [],
+     "effect_text": "Hits all enemies. This part takes 6."
+    }
+   ]
+  },
+  {
+   "id": "swarm_hive",
+   "name": "Swarm Hive",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "medium",
+   "hp": 80,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "release_swarm",
+     "name": "Release Swarm",
+     "heat_cost": "3",
+     "hits": "3",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": "Hits random parts. Repeats your next 2 turns."
+    },
+    {
+     "id": "sting",
+     "name": "Sting",
+     "heat_cost": "1",
+     "hits": "3",
+     "damage": "3-5",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  },
+  {
+   "id": "polarity_inverter",
+   "name": "Polarity Inverter",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "prototype",
+   "weight_class": "medium",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "invert",
+     "name": "Invert",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: swap Heat with the target mech."
+    }
+   ]
+  },
+  {
+   "id": "phase_array",
+   "name": "Phase Array",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "medium",
+   "hp": 58,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "multi",
+    "dirs": [
+     "up",
+     "right",
+     "down",
+     "left"
+    ],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "phase_array",
+     "name": "Phase Array",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Linked parts' cards cost 1 less Heat."
+    }
+   ]
+  },
+  {
+   "id": "resonance_blade",
+   "name": "Resonance Blade",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "medium",
+   "hp": 80,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "resonate",
+     "name": "Resonate",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "10-13",
+     "statuses": [],
+     "effect_text": "+4 damage per Resonate played this fight."
+    }
+   ]
+  },
+  {
+   "id": "neural_link",
+   "name": "Neural Link",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "medium",
+   "hp": 38,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "neural_link",
+     "name": "Neural Link",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Destroy a part: your next card this turn is free."
+    }
+   ]
+  },
+  {
+   "id": "colossus_fist",
+   "name": "Colossus Fist",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "heavy",
+   "hp": 112,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "titan_punch",
+     "name": "Titan Punch",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "50-62",
+     "statuses": [],
+     "effect_text": ""
+    },
+    {
+     "id": "earthshaker",
+     "name": "Earthshaker",
+     "heat_cost": "6",
+     "hits": "1",
+     "damage": "20-26",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "allEnemies"
+      }
+     ],
+     "effect_text": "Hits all enemies."
+    }
+   ]
+  },
+  {
+   "id": "fortress_core",
+   "name": "Fortress Core",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "heavy",
+   "hp": 78,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "fortress_core",
+     "name": "Fortress Core",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Turn start: gain Deflect 5 per living reactor."
+    }
+   ]
+  },
+  {
+   "id": "juggernaut_treads",
+   "name": "Juggernaut Treads",
+   "claude_draft": true,
+   "category": "reactor",
+   "rarity": "prototype",
+   "weight_class": "heavy",
+   "hp": 60,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "juggernaut_treads",
+     "name": "Juggernaut Treads",
+     "heat_cost": "0",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Each attack in a turn: +3 damage per hit over the last."
+    }
+   ]
+  },
+  {
+   "id": "last_stand_protocol",
+   "name": "Last Stand Protocol",
+   "claude_draft": true,
+   "category": "protocol",
+   "rarity": "prototype",
+   "weight_class": "heavy",
+   "hp": 52,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "last_stand",
+     "name": "Last Stand",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Next attack: +20% damage per 10% HP lost."
+    }
+   ]
+  },
+  {
+   "id": "cataclysm_mortar",
+   "name": "Cataclysm Mortar",
+   "claude_draft": true,
+   "category": "hardpoint",
+   "rarity": "prototype",
+   "weight_class": "heavy",
+   "hp": 88,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "link": {
+    "dir": "none",
+    "dirs": [],
+    "reach": "adjacent"
+   },
+   "notes": "Claude's draft (2026-09-28).",
+   "cards": [
+    {
+     "id": "cataclysm",
+     "name": "Cataclysm",
+     "heat_cost": "8",
+     "hits": "4",
+     "damage": "14-18",
+     "statuses": [],
+     "effect_text": "Hits all enemies, random parts."
+    },
+    {
+     "id": "ranging_shot",
+     "name": "Ranging Shot",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    }
+   ]
+  }
+ ]
+}

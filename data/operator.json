@@ -1,0 +1,27 @@
+{
+  "_note": "The Operator's War Room lines (Logan, 2026-09-27: like an Armored Core handler: busy and to the point, but glad you're alive; mostly updates on what came out of the last mission). All lines are Claude's drafts for Logan to vet. {location}, {mission}, {stops}, {boss} fill in.",
+  "first_time": [
+    "You're up. War table's live. Pick a sector and I'll talk you in.",
+    "New frame, same job. War table when you're ready."
+  ],
+  "cleared": [
+    "{location} is ours. Clean work. Get some rest, then get back on the table.",
+    "Sector cleared. Command's pleased, which means they'll want more. Table's open.",
+    "{mission} complete at {location}. You came back in one piece. Keep doing that."
+  ],
+  "ejected": [
+    "Pulled you out at {location}, stop {stops}. Frame's scrap. You aren't. Next one.",
+    "Eject confirmed. I've got your telemetry; we'll do better at {location} next time.",
+    "You punched out. Good. Mechs we can replace. Back on the table when you're ready."
+  ],
+  "boss_first": [
+    "{boss}. I knew that pilot. Whatever's in there now, it isn't them. It'll be back.",
+    "That was {boss}, or what's left of them. There are more copies out there. Stay sharp."
+  ],
+  "recon_intel": [
+    "Recon data's in. Next time we hit a boss, their weapons start cold. Use the opening."
+  ],
+  "rescue_hot": [
+    "They were on alert by the end at {location}. Faster next time, or they'll be waiting."
+  ]
+}
