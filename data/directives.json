@@ -202,7 +202,7 @@
     },
     {
       "id": "elite_hunter",
-      "text": "Beat {n} elites in one run",
+      "text": "Beat {n} elites in one mission",
       "stat": "elites_beaten",
       "n": 2,
       "kind": "at_least",
@@ -257,7 +257,7 @@
   "weekly": [
     {
       "id": "w_clears",
-      "text": "Clear {n} runs",
+      "text": "Clear {n} missions",
       "stat": "clears",
       "n": 3,
       "kind": "sum",

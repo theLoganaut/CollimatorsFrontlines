@@ -2,9 +2,10 @@ class_name CombatProtocols
 extends RefCounted
 ## The player's protocols, for CombatManager. The standard (Proposed,
 ## Notion "Phase 2 rulings to vet"): playing a protocol costs no heat and
-## primes its effect; the next card it can affect uses it up. Several
-## different protocols can wait at once; the same one can't be primed
-## twice; they last until used. Replay, Salvo and Intercept act at once
+## primes its effect; the next card it can affect uses it up. One protocol
+## waits at a time (no stacking, Logan 2026-10-02): priming another replaces
+## it (the same one again does nothing); it lasts until used. Replay, Salvo
+## and Intercept act at once
 ## instead. Also the modifiers primed protocols and passives put on the
 ## player's next card. Static and stateless: `primed`, `standby` and the
 ## rest live on the CombatManager passed in.
@@ -13,11 +14,36 @@ static func prime(cm: CombatManager, type: String, card: CardData, comp: Compone
 	for p in cm.primed:
 		if p["type"] == type:
 			return
+	cm.primed.clear()
 	var entry := {"type": type, "card": card, "component": comp}
 	if type == "reroute":
 		entry["status"] = options.get("status", CombatManager.REROUTE_OPTIONS[0])
 	cm.primed.append(entry)
+	# A protocol with a cost of its own (Quickload's Smoke) pays it as it primes.
+	if not card.statuses.is_empty():
+		CardResolver.resolve_self_card(card, cm.player_mech, comp)
 	cm.primed_changed.emit()
+
+## Whether primed protocol `p` would be used up by `card` (the cards it
+## affects glow purple in the hand): never another protocol; Quickload-type
+## discounts and Bleed Off need a card that costs heat; Fortify, Recall and
+## Standby take any card; Catalyze a card with statuses; Reroute one that
+## puts a status on an enemy; the rest the next attack.
+static func affects(p: Dictionary, card: CardData) -> bool:
+	if card == null or card.protocol() != "" or (p["component"] as ComponentData).destroyed:
+		return false
+	match str(p["type"]):
+		"discount", "bleed_off", "defer_heat":
+			return card.heat_cost > 0
+		"grant":
+			return grant_fits(p["card"], card)
+		"fortify", "recall", "standby":
+			return true
+		"catalyze":
+			return not card.statuses.is_empty()
+		"reroute":
+			return card.statuses.any(func(s): return s.target in [StatusEffectData.TARGET_ENEMY, StatusEffectData.TARGET_ALL_ENEMIES])
+	return card.hits > 0
 
 static func is_primed(cm: CombatManager, type: String) -> bool:
 	return cm.primed.any(func(p): return p["type"] == type)
@@ -40,6 +66,10 @@ static func take_primed(cm: CombatManager, type: String, card: CardData) -> Dict
 static func used_cost_mods(cm: CombatManager, card: CardData) -> void:
 	if card.protocol() != "" or card.heat_cost <= 0:
 		return
+	for p in cm.primed:
+		if p["type"] == "discount" and float(p["card"].rule.get("if_below", 1.0)) < 1.0 \
+				and float(cm.player_mech.current_hp()) > cm.player_mech.max_hp() * float(p["card"].rule["if_below"]):
+			return # Last Stand waits until the mech is low enough
 	take_primed(cm, "discount", card)
 	cm._refund_next = false
 
@@ -54,6 +84,79 @@ static func any_card_protocols(cm: CombatManager, card: CardData, cost: int, tar
 	if not take_primed(cm, "recall", card).is_empty() and cm.standby.is_empty():
 		cm.standby = {"card": card, "target_mech": target_mech, "target": target}
 
+## Whether a grant protocol (Notion: Dynamic Turn Rework, card pass) fits
+## `card`: its "on" says which cards take it: "attack" (default), "self"
+## (a card that targets your own mech), "shield" (one that gives Deflect
+## or Absorb) or "status" (one that puts a status on an enemy).
+static func grant_fits(proto_card: CardData, card: CardData) -> bool:
+	if card == null or card.protocol() != "" or card.one_use:
+		return false
+	match str(proto_card.rule.get("on", "attack")):
+		"self":
+			return not card.is_attack()
+		"shield":
+			return card.statuses.any(func(s): return s.status in ["deflect", "absorb"] and s.target in [StatusEffectData.TARGET_SELF, StatusEffectData.TARGET_OWN_MECH])
+		"status":
+			return card.statuses.any(func(s): return s.target in [StatusEffectData.TARGET_ENEMY, StatusEffectData.TARGET_ALL_ENEMIES])
+	return card.hits > 0
+
+## `card` with a waiting grant's rule keys merged in, for this one play (the
+## grant is used up), or `card` itself. `take` uses up a primed entry of a
+## type and returns it; `list` is the side's primed protocols. Call it after
+## the card is spent: the copy isn't the card in the hand.
+static func granted(list: Array, take: Callable, card: CardData) -> CardData:
+	for p in list:
+		if p["type"] == "grant" and grant_fits(p["card"], card):
+			var e: Dictionary = take.call("grant")
+			if e.is_empty():
+				return card
+			var copy := card.clone()
+			copy.rule.merge((e["card"] as CardData).rule.get("grant", {}).duplicate(true), true)
+			return copy
+	return card
+
+## The player's grant for `card`, if one is waiting (see granted).
+static func player_granted(cm: CombatManager, card: CardData) -> CardData:
+	return granted(cm.primed, func(t): return take_primed(cm, t, card), card)
+
+## `card` as a waiting grant would make it, without using the grant (preview).
+static func peek_granted(cm: CombatManager, card: CardData) -> CardData:
+	return granted(cm.primed, func(t): return cm.primed.filter(func(p): return p["type"] == t)[0], card)
+
+## Batch: a card paid for now costs 0; its Heat is added at the start of
+## the player's next turn. Returns the cost to pay now.
+static func defer_heat(cm: CombatManager, card: CardData, cost: int) -> int:
+	if cost <= 0 or take_primed(cm, "defer_heat", card).is_empty():
+		return cost
+	cm.deferred_heat += cost
+	return 0
+
+## Echo (Echo Buffer): the protocol an enemy has waiting is taken and
+## primed for the player instead (on the Echo Buffer).
+static func play_steal(cm: CombatManager, card: CardData, comp: ComponentData) -> Dictionary:
+	cm._count_card(card, 0)
+	cm._after_use(comp)
+	cm.card_played.emit(cm.player_mech, card)
+	for w in cm.living_enemies():
+		var list: Array = cm.enemy_primed.get(w, [])
+		if list.is_empty():
+			continue
+		var e: Dictionary = list.pop_front()
+		cm.primed.clear()
+		cm.primed.append({"type": e["type"], "card": e["card"], "component": comp})
+		cm.primed_changed.emit()
+		return {"ok": true, "overheated": false}
+	return {"ok": true, "overheated": false}
+
+## Scramble Signal: every enemy's waiting protocol (and Standby) is cleared.
+static func play_clear_enemy(cm: CombatManager, card: CardData, comp: ComponentData) -> Dictionary:
+	cm._count_card(card, 0)
+	cm._after_use(comp)
+	cm.card_played.emit(cm.player_mech, card)
+	cm.enemy_primed.clear()
+	cm._enemy_standby_pending.clear()
+	return {"ok": true, "overheated": false}
+
 ## The modifiers primed protocols and passives put on the player's next card.
 static func player_mods(cm: CombatManager, card: CardData) -> Dictionary:
 	var mods := {}
@@ -64,8 +167,11 @@ static func player_mods(cm: CombatManager, card: CardData) -> Dictionary:
 			mods["mult"] = float(mods.get("mult", 1.0)) * cm.rng.randf_range(float(r[0]), float(r[1]))
 		var od := take_primed(cm, "overdrive", card)
 		if not od.is_empty():
-			mods["mult"] = float(mods.get("mult", 1.0)) * 2.0
 			mods["overdrive"] = true
+			mods["all_hardpoints"] = true
+		if cm._min_roll_next:
+			mods["min_roll"] = true
+			cm._min_roll_next = false
 		if not take_primed(cm, "split_feed", card).is_empty():
 			mods["split"] = true
 		if cm._recycle_bonus > 0:
@@ -77,6 +183,8 @@ static func player_mods(cm: CombatManager, card: CardData) -> Dictionary:
 				mods["twice"] = true
 				cm.passive_triggered.emit(cm.player_mech, hf)
 		CombatAttack.protocol_mods(func(t): return take_primed(cm, t, card), cm.player_mech, card, mods)
+		if mods.get("max_roll", false):
+			cm._min_roll_next = true # Loaded Dice: the attack after it rolls min
 		CombatAttack.passive_mods(cm, cm.player_mech, card, mods, cm._attacks_this_turn, cm._cards_this_turn)
 	if not card.statuses.is_empty():
 		var cat := take_primed(cm, "catalyze", card)

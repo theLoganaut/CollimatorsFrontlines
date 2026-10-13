@@ -33,7 +33,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 10)
 	add_child(_content)
 	if run == null:
-		_content.add_child(UIKit.label("No run to debrief.", 18))
+		_content.add_child(UIKit.label("No mission to debrief.", 18))
 	else:
 		_build(run)
 	var back := GlassPanel.button("Return to the War Room", 15, true, Palette.HARDPOINT)
@@ -53,7 +53,7 @@ func _build(run: RunData) -> void:
 	_content.add_child(UIKit.label("Sector cleared" if cleared else "Pilot ejected", 34, Palette.OK if cleared else Palette.DANGER))
 	var where := HBoxContainer.new()
 	where.add_theme_constant_override("separation", 12)
-	where.add_child(UIKit.label("%s  ·  %s  ·  %d / %d stops" % [run.location.get("name", ""), run.mission_name(), run.path.size(), run.encounter_count()], 14, Color("9fb9b6")))
+	where.add_child(UIKit.label("%s  ·  %s  ·  %d / %d encounters" % [run.location.get("name", ""), run.mission_name(), run.path.size(), run.encounter_count()], 14, Color("9fb9b6")))
 	where.add_child(UIKit.seed_row(run.seed_value, 14, Color("9fb9b6")))
 	_content.add_child(where)
 	if run.mission.get("training", false):
@@ -64,6 +64,10 @@ func _build(run: RunData) -> void:
 		for f in report.get("directives", []):
 			line += "   ·   Directive done: %s (+%d)" % [f["text"], int(f["chips"])]
 		_content.add_child(UIKit.label(line, 16, Palette.SCRAPS))
+		var earned: Array = report.get("achievements", [])
+		if not earned.is_empty():
+			_content.add_child(UIKit.label("Achievement%s: %s" % ["" if earned.size() == 1 else "s",
+				"   ·   ".join(earned.map(func(e): return "%s (+%d)" % [e["name"], int(e["chips"])]))], 16, Palette.LINK))
 		if report.has("daily_score"):
 			_content.add_child(UIKit.label("Daily Operation score: %d%s" % [int(report["daily_score"]), "  ·  a new best!" if report.get("daily_best", false) else "  ·  best %d" % int(Profile.daily.get("best", 0))], 16, Palette.LINK))
 	var gap := Control.new()

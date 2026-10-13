@@ -72,12 +72,12 @@
       "rotation": 0
     },
     {
-      "id": "capacitor_bank",
+      "id": "overclock_shunt",
       "offset": [
         1,
         0
       ],
-      "rotation": 1
+      "rotation": 0
     },
     {
       "id": "redirect_spike",

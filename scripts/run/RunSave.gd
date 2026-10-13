@@ -11,6 +11,7 @@ static func to_dict(run: RunData) -> Dictionary:
 		"event": run.event, "next_fight": run.next_fight, "alert_turns": run.alert_turns, "orders": run.orders, "mods": run.mods,
 		"boss_intel": run.boss_intel, "boss_intel_used": run.boss_intel_used, "bosses_met": run.bosses_met,
 		"fight_rolls": run.fight_rolls, "encounter_history": run.encounter_history, "events_seen": run.events_seen, "fight_log": run.fight_log,
+		"resumes": run.resumes,
 		"rng_state": str(run.rng.state), "phase": run.phase, "current_node_id": run.current_node_id,
 		"path": run.path, "fights_won": run.fights_won, "result": run.result, "scraps": run.scraps, "end_cause": run.end_cause,
 		"reward": run.reward, "shop": run.shop, "cargo_upgrades": run.cargo_upgrades, "repair_pool": run.repair_pool,
@@ -49,6 +50,7 @@ static func from_dict(d: Dictionary, p_location: Dictionary, p_mission: Dictiona
 	run.encounter_history = d.get("encounter_history", [])
 	run.events_seen = d.get("events_seen", [])
 	run.fight_log = d.get("fight_log", [])
+	run.resumes = d.get("resumes", [])
 	var rolls: Dictionary = d.get("fight_rolls", {})
 	for k in rolls:
 		run._set_fight_enemies(int(k), rolls[k])

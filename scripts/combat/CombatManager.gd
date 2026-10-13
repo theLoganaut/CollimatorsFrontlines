@@ -49,10 +49,12 @@ signal enemy_set_aside(mech: MechData, card: CardData)
 signal chance_failed(mech: MechData, component: ComponentData)
 ## A mech used the Vent action: its heat just dispersed at the flat share.
 signal mech_vented(mech: MechData, amount: int)
+## A line about what an enemy is up to (its opener, a charge fizzling, a lost part), for the combat log.
+signal ai_note(mech: MechData, text: String)
 
 const PROTOCOLS_PRIMED := ["lock_on", "split_feed", "catalyze", "reroute", "standby", "overdrive", "bleed_off",
 	"discount", "fan_out", "siphon", "pierce", "chain", "knockback", "double_hits", "execute", "max_roll",
-	"invert", "last_stand", "vent_on_hit", "fortify", "recall"]
+	"invert", "last_stand", "vent_on_hit", "fortify", "recall", "grant", "defer_heat"]
 ## Statuses Reroute can swap to (enemy-applied ones).
 const REROUTE_OPTIONS := ["shock", "acid", "burn", "disabled", "freeze", "jam", "smoke"]
 
@@ -125,6 +127,28 @@ var _dodged: Dictionary = {}
 var _refund_next: bool = false
 var _card_plays: Dictionary = {}
 var _enemy_attacks: Dictionary = {}
+## Card pass (Notion: Dynamic Turn Rework, Phase 5). Guards a self card put
+## up until its side's next turn: mech -> [{type, component, ...}]
+## (CombatAttack.self_rules). Enemy parts turned by Yank Aim this round
+## (their attacks hit their own mech). Player parts that attacked this
+## turn, which enemy cards read as "attacking". Drive: no more cards.
+var guards: Dictionary = {}
+var turned: Dictionary = {}
+var player_attackers: Dictionary = {}
+var _last_card: bool = false
+## Batch: Heat the player pays at the start of their next turn. Loaded
+## Dice: the player's next attack rolls min.
+var deferred_heat: int = 0
+## Phase 6 enemy AI (EnemyAI): this turn's theme per enemy, its committed
+## two-turn rhythm ({r, i, sig}), charged attacks waiting to fire as its
+## next turn starts ({card, component}), lost-part notes already given,
+## and the share of max Heat the player ended their last turn at.
+var enemy_theme: Dictionary = {}
+var enemy_rhythm: Dictionary = {}
+var enemy_charged: Dictionary = {}
+var enemy_lost_seen: Dictionary = {}
+var player_heat_last: float = 0.0
+var _min_roll_next: bool = false
 
 func _init(p_player: MechData, p_enemies: Array[MechData], seed_value: int = -1) -> void:
 	player_mech = p_player
@@ -145,6 +169,7 @@ func start_combat() -> void:
 	turn_number = 1
 	result = Result.NONE
 	phase = Phase.PLAYER_TURN
+	EnemyAI.apply_openers(self)
 	_start_player_turn()
 
 func is_player_turn() -> bool:
@@ -347,7 +372,10 @@ func effective_cost(card: CardData, mech: MechData = null) -> int:
 	if mech == player_mech and card.protocol() == "":
 		for p in primed:
 			if p["type"] == "discount":
-				cost -= int(p["card"].rule.get("amount", 2))
+				# Last Stand: only while the mech is at or below that share of its HP.
+				var below: float = float(p["card"].rule.get("if_below", 1.0))
+				if below >= 1.0 or float(mech.current_hp()) <= mech.max_hp() * below:
+					cost -= int(p["card"].rule.get("amount", 2))
 		if _refund_next:
 			cost = 0
 	return maxi(cost, 0)
@@ -382,7 +410,7 @@ func can_play(card: CardData) -> bool:
 	if not is_player_turn():
 		return false
 	var comp := player_mech.get_component(card.owner_component_id)
-	return comp != null and comp.is_usable() and not is_spent(card)
+	return comp != null and comp.is_usable() and not is_spent(card) and not _last_card
 
 ## Heat change for playing a card: its cost, unless Bleed Off is primed
 ## (then a linked part pays it in HP). Negative costs vent, floored at 0
@@ -446,6 +474,10 @@ func begin_attack(card: CardData, target_mech: MechData, target_component: Compo
 		return {"ok": false, "reason": "source_unusable"}
 	if is_spent(card):
 		return {"ok": false, "reason": "spent"}
+	if _last_card:
+		return {"ok": false, "reason": "last_card"}
+	if card.rule.get("no_hardpoints", false) and target_component.category == ComponentData.CATEGORY_HARDPOINT:
+		return {"ok": false, "reason": "no_hardpoints"}
 
 	match card.protocol():
 		"intercept":
@@ -456,12 +488,18 @@ func begin_attack(card: CardData, target_mech: MechData, target_component: Compo
 		return {"ok": true, "no_attack": true}
 
 	var cost := effective_cost(card)
+	cost = CombatProtocols.defer_heat(self, card, cost)
 	_pay_heat(player_mech, card, cost, true)
 	CombatProtocols.used_cost_mods(self, card)
 	_count_card(card, cost)
 	_note_played(card, attacker_component, target_mech, target_component)
 	CombatProtocols.any_card_protocols(self, card, cost, target_mech, target_component)
-	CombatAttack.start(self, card, player_mech, attacker_component, target_mech, target_component, CombatProtocols.player_mods(self, card))
+	if card.hits > 0:
+		player_attackers[attacker_component] = true
+	if card.rule.get("last_card", false):
+		_last_card = true
+	var played := CombatProtocols.player_granted(self, card)
+	CombatAttack.start(self, played, player_mech, attacker_component, target_mech, target_component, CombatProtocols.player_mods(self, played))
 	_after_use(attacker_component)
 	card_played.emit(player_mech, card)
 	return {"ok": true}
@@ -503,11 +541,12 @@ func finish_attack() -> Dictionary:
 		}
 		enemy_action.emit(entry)
 		if target.destroyed:
-			component_destroyed.emit(player_mech, target)
+			component_destroyed.emit(a["defender_mech"], target) # Yank Aim can turn it on its own mech
 		return entry
 
 	if card.one_use:
 		_use_up(card)
+	_repair_enemy_plans()
 	component_damaged.emit(a["defender_mech"], target, res["total_damage"])
 	if target.destroyed:
 		component_destroyed.emit(a["defender_mech"], target)
@@ -529,13 +568,21 @@ func play_self_card(card: CardData, options: Dictionary = {}) -> Dictionary:
 		return {"ok": false, "reason": "source_unusable"}
 	if is_spent(card):
 		return {"ok": false, "reason": "spent"}
+	if _last_card:
+		return {"ok": false, "reason": "last_card"}
 	var proto := card.protocol()
 	if proto == "replay":
 		return CombatProtocols.play_replay(self, card, owner_component)
+	if proto == "steal":
+		return CombatProtocols.play_steal(self, card, owner_component)
+	if proto == "clear_enemy":
+		return CombatProtocols.play_clear_enemy(self, card, owner_component)
 	if proto == "" and CombatProtocols.set_aside_for_standby(self, card, null, null):
 		return {"ok": true, "overheated": false}
 
 	var cost := effective_cost(card)
+	if proto == "":
+		cost = CombatProtocols.defer_heat(self, card, cost)
 	_pay_heat(player_mech, card, cost, proto == "")
 	CombatProtocols.used_cost_mods(self, card)
 	_count_card(card, cost)
@@ -543,11 +590,10 @@ func play_self_card(card: CardData, options: Dictionary = {}) -> Dictionary:
 		CombatProtocols.prime(self, proto, card, owner_component, options)
 	else:
 		CombatProtocols.any_card_protocols(self, card, cost, null, null)
-		var mods := CombatProtocols.player_mods(self, card)
-		CardResolver.resolve_self_card(card, player_mech, owner_component, mods)
-		for status_name in card.rule.get("cleanse", []):
-			for c in player_mech.non_destroyed_components():
-				c.remove_status(status_name, 99)
+		var played := CombatProtocols.player_granted(self, card)
+		var mods := CombatProtocols.player_mods(self, played)
+		CardResolver.resolve_self_card(played, player_mech, owner_component, mods)
+		CombatAttack.self_rules(self, played, player_mech, owner_component)
 		if card.rule.get("self_damage", false):
 			var dmg := CardResolver.roll_damage(card, rng)
 			var r := CardResolver.deal_damage(player_mech, owner_component, dmg)
@@ -556,6 +602,7 @@ func play_self_card(card: CardData, options: Dictionary = {}) -> Dictionary:
 			CombatAttack.emit_destroyed_if(self, player_mech, owner_component)
 		_note_played(card, owner_component, null, null)
 	_after_use(owner_component)
+	_repair_enemy_plans()
 	card_played.emit(player_mech, card)
 
 	if _check_game_over():
@@ -597,6 +644,7 @@ func end_player_turn() -> void:
 	phase = Phase.ENEMY_TURN
 	turn_changed.emit(phase, turn_number)
 
+	player_heat_last = float(player_mech.current_heat) / maxf(1.0, float(player_mech.heat_capacity()))
 	# Step 4: player heat disperses; each living Warden's turn starts
 	# (Absorb clears, Burn heats it, turn-start passives, repeating attacks).
 	CombatHeat.vent(self, player_mech)
@@ -605,11 +653,13 @@ func end_player_turn() -> void:
 		_dodged[w] = 0
 		_enemy_attacks[w] = 0
 		w.clear_mech_status("absorb")
+		_drop_guards(w)
 		if not w.is_defeated():
 			CardResolver.apply_burn(w)
 			_apply_turn_start_passives(w) # e.g. Capacitor Bank
 	_run_repeats(false)
 	CombatEnemyTurn.run_standby(self)
+	CombatEnemyTurn.run_charged(self)
 	if _check_game_over():
 		return
 
@@ -682,19 +732,21 @@ func _start_player_turn() -> void:
 	_last_played = {}
 	_recycle_bonus = 0
 	_turn_damage = 0
+	_drop_guards(player_mech)
+	turned.clear()
+	player_attackers.clear()
+	_last_card = false
 	spent.clear() # once per turn: every card is back as the round starts
 	var burn := CardResolver.apply_burn(player_mech)
+	player_mech.current_heat += deferred_heat # Batch
+	deferred_heat = 0
 	_apply_turn_start_passives(player_mech)
 	# Enemies choose next turn's cards now (after venting), so the player
 	# sees what's coming for the whole of their turn.
 	enemy_plans.clear()
-	for w in enemies:
-		if not w.is_defeated():
-			enemy_plans[w] = EnemyAI.plan_turn(w, rng, self, player_mech)
-			enemy_last.erase(w)
-			# Nothing it can play (spent or too hot): it vents on its turn.
-			if (enemy_plans[w] as Array).is_empty() and w.current_heat > 0:
-				venting[w] = true
+	# Nothing it can play (spent or too hot): it vents on its turn (EnemyAI.plan_all).
+	EnemyAI.plan_all(self)
+	_assign_spikes()
 	phase = Phase.PLAYER_TURN
 	turn_changed.emit(phase, turn_number)
 	_run_repeats(true)
@@ -712,6 +764,12 @@ func _apply_turn_start_passives(mech: MechData) -> void:
 		var reactors := mech.non_destroyed_components().filter(func(x): return x.category == ComponentData.CATEGORY_REACTOR).size()
 		mech.add_mech_status("deflect", reactors * int(c.passive.get("per", 2)))
 		passive_triggered.emit(mech, c)
+	# Coolant Loop: Coolant on a random hardpoint of its own mech.
+	for c in mech.living_passives("turn_start_coolant"):
+		var hardpoints := mech.non_destroyed_components().filter(func(x): return x.category == ComponentData.CATEGORY_HARDPOINT)
+		if not hardpoints.is_empty():
+			hardpoints[rng.randi() % hardpoints.size()].add_status("coolant", int(c.passive.get("stacks", 1)))
+			passive_triggered.emit(mech, c)
 	# Chaos Reactor: Burn on a random enemy part, Coolant on a random one of yours.
 	for c in mech.living_passives("turn_start_chaos"):
 		var foes: Array = []
@@ -725,6 +783,46 @@ func _apply_turn_start_passives(mech: MechData) -> void:
 		if not own.is_empty():
 			own[rng.randi() % own.size()].add_status("coolant", int(c.passive.get("coolant", 1)))
 		passive_triggered.emit(mech, c)
+
+## After a player command: each enemy's shown turn is repaired (EnemyAI.repair).
+func _repair_enemy_plans() -> void:
+	for w in living_enemies():
+		EnemyAI.repair(self, w)
+
+## A side's guards end as its turn starts (Hold the Line's cap and Final
+## Order's floor are read off the mech).
+func _drop_guards(mech: MechData) -> void:
+	guards.erase(mech)
+	mech.remove_meta("guard_cap")
+	mech.remove_meta("guard_floor")
+
+## Redirect Spike in a squad: each round, each enemy's Spike covers
+## whichever living mech on its side is most hurt (by share of HP), itself
+## or an ally (Logan, 2026-10-13). One Spike per covered mech; alone, a
+## Spike covers its own mech as before.
+func _assign_spikes() -> void:
+	var side := living_enemies()
+	for m in side:
+		m.covered_by = null
+		m.covered_by_mech = null
+		m.spike_away = false
+	if side.size() < 2:
+		return
+	for m in side:
+		var spikes := m.living_passives(ComponentData.PASSIVE_REDIRECT)
+		if spikes.is_empty():
+			continue
+		var best: MechData = m
+		for other in side:
+			if other.covered_by == null and _hp_share(other) < _hp_share(best):
+				best = other
+		if best != m:
+			best.covered_by = spikes[0]
+			best.covered_by_mech = m
+			m.spike_away = true
+
+static func _hp_share(m: MechData) -> float:
+	return float(m.current_hp()) / maxf(1.0, float(m.max_hp()))
 
 ## Repeating attacks (Spillage) of one side fire at the start of its turn.
 func _run_repeats(players: bool) -> void:

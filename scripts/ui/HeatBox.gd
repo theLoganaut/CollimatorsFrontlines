@@ -87,5 +87,6 @@ func _draw() -> void: # holo glass, lit by the preview / overheat colour
 		var shown := preview if preview >= 0 else current
 		var after := shown - HeatRules.amount_vented(shown, max_value, vent_at_max)
 		var text := "vents to %d" % after if after < shown else ("too cool to vent" if shown > 0 else "cool")
-		draw_string(get_theme_default_font(), Vector2(0, size.y + 15), text, HORIZONTAL_ALIGNMENT_CENTER, size.x, 12,
+		# wider than the box, centered on it, so "too cool to vent" isn't clipped
+		draw_string(get_theme_default_font(), Vector2(-40, size.y + 15), text, HORIZONTAL_ALIGNMENT_CENTER, size.x + 80, 12,
 			Palette.DANGER if after > max_value else Color("9fb9b6"))

@@ -116,7 +116,7 @@ static func run_all(t: TestContext) -> void:
 		var sp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
 		var sw: Array[MechData] = []
 		for i in range(3):
-			sw.append(DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json"))
+			sw.append(DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json"))
 		var scm := CombatManager.new(sp, sw, 77)
 		scm.auto_resolve_enemy_turn = auto
 		var started := [0]
@@ -151,7 +151,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("CombatManager: enemies plan their cards when the player's turn starts, then play exactly that plan")
 	var ip := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var iw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var iw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var icm := CombatManager.new(ip, iw, 11)
 	icm.auto_resolve_enemy_turn = false
 	icm.start_combat()
@@ -213,7 +213,7 @@ static func run_all(t: TestContext) -> void:
 	t.assert_true(not hb.is_defeated(), "Bastion still stands with Voltage Spike (a hardpoint) alive")
 	hb.get_component("voltage_spike").apply_damage(999)
 	t.assert_true(hb.is_defeated(), "Bastion is destroyed with both hardpoints gone, though its reactor and protocol live")
-	var hw := DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")
+	var hw := DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")
 	hw.get_component("scatter_shot").apply_damage(999)
 	t.assert_true(hw.is_defeated(), "a Warden is destroyed once Scatter Shot (its only hardpoint) is gone; its reactors don't keep it alive")
 	var reactor_only := TestFixtures.make_component("r", 10)
@@ -223,7 +223,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("CombatManager: destroying an enemy's last hardpoint wins, even with its reactor alive")
 	var wp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var ww: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var ww: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var wcm := CombatManager.new(wp, ww, 13)
 	wcm.start_combat()
 	ww[0].get_component("redirect_spike").apply_damage(999) # otherwise it takes the hit
@@ -237,7 +237,7 @@ static func run_all(t: TestContext) -> void:
 	var totals := []
 	for stepped in [false, true]:
 		var sp2 := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-		var sw2: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+		var sw2: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 		var scm2 := CombatManager.new(sp2, sw2, 21)
 		scm2.start_combat()
 		var swing: CardData = sp2.get_component("neon_axe").cards[0] # Wide Swing, 3 hits
@@ -266,7 +266,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("CombatManager: hits after the target is destroyed are skipped, not stepped")
 	var kp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var kw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var kw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var kcm := CombatManager.new(kp, kw, 22)
 	kcm.start_combat()
 	var frail_t := kw[0].get_component("redirect_spike")
@@ -280,7 +280,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("Redirect Spike: damage aimed at any other part lands on it while it stands")
 	var cvp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var cvw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var cvw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var cvcm := CombatManager.new(cvp, cvw, 31)
 	cvcm.start_combat()
 	var cv_spike := cvw[0].get_component("redirect_spike")
@@ -297,7 +297,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("Redirect Spike: a multi-hit card breaks through once the Spike is destroyed")
 	var bp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var bw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var bw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var bcm := CombatManager.new(bp, bw, 32)
 	bcm.start_combat()
 	bw[0].get_component("redirect_spike").current_hp = 1
@@ -307,21 +307,21 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(hit_parts[0], "redirect_spike", "hit 1 lands on (and breaks) the 1 HP Redirect Spike")
 	t.assert_eq(hit_parts.slice(1), ["scatter_shot", "scatter_shot"], "hits 2 and 3 reach Scatter Shot")
 
-	t.group("Capacitor Bank: Absorb 25 on its own mech at the start of that mech's turn")
+	t.group("Capacitor Bank: Absorb 10 on its own mech at the start of that mech's turn")
 	var cbp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var cbw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var cbw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var cbcm := CombatManager.new(cbp, cbw, 33)
 	cbcm.start_combat()
 	t.assert_eq(cbw[0].mech_status_stacks("absorb"), 0, "no Absorb yet: the Warden's first turn hasn't started")
 	cbcm.end_player_turn() # the Wardens' turn start (step 4) fires it; it lasts into the player's turn
-	t.assert_eq(cbw[0].mech_status_stacks("absorb"), 25, "Absorb 25 is up for the player's next turn")
+	t.assert_eq(cbw[0].mech_status_stacks("absorb"), 10, "Absorb 10 is up for the player's next turn")
 	cbw[0].get_component("capacitor_bank").apply_damage(999)
 	cbcm.end_player_turn()
 	t.assert_eq(cbw[0].mech_status_stacks("absorb"), 0, "a destroyed Capacitor Bank adds nothing")
 
 	t.group("Insulated Core: incoming Acid/Shock stacks on its mech are cut by 1")
 	var icp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var icw := DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")
+	var icw := DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")
 	var ic_axe := icp.get_component("neon_axe")
 	var ic_src := icw.get_component("scatter_shot")
 	var shock2 := StatusEffectData.new("shock", 2, StatusEffectData.TARGET_ENEMY)
@@ -335,7 +335,7 @@ static func run_all(t: TestContext) -> void:
 	icp.get_component("insulated_core").apply_damage(999)
 	CardResolver.apply_card_status(shock2, icw, ic_src, icp, ic_axe)
 	t.assert_eq(ic_axe.status_stacks("shock"), 3, "a destroyed Insulated Core stops reducing (1 + 2)")
-	var ic_cm := CombatManager.new(DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json"), [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")] as Array[MechData], 34)
+	var ic_cm := CombatManager.new(DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json"), [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")] as Array[MechData], 34)
 	ic_cm.start_combat()
 	var w_target := ic_cm.enemies[0].get_component("redirect_spike")
 	ic_cm.play_attack_card(ic_cm.player_mech.get_component("voltage_spike").cards[0], ic_cm.enemies[0], w_target) # Spike 'Em: Shock 2
@@ -343,7 +343,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("passive_triggered: fires when a passive does something")
 	var ptp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var ptw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var ptw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var ptcm := CombatManager.new(ptp, ptw, 35)
 	var fired := []
 	ptcm.passive_triggered.connect(func(_m, c): fired.append(c.id))
@@ -358,7 +358,7 @@ static func run_all(t: TestContext) -> void:
 	t.assert_true(fired.has("capacitor_bank"), "Capacitor Bank fires at the Warden's turn start")
 
 	t.group("HP threshold: a Warden is destroyed at 40% of max HP, whatever part the damage hit")
-	var tw := DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")
+	var tw := DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")
 	t.assert_eq(tw.defeat_hp_threshold(), 40, "Warden: floor(102 x 0.4) = 40")
 	tw.get_component("redirect_spike").apply_damage(32)
 	tw.get_component("capacitor_bank").apply_damage(24)

@@ -10,6 +10,7 @@ static func run_all(t: TestContext) -> void:
 	_rejected_not_logged(t)
 	_overheat_predictions(t)
 	_damage_preview(t)
+	_fight_record(t)
 
 static func _mech(id: String) -> MechData:
 	return DataLoader.load_mech_from_file("res://data/mechs/%s.json" % id)
@@ -155,3 +156,40 @@ static func _damage_preview(t: TestContext) -> void:
 	t.assert_true(inside, "a 4-hit attack lands within the preview's range (24 seeds)")
 	t.assert_true(lock_kept, "previewing doesn't use up a primed Lock On")
 	t.assert_true(lock_inside, "…and with Lock On primed the hit lands within the previewed range")
+
+## FightRecord: a fight recorded from a worn mech (damage, a lost part,
+## statuses, heat, a changed frame and max heat), saved as JSON and played
+## back headless, ends exactly as it did.
+static func _fight_record(t: TestContext) -> void:
+	t.group("commands: fight records")
+	for setup in [["bastion", ["caustic_engine", "needle_drone"], 3], ["redline", ["rivet_brute", "scrap_warden"], 7]]:
+		var player := _mech(setup[0])
+		var foes: Array[MechData] = []
+		for id in setup[1]:
+			foes.append(_mech(id))
+		player.components[0].current_hp = maxi(1, player.components[0].current_hp / 2)
+		player.components[-1].destroyed = true
+		player.components[-1].current_hp = 0
+		player.max_heat += 2
+		player.cells.append(Vector2i(-1, 0))
+		var cm := CombatManager.new(player, foes, setup[2])
+		var rec := FightRecord.begin(player, foes, setup[2], ["a", "b"])
+		cm.start_combat()
+		player.components[1].add_status("coolant", 2) # fight-start effects go on after start_combat
+		foes[0].components[0].add_status("acid", 3)
+		player.current_heat = 3
+		FightRecord.set_opening(rec, player, foes)
+		_drive(cm, true)
+		FightRecord.finish(rec, cm, FightRecord.result_name(cm.result))
+		var saved = JSON.parse_string(JSON.stringify(rec))
+		t.assert_true(rec["commands"].size() > 3, "%s: the record has the fight's commands" % setup[0])
+		var r := FightRecord.replay(saved)
+		t.assert_true(r["ok"], "%s: the saved record rebuilds its mechs" % setup[0])
+		t.assert_true(r["matches"], "%s: the replay ends as recorded (%s in %d turns)" % [setup[0], rec["result"], rec["turns"]])
+		t.assert_eq(_snapshot(r["combat"]), _snapshot(cm), "%s: the replay ends in exactly the same state" % setup[0])
+		var back := FightRecord.mech_from_dict(saved["player"])
+		t.assert_eq(back.max_heat, player.max_heat, "%s: max heat restored" % setup[0])
+		t.assert_eq(back.cells.size(), player.cells.size(), "%s: frame restored" % setup[0])
+	var gone := {"player": {"id": "no_such_mech"}, "enemies": [], "seed": 1}
+	t.assert_true(not FightRecord.replay(gone)["ok"], "a record whose mech file is gone doesn't replay")
+

@@ -19,7 +19,7 @@ extends Control
 const BASE := Vector2(1152, 720)
 const ART := "res://assets/warroom/"
 const ART_SCALE := 1152.0 / 624.0
-const TOP_BAR_H := 45.0
+const TOP_BAR_H := TopBar.HEIGHT
 const ZOOM_TIME := 0.6
 const ZOOM_FILL := 0.9 # share of the free screen the table's glass fills when zoomed in
 const ZOOM_DIM := 0.86 # how dark the room gets behind the hologram
@@ -37,7 +37,7 @@ const STATIONS := [
 	["livery_bay", "Livery Bay", "Paint schemes, paid in Chips.", "livery_bay.png", Rect2(), Vector2(590, 124), "up_left"],
 	["war_table", "War Table", "Sector Select: pick where to drop in.", "war_table.png", Rect2(203.7, 216.7, 216.6, 114.8), Vector2(418, 255), "right"],
 	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(60, 242), "up_right"],
-	["pilot_log", "Pilot Log", "Your stats and run history.", "pilot_log.png", Rect2(), Vector2(562, 246), "up_left"],
+	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(562, 246), "up_left"],
 ]
 ## Where each station goes (the Research Bay has no unlocks yet).
 const STATION_SCENES := {
@@ -68,7 +68,7 @@ var _label: HoloLabel
 var _label_owner: Hotspot
 var _room_tex: Texture2D
 var _floors: Array[Texture2D] = []
-var _top_bar: Panel
+var _top_bar: TopBar
 var _settings_button: SettingsButton
 var _back_button: Button
 var _daily_button: Button
@@ -107,7 +107,7 @@ func _ready() -> void:
 		if s[0] == "war_table":
 			table = spot
 			if saved:
-				spot.subtitle = "A run is in progress."
+				spot.subtitle = "A mission is in progress."
 			spot.pressed.connect(_on_table_pressed)
 		elif STATION_SCENES.has(s[0]):
 			spot.pressed.connect(_open_station.bind(s[0]))
@@ -151,7 +151,7 @@ func _ready() -> void:
 	_daily_button = GlassPanel.button("Daily Operation", 13, false, Palette.LINK)
 	_daily_button.custom_minimum_size = Vector2(130, 36)
 	_daily_button.visible = false
-	_daily_button.tooltip_text = "Today's run: the same for every pilot, one scored attempt."
+	_daily_button.tooltip_text = "Today's mission: the same for every pilot, one scored attempt."
 	_daily_button.pressed.connect(_on_daily)
 	add_child(_daily_button)
 
@@ -192,7 +192,6 @@ func _layout() -> void:
 		room.scale = Vector2(z[0], z[0])
 		room.position = z[1]
 		_place_sector_map()
-	_top_bar.size = Vector2(screen.x, TOP_BAR_H)
 	_dim.position = Vector2(0, TOP_BAR_H)
 	_dim.size = Vector2(screen.x, screen.y - TOP_BAR_H)
 	_back_button.position = Vector2(16, TOP_BAR_H + 12)
@@ -361,11 +360,11 @@ func _label_info(spot: Hotspot) -> Array:
 			var today := Profile.todays_directives()
 			lines.append("%d of %d done today" % [(today["done"] as Array).size(), (today["ids"] as Array).size()])
 		"pilot_log":
-			lines.append("Runs %d  ·  Clears %d" % [Profile.runs, Profile.clears])
+			lines.append("Missions %d  ·  Clears %d" % [Profile.runs, Profile.clears])
 		"livery_bay":
 			lines.append("Chips: %s" % HubScreen._thousands(Profile.chips))
 		"war_table":
-			tag = "CONTINUE RUN" if SaveGame.has_save() else "START RUN"
+			tag = "CONTINUE MISSION" if SaveGame.has_save() else "START MISSION"
 			tag_color = Palette.HARDPOINT
 	if not spot.enabled:
 		tag = "NOT BUILT YET"
@@ -392,7 +391,7 @@ func _build_operator() -> void:
 	var who := UIKit.label("OPERATOR  ·  SECURE CHANNEL", 10, Color("b9d8d4"))
 	who.position = Vector2(100, 10)
 	_operator.add_child(who)
-	_operator_line = UIKit.label(Operator.line(Profile.last_report, Profile.runs), 14, Color("eefcfa"), true)
+	_operator_line = UIKit.label(Operator.line(Profile.last_report, Profile.runs, SaveGame.summary() if SaveGame.has_save() else {}), 14, Color("eefcfa"), true)
 	_operator_line.position = Vector2(100, 30)
 	_operator_line.size = Vector2(r.size.x - 100 - 124, r.size.y - 40)
 	_operator_line.visible_ratio = 0.0
@@ -427,32 +426,14 @@ func _dismiss_operator() -> void:
 	_operator.visible = false
 
 func _build_top_bar() -> void:
-	_top_bar = Panel.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PANEL
-	style.border_color = Palette.BORDER
-	style.border_width_bottom = 1
-	_top_bar.add_theme_stylebox_override("panel", style)
-	add_child(_top_bar)
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 19
-	row.offset_right = -8
-	row.alignment = BoxContainer.ALIGNMENT_BEGIN
-	row.add_theme_constant_override("separation", 11)
-	_top_bar.add_child(row)
-	row.add_child(_bar_label("HOME BASE", 12, Palette.TEXT))
-	row.add_child(_bar_label("[BASE NAME]", 10, Palette.TEXT_MUTED))
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
-	row.add_child(_chip("CHIPS  %s" % HubScreen._thousands(Profile.chips)))
-	var coop := Button.new()
-	coop.text = "Co-op lobby · post-demo"
+	_top_bar = TopBar.make(self, "Home Base")
+	var row := _top_bar.row
+	row.add_child(_bar_label("[BASE NAME]", 12, Color("7f9d9a")))
+	row.add_child(UIKit.spacer())
+	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
+	var coop := GlassPanel.button("Co-op lobby · post-demo", 12)
 	coop.disabled = true
-	coop.focus_mode = Control.FOCUS_NONE
-	coop.add_theme_font_size_override("font_size", 10)
+	coop.custom_minimum_size = Vector2(0, TopBar.CHIP_H)
 	coop.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(coop)
 	_settings_button = SettingsButton.new()
@@ -466,22 +447,6 @@ func _bar_label(text: String, font_size: int, c: Color) -> Label:
 	l.add_theme_color_override("font_color", c)
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return l
-
-func _chip(text: String) -> PanelContainer:
-	var chip := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PANEL_2
-	style.border_color = Palette.BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(3)
-	style.content_margin_left = 9
-	style.content_margin_right = 9
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	chip.add_theme_stylebox_override("panel", style)
-	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	chip.add_child(_bar_label(text, 10, Palette.TEXT))
-	return chip
 
 # ---------- zoom into the table / sector map ----------
 

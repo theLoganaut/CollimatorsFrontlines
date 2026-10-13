@@ -10,14 +10,22 @@ extends RefCounted
 ## vented = floor(heat * min(heat, maxHeat) * vent_at_max / maxHeat).
 ## Returns the amount vented (not the remaining heat). `vent_at_max` < 0
 ## uses the balance.json value (a mech can carry its own, MechData.vent_at_max).
+##
+## With heat.full_reset on (a trial, 2026-10-02) all of it vents.
 static func amount_vented(current_heat: int, max_heat: int, vent_at_max: float = -1.0) -> int:
 	if max_heat <= 0 or current_heat <= 0:
 		return 0
+	if full_reset():
+		return current_heat
 	var share := vent_at_max if vent_at_max >= 0.0 else Balance.get_num("heat", "vent_at_max", 0.8)
 	var pct := int(round(share * 100.0))
 	# Integer division truncates toward zero, which is floor() for non-negative operands.
 	var ratio_vented: int = (current_heat * mini(current_heat, max_heat) * pct) / (max_heat * 100)
 	return mini(current_heat, ratio_vented)
+
+## Whether every dispersal clears a mech's heat (balance.json heat.full_reset).
+static func full_reset() -> bool:
+	return bool(Balance.section("heat").get("full_reset", false))
 
 ## The Vent action's dispersal: a flat share of the heat (heat.vent_action_share,
 ## the same 80% the ratio reaches at max heat), rounded down.

@@ -135,7 +135,7 @@ static func scale_card(card: CardData) -> void:
 		card.heat_cost = maxi(1, roundi(card.heat_cost * hm))
 
 ## A reactor's passive: its rule, plus its Refit Bay card's statuses and
-## text as the description ("Gain Absorb 25. Triggers automatically…").
+## text as the description ("Gain Absorb 10. Triggers automatically…").
 static func _passive_for(d: Dictionary) -> Dictionary:
 	var p := passive_rule(d["id"]).duplicate(true)
 	if p.is_empty():

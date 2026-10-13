@@ -33,6 +33,7 @@ func start_run(location_id: String, seed_value: int = -1, mission_id: String = "
 	if not run.mission.get("training", false):
 		DeploymentOrders.offer(run) # taken on the location map, before the first stop
 	SaveGame.save(run)
+	CrashLog.crumb("new run: %s, %s, seed %d" % [run.location.get("name", ""), run.player_mech.id, seed_value])
 	return run
 
 ## Today's Daily Operation (Daily): the day's location, mission, variant,
@@ -49,7 +50,12 @@ func start_daily() -> RunData:
 
 func continue_run() -> bool:
 	run = SaveGame.load_run()
-	return run != null
+	if run == null:
+		return false
+	var crash := CrashLog.take_crash()
+	run.resumes.append({"at": Time.get_datetime_string_from_system(false, true), "phase": run.phase, "stops": run.path.size(), "crash": crash})
+	CrashLog.crumb("continue run: %s, stop %d%s" % [run.location.get("name", ""), run.path.size(), " (after %s)" % crash if crash != "" else ""])
+	return true
 
 ## Saves and goes to wherever the run is now.
 func advance() -> void:
@@ -67,6 +73,7 @@ func advance() -> void:
 func end_run() -> void:
 	if run != null and not run.mission.get("training", false): # training doesn't count
 		Profile.record_run(run)
+		PlaytestReport.write(PlaytestReport.for_run(run, Profile.history[0]), "%s_%s" % [run.player_mech.id, run.location.get("id", "")])
 	last_run = run
 	run = null
 	SaveGame.clear()

@@ -18,6 +18,13 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(HeatRules.amount_vented(9, 10), 6, "9/10 vents 6")
 	t.assert_eq(HeatRules.heat_after_vent(9, 10), 3, "9/10 stays at 3")
 
+	t.group("HeatRules: full reset (heat.full_reset trial)")
+	Balance.set_value("heat", "full_reset", true)
+	t.assert_eq(HeatRules.heat_after_vent(5, 14), 0, "5 -> 0")
+	t.assert_eq(HeatRules.heat_after_vent(17, 14), 0, "17 (overheated) -> 0")
+	t.assert_eq(HeatRules.amount_vented(0, 14), 0, "0 heat vents nothing")
+	Balance.set_value("heat", "full_reset", false)
+
 	t.group("HeatRules: overheat state")
 	t.assert_true(not HeatRules.is_overheated(14, 14), "at exactly max heat is not overheated")
 	t.assert_true(HeatRules.is_overheated(15, 14), "one over max heat is overheated")

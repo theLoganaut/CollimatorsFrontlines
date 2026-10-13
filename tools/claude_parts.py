@@ -71,7 +71,7 @@ PARTS = [
     #
     # Text (Logan, 2026-09-29): short, Slay-the-Spire-like, icon-ready. The
     # target is implied ("Burn 1", not "Burns the enemy mech"); keywords
-    # (Vent, Pierce, Lifesteal) are explained by the hover glossary.
+    # (Vent, Pierce, Reclaim) are explained by the hover glossary.
 
     # ---------------- Surplus · Light ----------------
     part("Needle Carbine", HP, "light", "surplus", 38, "###", [
@@ -123,7 +123,7 @@ PARTS = [
         passive("Field Medic Unit", "Turn start: heal linked parts 6.", {"type": "turn_start_heal_linked", "amount": 6})],
         link=link("up")),
     part("Siphon Driver", PR, "medium", "surplus", 30, "##/#.", [
-        protocol("Siphon", "Next attack: Lifesteal 50%.", {"protocol": "siphon", "fraction": 0.5})]),
+        protocol("Siphon", "Next attack: Reclaim 50%.", {"protocol": "siphon", "fraction": 0.5})]),
     part("Breach Charge", PR, "medium", "surplus", 26, "##", [
         protocol("Breach", "Next attack: Pierce, +25% damage.", {"protocol": "pierce", "mult": 1.25})]),
     part("Chain Relay", PR, "medium", "surplus", 30, ".#/#./.#", [
@@ -140,7 +140,7 @@ PARTS = [
         card("Barrage", 5, 3, "10-13", effect="Hits random parts.", rule={"random_part_hits": True}),
         card("Zero In", 3, 1, "16-20")]),
     part("Grinder Maw", HP, "heavy", "surplus", 60, ".#./###", [
-        card("Chew", 3, 2, "8-11", effect="Lifesteal 30%.", rule={"heal_on_hit": 0.3}),
+        card("Chew", 3, 2, "8-11", effect="Reclaim 30%.", rule={"heal_on_hit": 0.3}),
         card("Maul", 5, 1, "24-30")]),
     part("Rivet Gun", HP, "heavy", "surplus", 42, "###", [
         card("Rivet", 1, 1, "6-8"),
@@ -222,7 +222,7 @@ PARTS = [
     part("Probability Engine", PR, "general", "prototype", 36, "#/#", [
         protocol("Loaded Dice", "Next attack: never misses, max damage, +50% damage.", {"protocol": "max_roll", "mult": 1.5})]),
     part("Parasite Leech", HP, "general", "prototype", 62, "#./##", [
-        card("Latch", 2, 1, "9-12", effect="Repeats on the same part your next 3 turns. Lifesteal 50%.", rule={"repeat_turns": 3, "heal_on_hit": 0.5})]),
+        card("Latch", 2, 1, "9-12", effect="Repeats on the same part your next 3 turns. Reclaim 50%.", rule={"repeat_turns": 3, "heal_on_hit": 0.5})]),
     part("Salvage Recursor", PR, "general", "prototype", 52, ".#./##.", [
         protocol("Recall", "Next card plays again next turn for 0 Heat.", {"protocol": "recall"})]),
     part("Chaos Reactor", RE, "general", "prototype", 58, "#.#/.#.", [
@@ -269,6 +269,14 @@ PARTS = [
         card("Cataclysm", 8, 4, "14-18", effect="Hits all enemies, random parts.", rule={"hits_all_enemies": True, "random_part_hits": True}),
         card("Ranging Shot", 2, 1, "14-18", [S("acid", 2)])]),
 ]
+
+# The card pass (tools/card_pass.py) owns the cards of the parts it reworked.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from card_pass import ALL as _CARD_PASS, ADDED as _CARD_ADDED  # noqa: E402
+for _p in PARTS:
+    if _p["name"] in _CARD_PASS:
+        _p["cards"] = _CARD_PASS[_p["name"]]
+    _p["cards"] = _p["cards"] + [c for c in _CARD_ADDED.get(_p["name"], []) if c["name"] not in [k["name"] for k in _p["cards"]]]
 
 
 def uid():

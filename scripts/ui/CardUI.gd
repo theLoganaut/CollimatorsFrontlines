@@ -61,7 +61,9 @@ var _hover_tween: Tween
 var _cost_label: Label
 var _dmg_label: Label
 var _name_label: Label
-var _effect_label: Label
+var _effect_label: RichTextLabel
+## A primed protocol will be used up by this card: a soft purple glow.
+var protocol_glow: bool = false
 
 func _ready() -> void:
 	custom_minimum_size = BASE_SIZE
@@ -113,14 +115,23 @@ func _build_children() -> void:
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_name_label)
 
-	_effect_label = Label.new()
+	# Rich text: statuses and keywords are tinted links, and hovering one
+	# (only the word itself, Logan 2026-10-02) opens its rule above the card.
+	_effect_label = RichTextLabel.new()
+	_effect_label.bbcode_enabled = true
+	_effect_label.scroll_active = false
+	_effect_label.meta_underlined = false
 	_effect_label.position = Vector2(8, 66)
 	_effect_label.size = Vector2(BASE_SIZE.x - 16, BASE_SIZE.y - 72)
-	_effect_label.add_theme_font_size_override("font_size", 11)
-	_effect_label.add_theme_color_override("font_color", Color("b9d0cc"))
+	_effect_label.add_theme_font_size_override("normal_font_size", 11)
+	_effect_label.add_theme_color_override("default_color", Color("b9d0cc"))
 	_effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_effect_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_effect_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_effect_label.meta_hover_started.connect(func(meta):
+		var e := StatusGlossary.lookup(str(meta))
+		if not e.is_empty() and UIState.dragging_card == null:
+			HoloHint.open(self, [e], [], true))
+	_effect_label.meta_hover_ended.connect(func(_meta): HoloHint.close(self))
 	add_child(_effect_label)
 
 func _refresh() -> void:
@@ -135,7 +146,7 @@ func _refresh() -> void:
 		lines.append(card.effect_text)
 	if card.one_use:
 		lines.push_front("One use (intercepted)")
-	_effect_label.text = "\n".join(lines)
+	_effect_label.text = StatusGlossary.annotate("\n".join(lines))
 	queue_redraw()
 
 ## Display-only face for a component's passive (the opening reveal): no
@@ -155,10 +166,11 @@ func show_passive(component: ComponentData) -> void:
 	_cost_label.add_theme_color_override("font_color", Palette.category_color(_category))
 	_dmg_label.text = ""
 	_name_label.text = component.name
-	_effect_label.text = component.passive_text()
-	_effect_label.add_theme_color_override("font_color", Palette.TEXT)
+	_effect_label.text = StatusGlossary.annotate(component.passive_text())
+	_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_effect_label.add_theme_color_override("default_color", Palette.TEXT)
 	# No image on a passive card, so its (often long) text gets more room.
-	_effect_label.add_theme_font_size_override("font_size", 10)
+	_effect_label.add_theme_font_size_override("normal_font_size", 10)
 	_effect_label.position.y = 60
 	_effect_label.size.y = BASE_SIZE.y - 66
 	queue_redraw()
@@ -171,6 +183,11 @@ func set_would_overheat(would: bool) -> void:
 ## The cost it takes right now (amber when changed from printed), red if it
 ## would overheat, greyed out when its part can't act, and dimmer still
 ## with SPENT across it once it's been played this fight.
+func set_protocol_glow(on: bool) -> void:
+	if on != protocol_glow:
+		protocol_glow = on
+		queue_redraw()
+
 func set_state(cost: int, would_overheat: bool, unavailable: bool, spent: bool = false) -> void:
 	_shown_cost = cost
 	_unavailable = unavailable or spent
@@ -215,6 +232,9 @@ func _draw() -> void:
 		draw_circle(kc, 9.0, Color(0.02, 0.05, 0.06, 0.9))
 		draw_arc(kc, 9.0, 0.0, TAU, 20, Color(accent, 0.8), 1.0, true)
 		draw_string(get_theme_default_font(), kc + Vector2(-9, 4.5), str(hotkey), HORIZONTAL_ALIGNMENT_CENTER, 18, 12, Palette.TEXT)
+	if protocol_glow and not _spent:
+		for i in range(4):
+			draw_rect(rect.grow(1.5 + i * 2.5), Color(Palette.PROTOCOL, 0.5 - i * 0.11), false, 2.5)
 	if selected or linked:
 		draw_rect(rect.grow(2.0), Palette.LINK, false, 3.0)
 	if _spent:
@@ -236,6 +256,7 @@ func _on_mouse_exited() -> void:
 	_apply_hover_visual()
 	if card != null:
 		UIState.clear_hovered_card(card)
+	HoloHint.close(self)
 
 func _apply_hover_visual() -> void:
 	if _dragging:
@@ -327,6 +348,7 @@ func _start_drag() -> void:
 	pivot_offset = BASE_SIZE / 2.0
 	_grab_offset = BASE_SIZE / 2.0
 	global_position = _press_global - _grab_offset
+	HoloHint.close(self)
 	UIState.begin_drag(self, card)
 	set_process(true)
 	set_process_input(true)
@@ -349,7 +371,7 @@ func _process(_delta: float) -> void:
 		if can_play != _ready_to_play:
 			_ready_to_play = can_play
 			queue_redraw()
-	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if not Gamepad.left_held(): # the mouse button, or A on a gamepad
 		_release(mouse)
 
 func _input(event: InputEvent) -> void:

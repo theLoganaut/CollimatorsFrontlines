@@ -255,7 +255,7 @@ func _build_cells(step: Dictionary) -> void:
 
 func _build_choose_part(step: Dictionary) -> void:
 	var strip: bool = step["type"] == DeploymentOrders.STEP_REMOVE
-	_say("Click the component to strip out. It's gone for the run." if strip \
+	_say("Click the component to strip out. It's gone for the mission." if strip \
 		else "Click the component to transmute. What comes back is random.")
 	var g := _chassis_grid(false)
 	_hover_label = UIKit.label("Hover a component.", 12, Color("9fb9b6"))

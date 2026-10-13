@@ -71,7 +71,7 @@ var path: Array[int] = []     # nodes finished, in order
 var fights_won: int = 0
 var result: Result = Result.NONE
 ## How the run ended, for the Pilot Log ("Lost to Rivet Brute, Scrap Warden
-## at stop 9", "Ejected at stop 4"); "" while it's going or when cleared.
+## at encounter 9", "Ejected at encounter 4"); "" while it's going or when cleared.
 var end_cause: String = ""
 
 ## After a fight: {"scraps", "scraps_taken", "options": {category: [ids]},
@@ -108,8 +108,16 @@ var fight_rolls: Dictionary = {}
 var encounter_history: Array = []
 ## Event ids this run has had (RunEvents.pick doesn't repeat them).
 var events_seen: Array = []
-## Every fight this run, for the Pilot Log: [{enemies: [ids], kind, won, turns}].
+## Every fight this run, for the Pilot Log: [{enemies: [ids], kind, won, turns,
+## damage_taken, hp_left, hp_max, replay (its Replays file, if recorded)}].
 var fight_log: Array = []
+## Each time this run was continued from its save: {at (date and time),
+## phase, stops (taken so far), crash (CrashLog's report file if the game
+## hadn't quit before it, else "")}.
+var resumes: Array = []
+## The file the fight being logged was recorded to (Replays), set by the
+## combat screen just before fight_won / fight_lost. Not saved.
+var last_replay: String = ""
 ## Deployment orders: {"offer": [3 ids], "chosen": id ("" until taken),
 ## "steps": [what's left for the pilot to do], "cargo_size": [rows, cols]
 ## (Cargo's real size while it's 5×5 for the opening refit), "swaps" (for
@@ -451,7 +459,7 @@ func fight_lost(fight_stats: RunStats = null) -> void:
 	for m in encounter_enemies():
 		if not names.has(m.name):
 			names.append(m.name)
-	end_cause = "Lost to %s at stop %d" % [", ".join(names), path.size()]
+	end_cause = "Lost to %s at encounter %d" % [", ".join(names), path.size()]
 
 # ---------- events ----------
 
@@ -472,13 +480,19 @@ func _log_fight(won: bool, fight_stats: RunStats) -> void:
 	var ids: Array = node.get("enemies", []).duplicate()
 	if ids.is_empty():
 		ids = fight_rolls.get(current_node_id, [])
-	fight_log.append({"enemies": ids, "kind": node.get("kind", RunMap.KIND_FIGHT), "won": won,
-		"turns": fight_stats.get_stat("turns_taken") if fight_stats != null else 0})
+	var entry := {"enemies": ids, "kind": node.get("kind", RunMap.KIND_FIGHT), "won": won,
+		"turns": fight_stats.get_stat("turns_taken") if fight_stats != null else 0,
+		"damage_taken": fight_stats.get_stat("damage_taken") if fight_stats != null else 0,
+		"hp_left": player_mech.current_hp(), "hp_max": player_mech.max_hp()}
+	if last_replay != "":
+		entry["replay"] = last_replay
+		last_replay = ""
+	fight_log.append(entry)
 
 func eject() -> void:
 	result = Result.EJECTED
 	if end_cause == "":
-		end_cause = "Ejected at stop %d" % path.size()
+		end_cause = "Ejected at encounter %d" % path.size()
 
 # ---------- rewards ----------
 

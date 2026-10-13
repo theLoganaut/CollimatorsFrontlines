@@ -13,6 +13,36 @@ static func label(text: String, font_size: int = 14, color: Color = Palette.TEXT
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
+## Card or passive text with its statuses and keywords tinted, each
+## opening its rule on hover (StatusGlossary.annotate, HoloHint). It passes clicks
+## on to what it sits in.
+static func rich_label(text: String, font_size: int = 12, color: Color = Palette.TEXT) -> RichTextLabel:
+	var l := RichTextLabel.new()
+	l.bbcode_enabled = true
+	l.fit_content = true
+	l.scroll_active = false
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.mouse_filter = Control.MOUSE_FILTER_PASS
+	l.add_theme_font_size_override("normal_font_size", font_size)
+	l.add_theme_color_override("default_color", color)
+	l.text = StatusGlossary.annotate(text)
+	# Statuses and keywords are links: hovering one opens its rule at once,
+	# in a holo window just below it (HoloHint).
+	l.meta_underlined = false
+	l.meta_hover_started.connect(func(meta):
+		var e := StatusGlossary.lookup(str(meta))
+		if not e.is_empty():
+			HoloHint.open(l, [e], [], false, l.get_global_mouse_position())
+		var st := StatusGlossary.status_id(str(meta))
+		if st != "":
+			UIState.set_hovered_status(l, st, null)) # light the parts holding it, on every mech
+	l.meta_hover_ended.connect(func(_meta):
+		HoloHint.close(l)
+		UIState.clear_hovered_status(l))
+	l.tree_exiting.connect(func(): UIState.clear_hovered_status(l))
+	return l
+
 static func style(bg: Color, border: Color = Palette.BORDER, border_w: int = 1, radius: int = 4) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = bg
@@ -46,27 +76,17 @@ static func button(text: String, accent: Color = Color.TRANSPARENT, min_size: Ve
 	b.add_theme_color_override("font_disabled_color", Palette.TEXT_MUTED)
 	return b
 
-## The strip across the top of a run screen: a title, extra widgets, scraps.
-static func top_bar(parent: Control, title: String, height: float = 45.0) -> HBoxContainer:
-	var bar := Panel.new()
-	var s := StyleBoxFlat.new()
-	s.bg_color = Palette.PANEL
-	s.border_color = Palette.BORDER
-	s.border_width_bottom = 1
-	bar.add_theme_stylebox_override("panel", s)
-	bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	bar.offset_bottom = height
-	parent.add_child(bar)
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 19
-	row.offset_right = -16
-	row.add_theme_constant_override("separation", 18)
-	bar.add_child(row)
-	var t := label(title, 15)
-	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(t)
-	return row
+## The glass strip across the top of a screen (TopBar): its title, then
+## the row the screen adds its read-outs and buttons to.
+static func top_bar(parent: Control, title: String) -> HBoxContainer:
+	return TopBar.make(parent, title).row
+
+## A "◀  War Room" button for a top bar.
+static func back_button(text: String = "◀  War Room") -> Button:
+	var b := GlassPanel.button(text, 13)
+	b.custom_minimum_size = Vector2(130, TopBar.CHIP_H)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return b
 
 static func spacer(horizontal: bool = true) -> Control:
 	var c := Control.new()
@@ -95,7 +115,7 @@ static func seed_row(seed_value: int, font_size: int = 10, color: Color = Color(
 	b.flat = true
 	b.add_theme_font_size_override("font_size", font_size)
 	b.add_theme_color_override("font_color", Palette.LINK)
-	b.tooltip_text = "Copy the seed. Type it into a location's seed field on the War Table to replay this run."
+	b.tooltip_text = "Copy the seed. Type it into a location's seed field on the War Table to replay this mission."
 	b.pressed.connect(func():
 		DisplayServer.clipboard_set(str(seed_value))
 		b.text = "Copied"

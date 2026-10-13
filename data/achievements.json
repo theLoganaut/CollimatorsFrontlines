@@ -1,0 +1,154 @@
+{
+ "_note": "Achievements (Claude, 2026-09-30, Proposed; Logan asked for local achievements that pay a few Chips). One-time milestones, checked when a run ends (training doesn't count); each pays its chips once. check: run (this run's stat >= n; 'clears' = cleared), fight (any fight won this run: its damage_taken / turns / hp_share at_most n), career (lifetime totals >= n: runs, or a run stat summed over every run), special (daily, clear_no_overheat, all_mechs, streak, all_bosses).",
+ "achievements": [
+  {
+   "id": "first_win",
+   "name": "First Blood",
+   "text": "Win a fight",
+   "check": "run",
+   "stat": "fights_won",
+   "n": 1,
+   "chips": 20
+  },
+  {
+   "id": "elite",
+   "name": "Elite Hunter",
+   "text": "Beat an elite",
+   "check": "run",
+   "stat": "elites_beaten",
+   "n": 1,
+   "chips": 30
+  },
+  {
+   "id": "boss",
+   "name": "Kingslayer",
+   "text": "Defeat a boss",
+   "check": "run",
+   "stat": "bosses_beaten",
+   "n": 1,
+   "chips": 50
+  },
+  {
+   "id": "clear",
+   "name": "Sector Secured",
+   "text": "Clear a location",
+   "check": "run",
+   "stat": "clears",
+   "n": 1,
+   "chips": 50
+  },
+  {
+   "id": "daily",
+   "name": "Daily Operator",
+   "text": "Finish a Daily Operation",
+   "check": "special",
+   "special": "daily",
+   "chips": 25
+  },
+  {
+   "id": "untouched",
+   "name": "Untouched",
+   "text": "Win a fight without taking damage",
+   "check": "fight",
+   "stat": "damage_taken",
+   "n": 0,
+   "chips": 40
+  },
+  {
+   "id": "close_call",
+   "name": "Close Call",
+   "text": "Win a fight with a tenth of your HP or less left",
+   "check": "fight",
+   "stat": "hp_share",
+   "n": 0.1,
+   "chips": 40
+  },
+  {
+   "id": "blitz",
+   "name": "Blitz",
+   "text": "Win a fight in 3 turns or fewer",
+   "check": "fight",
+   "stat": "turns",
+   "n": 3,
+   "chips": 35
+  },
+  {
+   "id": "big_hit",
+   "name": "Heavy Hitter",
+   "text": "Land a single hit of 30 or more",
+   "check": "run",
+   "stat": "biggest_hit",
+   "n": 30,
+   "chips": 30
+  },
+  {
+   "id": "big_turn",
+   "name": "Alpha Strike",
+   "text": "Deal 100 damage in one turn",
+   "check": "run",
+   "stat": "best_turn_damage",
+   "n": 100,
+   "chips": 40
+  },
+  {
+   "id": "cool_head",
+   "name": "Cool Head",
+   "text": "Clear a location without overheating",
+   "check": "special",
+   "special": "clear_no_overheat",
+   "chips": 60
+  },
+  {
+   "id": "parts_100",
+   "name": "Scrapper",
+   "text": "Destroy 100 enemy parts",
+   "check": "career",
+   "stat": "enemy_parts_destroyed",
+   "n": 100,
+   "chips": 40
+  },
+  {
+   "id": "damage_10k",
+   "name": "Ten Thousand",
+   "text": "Deal 10,000 damage",
+   "check": "career",
+   "stat": "damage_dealt",
+   "n": 10000,
+   "chips": 50
+  },
+  {
+   "id": "runs_10",
+   "name": "Veteran",
+   "text": "Finish 10 missions",
+   "check": "career",
+   "stat": "runs",
+   "n": 10,
+   "chips": 40
+  },
+  {
+   "id": "all_mechs",
+   "name": "Full Hangar",
+   "text": "Clear a location with every mech",
+   "check": "special",
+   "special": "all_mechs",
+   "chips": 80
+  },
+  {
+   "id": "streak_3",
+   "name": "Routine",
+   "text": "Finish every daily directive 3 days running",
+   "check": "special",
+   "special": "streak",
+   "n": 3,
+   "chips": 40
+  },
+  {
+   "id": "all_bosses",
+   "name": "Hit List",
+   "text": "Defeat every boss",
+   "check": "special",
+   "special": "all_bosses",
+   "chips": 100
+  }
+ ]
+}

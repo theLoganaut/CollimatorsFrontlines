@@ -59,6 +59,9 @@ func _process(delta: float) -> void:
 	visible = not GameSettings.reduce_motion
 	if not visible:
 		return
+	# Real time: the game's speed setting (and hit-stop) leaves the weather alone.
+	if Engine.time_scale > 0.0:
+		delta /= Engine.time_scale
 	for i in range(_drops.size()):
 		var d := _drops[i]
 		if d["splash"] >= 0.0:

@@ -28,15 +28,21 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
-     "id": "single_shot",
-     "name": "Single Shot",
+     "id": "suppressing_fire",
+     "name": "Suppressing Fire",
      "heat_cost": "1",
      "hits": "1",
-     "damage": "5-7",
-     "statuses": [],
+     "damage": "3-4",
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
      "effect_text": ""
     },
     {
@@ -45,8 +51,23 @@
      "heat_cost": "4",
      "hits": "5",
      "damage": "5-7",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": "Reduces chance to fire by 20% each hit after the second."
+    },
+    {
+     "id": "tracer_burst",
+     "name": "Tracer Burst",
+     "heat_cost": "2",
+     "hits": "2",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Shock 1."
     }
    ]
   },
@@ -77,14 +98,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "shock_round",
      "name": "Shock Round",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "12-16",
+     "damage": "6-8",
      "statuses": [
       {
        "status": "shock",
@@ -92,7 +113,7 @@
        "target": "enemy"
       }
      ],
-     "effect_text": "25% chance to apply."
+     "effect_text": ""
     },
     {
      "id": "emp_round",
@@ -102,6 +123,15 @@
      "damage": "4-6",
      "statuses": [],
      "effect_text": "Deals triple damage if the targeted hard point is already shocked."
+    },
+    {
+     "id": "lockout_round",
+     "name": "Lockout Round",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a Shocked part: Disabled 1."
     }
    ]
   },
@@ -132,16 +162,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "swipe",
      "name": "Swipe",
      "heat_cost": "1",
      "hits": "1",
-     "damage": "6-12",
+     "damage": "5-8",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Double damage vs a part attacking this turn."
     },
     {
      "id": "thrust_through",
@@ -157,15 +187,9 @@
      "name": "Foresight",
      "heat_cost": "3",
      "hits": "0",
-     "damage": "0",
-     "statuses": [
-      {
-       "status": "deflect",
-       "stacks": "1",
-       "target": "ownMech"
-      }
-     ],
-     "effect_text": ""
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: the next hit on your mech is cancelled, and its attacker takes 8."
     }
    ]
   },
@@ -200,16 +224,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "helix_drum",
      "name": "Helix Drum",
-     "heat_cost": "4",
+     "heat_cost": "2",
      "hits": "2",
-     "damage": "10-12",
+     "damage": "4-6",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Double damage vs a part at half HP or less."
     },
     {
      "id": "optical_pinpoint",
@@ -223,11 +247,11 @@
     {
      "id": "rainbow_rain",
      "name": "Rainbow Rain",
-     "heat_cost": "8",
+     "heat_cost": "6",
      "hits": "6",
-     "damage": "4-8",
+     "damage": "4-7",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Hits random parts."
     }
    ]
   },
@@ -266,7 +290,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "wide_swing",
@@ -275,7 +299,7 @@
      "hits": "3",
      "damage": "6-10",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Hits random parts."
     },
     {
      "id": "cross_chop",
@@ -284,7 +308,7 @@
      "hits": "2",
      "damage": "14-20",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Last card this turn."
     },
     {
      "id": "extension",
@@ -295,11 +319,11 @@
      "statuses": [
       {
        "status": "deflect",
-       "stacks": "1",
+       "stacks": "5",
        "target": "ownMech"
       }
      ],
-     "effect_text": ""
+     "effect_text": "Deflect 9 instead if a heavy attack is coming."
     }
    ]
   },
@@ -334,7 +358,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "spillage",
@@ -342,7 +366,13 @@
      "heat_cost": "4",
      "hits": "1",
      "damage": "6-8",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
      "effect_text": "Repeat this effect the next two turns."
     },
     {
@@ -359,9 +389,9 @@
      "name": "Acid Rain",
      "heat_cost": "3",
      "hits": "3",
-     "damage": "5-10",
+     "damage": "4-7",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "+3 damage per hit vs a part with Acid."
     }
    ]
   },
@@ -396,16 +426,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "33_power_rail",
      "name": "33% Power Rail",
-     "heat_cost": "2",
+     "heat_cost": "3",
      "hits": "1",
-     "damage": "8-14",
+     "damage": "6-10",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Vs a part attacking this turn: Disabled 1."
     },
     {
      "id": "66_power_rail",
@@ -444,7 +474,7 @@
    "name": "Cluster Rockets",
    "claude_draft": false,
    "category": "hardpoint",
-   "rarity": "surplus",
+   "rarity": "salvaged",
    "weight_class": "general",
    "hp": 40,
    "cells": [
@@ -470,7 +500,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "salvo_fire",
@@ -479,7 +509,7 @@
      "hits": "6",
      "damage": "3-6",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Hits random parts."
     },
     {
      "id": "all_0ut_salvo",
@@ -495,6 +525,21 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "smoke_rockets",
+     "name": "Smoke Rockets",
+     "heat_cost": "3",
+     "hits": "4",
+     "damage": "2-4",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
     }
    ]
   },
@@ -503,7 +548,7 @@
    "name": "FireStorm",
    "claude_draft": false,
    "category": "hardpoint",
-   "rarity": "surplus",
+   "rarity": "salvaged",
    "weight_class": "general",
    "hp": 48,
    "cells": [
@@ -529,14 +574,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "set_ablaze",
      "name": "Set Ablaze",
      "heat_cost": "3",
      "hits": "3",
-     "damage": "6-10",
+     "damage": "3-5",
      "statuses": [
       {
        "status": "burn",
@@ -560,6 +605,15 @@
       }
      ],
      "effect_text": "Hits all enemies."
+    },
+    {
+     "id": "fan_the_flames",
+     "name": "Fan the Flames",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": "+5 damage per hit vs a Burning part."
     }
    ]
   },
@@ -594,14 +648,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "piercing_rush",
      "name": "Piercing Rush",
      "heat_cost": "3",
      "hits": "1",
-     "damage": "14-18",
+     "damage": "10-13",
      "statuses": [
       {
        "status": "burn",
@@ -627,6 +681,21 @@
        "status": "burn",
        "stacks": "3",
        "target": "enemy"
+      }
+     ],
+     "effect_text": ""
+    },
+    {
+     "id": "heat_jab",
+     "name": "Heat Jab",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "6-8",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "1",
+       "target": "self"
       }
      ],
      "effect_text": ""
@@ -664,7 +733,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "spike_em",
@@ -695,6 +764,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "static_field",
+     "name": "Static Field",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: every enemy part that hits you gets Shock 1."
     }
    ]
   },
@@ -729,14 +807,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "targeted_napalm",
      "name": "Targeted Napalm",
      "heat_cost": "4",
      "hits": "3",
-     "damage": "7-10",
+     "damage": "4-6",
      "statuses": [
       {
        "status": "burn",
@@ -760,6 +838,15 @@
       }
      ],
      "effect_text": "Hits all enemies; 50% chance per hit."
+    },
+    {
+     "id": "drop_zone",
+     "name": "Drop Zone",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [],
+     "effect_text": "Double damage vs a Burning part."
     }
    ]
   },
@@ -794,7 +881,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "whiplash",
@@ -830,6 +917,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "snap",
+     "name": "Snap",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "6-9",
+     "statuses": [],
+     "effect_text": "Double damage vs a Shocked part."
     }
    ]
   },
@@ -860,7 +956,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "embed",
@@ -887,9 +983,18 @@
      "name": "Jab Jab Jab!",
      "heat_cost": "4",
      "hits": "4",
-     "damage": "6-9",
+     "damage": "4-6",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Double damage vs a Disabled part."
+    },
+    {
+     "id": "twist",
+     "name": "Twist",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a Disabled part: Disabled 1 more."
     }
    ]
   },
@@ -928,7 +1033,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "hammer_down",
@@ -937,7 +1042,7 @@
      "hits": "1",
      "damage": "14-22",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "The target mech gains Deflect 3."
     },
     {
      "id": "leap_slam",
@@ -953,6 +1058,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "wind_up",
+     "name": "Wind Up",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: +50% damage."
     }
    ]
   },
@@ -987,7 +1101,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "eject_flares",
@@ -1010,8 +1124,23 @@
      "heat_cost": "-3",
      "hits": "0",
      "damage": "0",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "1",
+       "target": "ownMech"
+      }
+     ],
      "effect_text": ""
+    },
+    {
+     "id": "decoy_flares",
+     "name": "Decoy Flares",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: the next attack aimed at one of your hardpoints hits this part instead."
     }
    ]
   },
@@ -1020,7 +1149,7 @@
    "name": "Scatter Shot",
    "claude_draft": false,
    "category": "hardpoint",
-   "rarity": "surplus",
+   "rarity": "salvaged",
    "weight_class": "general",
    "hp": 46,
    "cells": [
@@ -1046,7 +1175,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "",
+   "notes": "Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "blast_em",
@@ -1055,7 +1184,7 @@
      "hits": "4",
      "damage": "2-6",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "+50% damage vs a part at half HP or less."
     },
     {
      "id": "empty_clip",
@@ -1063,8 +1192,23 @@
      "heat_cost": "3",
      "hits": "6",
      "damage": "2-6",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": ""
+    },
+    {
+     "id": "pick_off",
+     "name": "Pick Off",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "5-8",
+     "statuses": [],
+     "effect_text": "Double damage vs a part at half HP or less."
     }
    ]
   },
@@ -1136,7 +1280,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "+1 Heat decay at turn start while installed."
+     "effect_text": "Turn start: Coolant 1 on a random hardpoint of yours."
     }
    ]
   },
@@ -1248,7 +1392,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "+Max Heat while installed. −1 Heat decay at turn start while installed."
+     "effect_text": "+2 Max Heat while installed. Overheat backlash +25%."
     }
    ]
   },
@@ -1332,7 +1476,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Whenever another component on this mech would take damage, redirect that damage to this component instead."
+     "effect_text": "Whenever another component on this mech would take damage, redirect that damage to this component instead. In a squad, it covers whichever mech on its side is most hurt: itself or an ally."
     }
    ]
   },
@@ -1532,7 +1676,7 @@
      "statuses": [
       {
        "status": "absorb",
-       "stacks": "25",
+       "stacks": "10",
        "target": "ownMech"
       }
      ],
@@ -1689,7 +1833,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Most direct route to going infinite; the rising cost keeps it risky.",
+   "notes": "Most direct route to going infinite; the rising cost keeps it risky. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "replay",
@@ -1699,6 +1843,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Play the last card you used this turn again, for +2 Heat."
+    },
+    {
+     "id": "echo",
+     "name": "Echo",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Take the protocol an enemy has waiting: it's primed for you instead."
     }
    ]
   },
@@ -1729,7 +1882,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Turns spread weapons (Scatter Shot, Cluster Rockets) into precision component-killers.",
+   "notes": "Turns spread weapons (Scatter Shot, Cluster Rockets) into precision component-killers. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "lock_on",
@@ -1738,7 +1891,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Your next attack deals +25–35% damage."
+     "effect_text": "Your next attack: double damage vs a part attacking this turn."
+    },
+    {
+     "id": "zero_lock",
+     "name": "Zero Lock",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack can't be covered, redirected, dodged or parried, and every hit lands."
     }
    ]
   },
@@ -1769,7 +1931,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Bad for raw damage; great for status stacking and reaching High Five's fifth attack.",
+   "notes": "Bad for raw damage; great for status stacking and reaching High Five's fifth attack. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "split_feed",
@@ -1779,6 +1941,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Your next card gets double the hits at half the damage per hit."
+    },
+    {
+     "id": "ricochet_feed",
+     "name": "Ricochet Feed",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack also hits an adjacent part."
     }
    ]
   },
@@ -1809,7 +1980,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Burn/Acid build payoff.",
+   "notes": "Burn/Acid build payoff. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "catalyze",
@@ -1819,6 +1990,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Your next card applies +2 stacks of every status it already applies."
+    },
+    {
+     "id": "purify",
+     "name": "Purify",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next card that targets your own mech also removes Shock, Acid and Burn from your parts."
     }
    ]
   },
@@ -1849,7 +2029,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Lets a strong weapon stay useful when its normal status doesn't suit the fight.",
+   "notes": "Lets a strong weapon stay useful when its normal status doesn't suit the fight. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "reroute",
@@ -1859,6 +2039,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Swap the status on your next card for a different one (e.g. Burn into Shock)."
+    },
+    {
+     "id": "detonate",
+     "name": "Detonate",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack consumes the target's Burn: +4 damage per stack."
     }
    ]
   },
@@ -1889,7 +2078,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Plays around heat-check timings, especially Redline's end-of-turn check.",
+   "notes": "Plays around heat-check timings, especially Redline's end-of-turn check. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "standby",
@@ -1899,6 +2088,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Set a card aside; it plays automatically at the start of your next turn for 0 Heat."
+    },
+    {
+     "id": "batch",
+     "name": "Batch",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next card costs 0 Heat now; you pay its Heat at the start of your next turn."
     }
    ]
   },
@@ -1925,7 +2123,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Big spike, real cost.",
+   "notes": "Big spike, real cost. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "overdrive",
@@ -1934,7 +2132,22 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Your next card deals double damage, then the component that played it is Disabled."
+     "effect_text": "Your next attack also hits every other hardpoint of the target mech, then the part that played it is Disabled."
+    },
+    {
+     "id": "overclock",
+     "name": "Overclock",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": "Your next card costs 2 less Heat. Burn 1 on this part."
     }
    ]
   },
@@ -1968,7 +2181,7 @@
     ],
     "reach": "vector"
    },
-   "notes": "Link set to Left + Right / Vector (its whole row) as a starting point — the payoff is all about row/column placement.",
+   "notes": "Link set to Left + Right / Vector (its whole row) as a starting point — the payoff is all about row/column placement. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "salvo",
@@ -1978,6 +2191,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Every hardpoint this protocol reaches fires its cheapest card at once."
+    },
+    {
+     "id": "target_call",
+     "name": "Target Call",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: vs a part attacking this turn, Disabled 1."
     }
    ]
   },
@@ -2006,7 +2228,7 @@
     ],
     "reach": "adjacent"
    },
-   "notes": "Link set to Up / Adjacent as a starting point. Keeps you out of overheat by damaging your own parts.",
+   "notes": "Link set to Up / Adjacent as a starting point. Keeps you out of overheat by damaging your own parts. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "bleed_off",
@@ -2016,6 +2238,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Pay your next card's Heat cost with HP from the linked component instead."
+    },
+    {
+     "id": "heat_transfer",
+     "name": "Heat Transfer",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack moves 3 of your Heat onto the target mech."
     }
    ]
   },
@@ -2046,7 +2277,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Counterplay card that rewards reading enemy intent.",
+   "notes": "Counterplay card that rewards reading enemy intent. Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "intercept",
@@ -2056,6 +2287,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Copy the enemy's telegraphed attack as a one-use card, damage range included."
+    },
+    {
+     "id": "scramble_signal",
+     "name": "Scramble Signal",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Clear every protocol the enemies have waiting."
     }
    ]
   },
@@ -2086,15 +2326,21 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "prick",
      "name": "Prick",
      "heat_cost": "1",
      "hits": "1",
-     "damage": "5-7",
-     "statuses": [],
+     "damage": "3-4",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
      "effect_text": ""
     },
     {
@@ -2104,7 +2350,16 @@
      "hits": "5",
      "damage": "4-6",
      "statuses": [],
-     "effect_text": "Hits after the 2nd may miss."
+     "effect_text": "Hits random parts."
+    },
+    {
+     "id": "tranq_dart",
+     "name": "Tranq Dart",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "3-4",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Shock 2."
     }
    ]
   },
@@ -2135,14 +2390,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "flashbang",
      "name": "Flashbang",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "8-11",
+     "damage": "5-7",
      "statuses": [
       {
        "status": "smoke",
@@ -2160,6 +2415,15 @@
      "damage": "4-6",
      "statuses": [],
      "effect_text": "First card this turn: double damage."
+    },
+    {
+     "id": "blind_shot",
+     "name": "Blind Shot",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": "Double damage vs a Smoked mech."
     }
    ]
   },
@@ -2194,7 +2458,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28). Built for Redline's end-of-turn check: go over max, fire, vent before the turn ends.",
+   "notes": "Claude's draft (2026-09-28). Built for Redline's end-of-turn check: go over max, fire, vent before the turn ends. Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "searing_line",
@@ -2213,6 +2477,21 @@
      "damage": "22-28",
      "statuses": [],
      "effect_text": "+50% damage while over max Heat."
+    },
+    {
+     "id": "heat_dump",
+     "name": "Heat Dump",
+     "heat_cost": "-3",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": "Vent 3."
     }
    ]
   },
@@ -2247,7 +2526,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "crackle",
@@ -2272,6 +2551,15 @@
      "damage": "8-11",
      "statuses": [],
      "effect_text": "Consume the target's Shock: +5 damage per stack."
+    },
+    {
+     "id": "arc_lash",
+     "name": "Arc Lash",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Shock 1 on every enemy part attacking this turn."
     }
    ]
   },
@@ -2302,7 +2590,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "blow_off",
@@ -2321,6 +2609,15 @@
      "damage": "14-18",
      "statuses": [],
      "effect_text": "Enemy gains 2 Heat."
+    },
+    {
+     "id": "purge",
+     "name": "Purge",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Remove all Burn and Smoke from your mech."
     }
    ]
   },
@@ -2459,7 +2756,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "quickload",
@@ -2467,8 +2764,23 @@
      "heat_cost": "",
      "hits": "0",
      "damage": "",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "1",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Next card costs 3 less Heat. Smoke 1 on your mech."
+    },
+    {
+     "id": "borrow_time",
+     "name": "Borrow Time",
+     "heat_cost": "-2",
+     "hits": "0",
+     "damage": "",
      "statuses": [],
-     "effect_text": "Next card costs 3 less Heat."
+     "effect_text": "Vent 2. Your next card costs 1 more Heat."
     }
    ]
   },
@@ -2495,7 +2807,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "fan_out",
@@ -2505,6 +2817,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next attack also hits every other enemy."
+    },
+    {
+     "id": "ghost_signal",
+     "name": "Ghost Signal",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: enemy attacks hit random parts of yours."
     }
    ]
   },
@@ -2513,7 +2834,7 @@
    "name": "Arc Thrower",
    "claude_draft": true,
    "category": "hardpoint",
-   "rarity": "surplus",
+   "rarity": "salvaged",
    "weight_class": "medium",
    "hp": 50,
    "cells": [
@@ -2539,23 +2860,23 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "arc",
      "name": "Arc",
      "heat_cost": "3",
      "hits": "1",
-     "damage": "11-15",
+     "damage": "8-11",
      "statuses": [],
-     "effect_text": "Also hits an adjacent part."
+     "effect_text": "Also hits an adjacent part. Double damage vs a Shocked part."
     },
     {
      "id": "overload",
      "name": "Overload",
      "heat_cost": "4",
      "hits": "2",
-     "damage": "8-11",
+     "damage": "5-7",
      "statuses": [
       {
        "status": "shock",
@@ -2564,6 +2885,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "ground_arc",
+     "name": "Ground Arc",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "6-9",
+     "statuses": [],
+     "effect_text": "Also hits an adjacent part. Vs a part attacking this turn: Shock 2."
     }
    ]
   },
@@ -2598,16 +2928,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "grind",
      "name": "Grind",
      "heat_cost": "2",
      "hits": "3",
-     "damage": "4-5",
+     "damage": "3-5",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "+3 damage per hit vs a part with Acid."
     },
     {
      "id": "shred",
@@ -2623,6 +2953,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "rip_plating",
+     "name": "Rip Plating",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": "First removes all Deflect and Absorb from the target mech."
     }
    ]
   },
@@ -2653,7 +2992,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "lob",
@@ -2678,6 +3017,21 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "smoke_screen",
+     "name": "Smoke Screen",
+     "heat_cost": "1",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "2",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Until your next turn: enemy attacks hit random parts of yours."
     }
    ]
   },
@@ -2712,14 +3066,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "harpoon",
      "name": "Harpoon",
-     "heat_cost": "3",
+     "heat_cost": "4",
      "hits": "1",
-     "damage": "12-16",
+     "damage": "5-7",
      "statuses": [
       {
        "status": "disabled",
@@ -2737,6 +3091,15 @@
      "damage": "6-9",
      "statuses": [],
      "effect_text": "Double damage vs Disabled."
+    },
+    {
+     "id": "yank_aim",
+     "name": "Yank Aim",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: its attacks this turn hit its own mech."
     }
    ]
   },
@@ -2883,7 +3246,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "siphon",
@@ -2892,7 +3255,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack: Lifesteal 50%."
+     "effect_text": "Next attack: Reclaim 50%."
+    },
+    {
+     "id": "leech_field",
+     "name": "Leech Field",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack takes the target mech's Deflect and Absorb for your mech."
     }
    ]
   },
@@ -2919,7 +3291,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "breach",
@@ -2928,7 +3300,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack: Pierce, +25% damage."
+     "effect_text": "Next attack: Pierce."
+    },
+    {
+     "id": "crack_open",
+     "name": "Crack Open",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack also applies Acid 2."
     }
    ]
   },
@@ -2959,7 +3340,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "chain",
@@ -2968,7 +3349,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack also hits an adjacent part."
+     "effect_text": "Your next card's statuses also land on every part adjacent to its target."
+    },
+    {
+     "id": "backlash_link",
+     "name": "Backlash Link",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: every enemy part that hits you gets Jam 1."
     }
    ]
   },
@@ -3003,7 +3393,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "drive",
@@ -3012,7 +3402,7 @@
      "hits": "1",
      "damage": "22-28",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Last card this turn."
     },
     {
      "id": "aftershock",
@@ -3033,6 +3423,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "breaker",
+     "name": "Breaker",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "10-14",
+     "statuses": [],
+     "effect_text": "Double damage vs a mech with Deflect or Absorb."
     }
    ]
   },
@@ -3067,7 +3466,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "flak",
@@ -3076,7 +3475,7 @@
      "hits": "5",
      "damage": "3-5",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Can't target hardpoints."
     },
     {
      "id": "brace",
@@ -3092,6 +3491,21 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "hunker",
+     "name": "Hunker",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "3",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Deflect 8 instead if a heavy attack is coming."
     }
    ]
   },
@@ -3100,7 +3514,7 @@
    "name": "Siege Mortar",
    "claude_draft": true,
    "category": "hardpoint",
-   "rarity": "surplus",
+   "rarity": "salvaged",
    "weight_class": "heavy",
    "hp": 56,
    "cells": [
@@ -3126,7 +3540,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "barrage",
@@ -3140,11 +3554,26 @@
     {
      "id": "zero_in",
      "name": "Zero In",
-     "heat_cost": "3",
+     "heat_cost": "4",
      "hits": "1",
      "damage": "16-20",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": ""
+    },
+    {
+     "id": "creeping_fire",
+     "name": "Creeping Fire",
+     "heat_cost": "4",
+     "hits": "2",
+     "damage": "8-10",
+     "statuses": [],
+     "effect_text": "Hits random parts. Repeats your next turn."
     }
    ]
   },
@@ -3179,16 +3608,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "chew",
      "name": "Chew",
      "heat_cost": "3",
      "hits": "2",
-     "damage": "8-11",
+     "damage": "6-8",
      "statuses": [],
-     "effect_text": "Lifesteal 30%."
+     "effect_text": "Reclaim 50%."
     },
     {
      "id": "maul",
@@ -3196,8 +3625,23 @@
      "heat_cost": "5",
      "hits": "1",
      "damage": "24-30",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": ""
+    },
+    {
+     "id": "devour",
+     "name": "Devour",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "8-10",
+     "statuses": [],
+     "effect_text": "If this destroys a part, Vent 4."
     }
    ]
   },
@@ -3228,16 +3672,16 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 1 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "rivet",
      "name": "Rivet",
      "heat_cost": "1",
      "hits": "1",
-     "damage": "6-8",
+     "damage": "4-6",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "+4 damage vs a Jammed part."
     },
     {
      "id": "weld_shut",
@@ -3253,6 +3697,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "patch_job",
+     "name": "Patch Job",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Heal your most damaged part 8."
     }
    ]
   },
@@ -3405,7 +3858,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "ram",
@@ -3414,7 +3867,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack also applies Disabled 1."
+     "effect_text": "Next attack also applies Disabled 1; the part that plays it is Disabled 1."
+    },
+    {
+     "id": "push_back",
+     "name": "Push Back",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: vs a part attacking this turn, its attacks this turn hit its own mech."
     }
    ]
   },
@@ -3445,7 +3907,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "ballast",
@@ -3453,8 +3915,34 @@
      "heat_cost": "",
      "hits": "0",
      "damage": "",
-     "statuses": [],
-     "effect_text": "Next card costs 4 less Heat."
+     "statuses": [
+      {
+       "status": "smoke",
+       "stacks": "2",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Next card costs 4 less Heat. Smoke 2 on your mech."
+    },
+    {
+     "id": "ballast_brace",
+     "name": "Ballast Brace",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "6",
+       "target": "ownMech"
+      },
+      {
+       "status": "smoke",
+       "stacks": "1",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": ""
     }
    ]
   },
@@ -3489,7 +3977,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "twin_burst",
@@ -3498,14 +3986,14 @@
      "hits": "4",
      "damage": "5-8",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "Later hits may miss."
     },
     {
      "id": "suppress",
      "name": "Suppress",
      "heat_cost": "2",
      "hits": "2",
-     "damage": "6-8",
+     "damage": "4-6",
      "statuses": [
       {
        "status": "smoke",
@@ -3514,6 +4002,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "pin_fire",
+     "name": "Pin Fire",
+     "heat_cost": "2",
+     "hits": "3",
+     "damage": "3-5",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Jam 2."
     }
    ]
   },
@@ -3620,7 +4117,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "double_tap",
@@ -3629,7 +4126,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack: double the hits."
+     "effect_text": "Your next attack also hits the enemy part with the biggest attack shown this turn."
+    },
+    {
+     "id": "overlay",
+     "name": "Overlay",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack can't be covered, dodged or parried. Vs a part attacking this turn: Shock 2."
     }
    ]
   },
@@ -3664,14 +4170,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "pin",
      "name": "Pin",
      "heat_cost": "3",
      "hits": "1",
-     "damage": "17-21",
+     "damage": "10-13",
      "statuses": [
       {
        "status": "freeze",
@@ -3689,6 +4195,15 @@
      "damage": "24-30",
      "statuses": [],
      "effect_text": "Double damage vs Frozen."
+    },
+    {
+     "id": "drag_down",
+     "name": "Drag Down",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "10-13",
+     "statuses": [],
+     "effect_text": "Vs a Frozen part: Disabled 2."
     }
    ]
   },
@@ -3761,14 +4276,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "overheat_round",
      "name": "Overheat Round",
      "heat_cost": "4",
      "hits": "1",
-     "damage": "28-34",
+     "damage": "14-18",
      "statuses": [],
      "effect_text": "Enemy gains 3 Heat."
     },
@@ -3777,9 +4292,24 @@
      "name": "Cool Shot",
      "heat_cost": "-3",
      "hits": "1",
-     "damage": "10-13",
+     "damage": "5-7",
      "statuses": [],
      "effect_text": "Vent 3."
+    },
+    {
+     "id": "cold_snap",
+     "name": "Cold Snap",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "8-11",
+     "statuses": [
+      {
+       "status": "freeze",
+       "stacks": "1",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": ""
     }
    ]
   },
@@ -3788,7 +4318,7 @@
    "name": "Ricochet Pistols",
    "claude_draft": true,
    "category": "hardpoint",
-   "rarity": "salvaged",
+   "rarity": "prototype",
    "weight_class": "light",
    "hp": 48,
    "cells": [
@@ -3810,7 +4340,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "ricochet",
@@ -3829,6 +4359,15 @@
      "damage": "7-10",
      "statuses": [],
      "effect_text": "+1 hit per different status on the target."
+    },
+    {
+     "id": "bank_shot",
+     "name": "Bank Shot",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "6-8",
+     "statuses": [],
+     "effect_text": "Also hits an adjacent part. Vs a part attacking this turn: Shock 1."
     }
    ]
   },
@@ -3895,7 +4434,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "execute",
@@ -3905,6 +4444,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next attack: triple damage vs a part at or below half HP."
+    },
+    {
+     "id": "kill_order",
+     "name": "Kill Order",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: if it destroys a part, Vent 5."
     }
    ]
   },
@@ -3913,7 +4461,7 @@
    "name": "Tesla Coil Tower",
    "claude_draft": true,
    "category": "hardpoint",
-   "rarity": "salvaged",
+   "rarity": "prototype",
    "weight_class": "medium",
    "hp": 66,
    "cells": [
@@ -3939,14 +4487,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "chain_lightning",
      "name": "Chain Lightning",
      "heat_cost": "3",
      "hits": "1",
-     "damage": "15-19",
+     "damage": "8-11",
      "statuses": [
       {
        "status": "shock",
@@ -3964,6 +4512,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Remove Shock and Acid from your parts."
+    },
+    {
+     "id": "overcharge_field",
+     "name": "Overcharge Field",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: every enemy part that hits you gets Shock 2."
     }
    ]
   },
@@ -4078,7 +4635,7 @@
     ],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "coordinated_strike",
@@ -4088,6 +4645,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Linked hardpoints fire their cheapest card."
+    },
+    {
+     "id": "hold_the_line",
+     "name": "Hold the Line",
+     "heat_cost": "3",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: no hit deals more than 12 to one of your parts."
     }
    ]
   },
@@ -4118,14 +4684,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "flechettes",
      "name": "Flechettes",
      "heat_cost": "3",
      "hits": "6",
-     "damage": "3-5",
+     "damage": "2-3",
      "statuses": [
       {
        "status": "acid",
@@ -4140,7 +4706,7 @@
      "name": "Pin Down",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "11-14",
+     "damage": "6-8",
      "statuses": [
       {
        "status": "jam",
@@ -4149,6 +4715,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "flay",
+     "name": "Flay",
+     "heat_cost": "3",
+     "hits": "2",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": "+4 damage per hit vs a part with Acid."
     }
    ]
   },
@@ -4237,7 +4812,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "wreck",
@@ -4245,15 +4820,21 @@
      "heat_cost": "5",
      "hits": "1",
      "damage": "34-42",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": "Pierce."
     },
     {
      "id": "topple",
      "name": "Topple",
-     "heat_cost": "4",
+     "heat_cost": "5",
      "hits": "1",
-     "damage": "22-28",
+     "damage": "12-16",
      "statuses": [
       {
        "status": "disabled",
@@ -4262,6 +4843,21 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "collapse",
+     "name": "Collapse",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "14-18",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": "Also hits an adjacent part."
     }
    ]
   },
@@ -4296,14 +4892,14 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "lockdown",
      "name": "Lockdown",
      "heat_cost": "4",
      "hits": "1",
-     "damage": "22-28",
+     "damage": "10-14",
      "statuses": [
       {
        "status": "freeze",
@@ -4320,7 +4916,16 @@
      "hits": "1",
      "damage": "21-27",
      "statuses": [],
-     "effect_text": ""
+     "effect_text": "The target mech gains Deflect 3."
+    },
+    {
+     "id": "containment",
+     "name": "Containment",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "8-10",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Freeze 1."
     }
    ]
   },
@@ -4391,7 +4996,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "fortify",
@@ -4401,6 +5006,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next card: gain Deflect 4 per Heat it costs."
+    },
+    {
+     "id": "rampart",
+     "name": "Rampart",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next shield card also bites back: until your next turn, every enemy part that hits you takes 4."
     }
    ]
   },
@@ -4471,7 +5085,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "loaded_dice",
@@ -4480,7 +5094,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack: never misses, max damage, +50% damage."
+     "effect_text": "Next attack never misses and rolls max damage; the attack after it rolls min damage."
+    },
+    {
+     "id": "long_odds",
+     "name": "Long Odds",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: x4 damage vs a part at a quarter HP or less."
     }
    ]
   },
@@ -4511,7 +5134,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "latch",
@@ -4520,7 +5143,31 @@
      "hits": "1",
      "damage": "9-12",
      "statuses": [],
-     "effect_text": "Repeats on the same part your next 3 turns. Lifesteal 50%."
+     "effect_text": "Repeats on the same part your next 3 turns. Reclaim 50%. Can't target hardpoints."
+    },
+    {
+     "id": "feed",
+     "name": "Feed",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "5-7",
+     "statuses": [],
+     "effect_text": "Reclaim 100%."
+    },
+    {
+     "id": "burrow",
+     "name": "Burrow",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "8-10",
+     "statuses": [
+      {
+       "status": "acid",
+       "stacks": "2",
+       "target": "enemy"
+      }
+     ],
+     "effect_text": "Repeats on the same part your next turn."
     }
    ]
   },
@@ -4551,7 +5198,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "recall",
@@ -4561,6 +5208,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next card plays again next turn for 0 Heat."
+    },
+    {
+     "id": "scavenge",
+     "name": "Scavenge",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack: if it destroys a part, heal your most damaged part 15."
     }
    ]
   },
@@ -4667,7 +5323,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "flurry",
@@ -4675,7 +5331,13 @@
      "heat_cost": "3",
      "hits": "5",
      "damage": "6-8",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "burn",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": ""
     },
     {
@@ -4686,6 +5348,15 @@
      "damage": "14-18",
      "statuses": [],
      "effect_text": "+2 damage per Heat you have."
+    },
+    {
+     "id": "riposte",
+     "name": "Riposte",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: the next hit on your mech is cancelled, and its attacker takes 14."
     }
    ]
   },
@@ -4752,7 +5423,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "feedback",
@@ -4762,6 +5433,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next attack: Vent 2 per hit."
+    },
+    {
+     "id": "feedback_field",
+     "name": "Feedback Field",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: every enemy attack that hits you gives its mech 2 Heat."
     }
    ]
   },
@@ -4796,7 +5476,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "nova",
@@ -4805,7 +5485,31 @@
      "hits": "1",
      "damage": "48-60",
      "statuses": [],
-     "effect_text": "Hits all enemies. This part takes 6."
+     "effect_text": "Hits all enemies. This part takes 12."
+    },
+    {
+     "id": "focused_nova",
+     "name": "Focused Nova",
+     "heat_cost": "5",
+     "hits": "1",
+     "damage": "30-38",
+     "statuses": [],
+     "effect_text": "This part takes 6."
+    },
+    {
+     "id": "core_purge",
+     "name": "Core Purge",
+     "heat_cost": "-4",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
+     "effect_text": "Vent 4."
     }
    ]
   },
@@ -4840,7 +5544,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "release_swarm",
@@ -4865,6 +5569,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "infest",
+     "name": "Infest",
+     "heat_cost": "2",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a part with Acid: Disabled 1."
     }
    ]
   },
@@ -4895,7 +5608,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "invert",
@@ -4905,6 +5618,15 @@
      "damage": "",
      "statuses": [],
      "effect_text": "Next attack: swap Heat with the target mech."
+    },
+    {
+     "id": "reverse_polarity",
+     "name": "Reverse Polarity",
+     "heat_cost": "",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Your next attack swaps the statuses of the part that fires it and its target."
     }
    ]
   },
@@ -4984,7 +5706,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "resonate",
@@ -4992,8 +5714,38 @@
      "heat_cost": "1",
      "hits": "1",
      "damage": "10-13",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "jam",
+       "stacks": "1",
+       "target": "self"
+      }
+     ],
      "effect_text": "+4 damage per Resonate played this fight."
+    },
+    {
+     "id": "shatter_note",
+     "name": "Shatter Note",
+     "heat_cost": "3",
+     "hits": "1",
+     "damage": "6-9",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Disabled 1."
+    },
+    {
+     "id": "resonant_ward",
+     "name": "Resonant Ward",
+     "heat_cost": "2",
+     "hits": "0",
+     "damage": "",
+     "statuses": [
+      {
+       "status": "deflect",
+       "stacks": "3",
+       "target": "ownMech"
+      }
+     ],
+     "effect_text": "Deflect 7 instead if a heavy attack is coming."
     }
    ]
   },
@@ -5068,7 +5820,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "titan_punch",
@@ -5076,7 +5828,13 @@
      "heat_cost": "5",
      "hits": "1",
      "damage": "50-62",
-     "statuses": [],
+     "statuses": [
+      {
+       "status": "disabled",
+       "stacks": "2",
+       "target": "self"
+      }
+     ],
      "effect_text": ""
     },
     {
@@ -5093,6 +5851,15 @@
       }
      ],
      "effect_text": "Hits all enemies."
+    },
+    {
+     "id": "guard_break",
+     "name": "Guard Break",
+     "heat_cost": "4",
+     "hits": "1",
+     "damage": "18-24",
+     "statuses": [],
+     "effect_text": "First removes all Deflect and Absorb from the target mech. Double damage vs a part attacking this turn."
     }
    ]
   },
@@ -5207,7 +5974,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 2 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "last_stand",
@@ -5216,7 +5983,16 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Next attack: +20% damage per 10% HP lost."
+     "effect_text": "Your next card costs 0 Heat while your mech is at half HP or less."
+    },
+    {
+     "id": "final_order",
+     "name": "Final Order",
+     "heat_cost": "4",
+     "hits": "0",
+     "damage": "",
+     "statuses": [],
+     "effect_text": "Until your next turn: your parts can't drop below 1 HP."
     }
    ]
   },
@@ -5251,7 +6027,7 @@
     "dirs": [],
     "reach": "adjacent"
    },
-   "notes": "Claude's draft (2026-09-28).",
+   "notes": "Claude's draft (2026-09-28). Card pass batch 3-4 (Claude's draft, 2026-10-13).",
    "cards": [
     {
      "id": "cataclysm",
@@ -5267,7 +6043,7 @@
      "name": "Ranging Shot",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "14-18",
+     "damage": "6-8",
      "statuses": [
       {
        "status": "acid",
@@ -5276,6 +6052,15 @@
       }
      ],
      "effect_text": ""
+    },
+    {
+     "id": "spotting_round",
+     "name": "Spotting Round",
+     "heat_cost": "1",
+     "hits": "1",
+     "damage": "4-6",
+     "statuses": [],
+     "effect_text": "Vs a part attacking this turn: Acid 2."
     }
    ]
   }

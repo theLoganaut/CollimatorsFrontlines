@@ -2,7 +2,10 @@ extends HubScreen
 ## Pilot Log: your career in numbers (runs, clears, Chips, lifetime bests),
 ## then three tabs: the last runs, newest first (with the order taken, the
 ## variant, elites and bosses); each mech's record; and every enemy you've
-## fought (how often you beat it, and lost to it). Other players' stats and
+## fought (how often you beat it, and lost to it); and the achievements
+## (Achievements), earned or not. A run's recorded fights can be watched
+## again (Watch: the combat screen's replay mode), and its playtest report
+## is in the reports folder. Other players' stats and
 ## directive rankings need online play, so they wait for later.
 
 var _col: VBoxContainer
@@ -22,7 +25,7 @@ func _build() -> void:
 	var totals := HBoxContainer.new()
 	totals.add_theme_constant_override("separation", 12)
 	var best := _lifetime()
-	for t in [["Runs", str(Profile.runs)], ["Cleared", str(Profile.clears)],
+	for t in [["Missions", str(Profile.runs)], ["Cleared", str(Profile.clears)],
 			["Chips earned", HubScreen._thousands(Profile.chips_earned)], ["Directives", str(Profile.directives_done_total)],
 			["Biggest hit", str(best.get("biggest_hit", 0))], ["Fights won", str(best.get("fights_won", 0))]]:
 		totals.add_child(_stat_tile(t[0], t[1]))
@@ -31,7 +34,7 @@ func _build() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
 	_col.add_child(tabs)
-	for t in [["runs", "Recent runs"], ["mechs", "By mech"], ["enemies", "Enemies"]]:
+	for t in [["runs", "Recent missions"], ["mechs", "By mech"], ["enemies", "Enemies"], ["achievements", "Achievements"]]:
 		var b := UIKit.button(t[1], Color.TRANSPARENT, Vector2(140, 32), 13)
 		b.toggle_mode = true
 		b.add_theme_stylebox_override("pressed", UIKit.style(Palette.PANEL_2, Palette.HARDPOINT, 2))
@@ -40,6 +43,11 @@ func _build() -> void:
 			_fill())
 		tabs.add_child(b)
 		_tab_buttons[t[0]] = b
+	tabs.add_child(UIKit.spacer())
+	var folder := UIKit.button("Playtest reports", Color.TRANSPARENT, Vector2(150, 32), 12)
+	folder.tooltip_text = "Opens the folder of playtest reports: every finished mission, written out to send in, and a crash report for any time the game closed without quitting."
+	folder.pressed.connect(func(): OS.shell_open(PlaytestReport.folder()))
+	tabs.add_child(folder)
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_col.add_child(_scroll)
@@ -57,7 +65,7 @@ func _fill() -> void:
 	match _tab:
 		"runs":
 			if Profile.history.is_empty():
-				_list.add_child(UIKit.label("No runs logged yet. The War Table's waiting.", 14, Palette.TEXT_MUTED))
+				_list.add_child(UIKit.label("No missions logged yet. The War Table's waiting.", 14, Palette.TEXT_MUTED))
 			for h in Profile.history:
 				_list.add_child(_run_row(h))
 		"mechs":
@@ -65,6 +73,35 @@ func _fill() -> void:
 				_list.add_child(_mech_row(id))
 		"enemies":
 			_fill_enemies()
+		"achievements":
+			_fill_achievements()
+
+## Every achievement: earned ones lit with the date, the rest dim.
+func _fill_achievements() -> void:
+	var defs := Achievements.defs()
+	var have := Profile.achievements
+	_list.add_child(UIKit.label("%d of %d earned" % [have.size(), defs.size()], 13, Palette.TEXT_MUTED))
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	_list.add_child(grid)
+	for d in defs:
+		var got: bool = have.has(d["id"])
+		var box := HubScreen.card(Palette.OK if got else Palette.BORDER)
+		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		box.modulate.a = 1.0 if got else 0.6
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		box.add_child(row)
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override("separation", 0)
+		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		v.add_child(UIKit.label(d["name"], 15, Palette.TEXT if got else Palette.TEXT_MUTED))
+		v.add_child(UIKit.label(d["text"], 12, Color("9fb9b6"), true))
+		row.add_child(v)
+		row.add_child(UIKit.label("Earned %s" % have[d["id"]] if got else "+%d Chips" % int(d.get("chips", 0)), 12, Palette.OK if got else Palette.SCRAPS))
+		grid.add_child(box)
 
 ## One mech's record: runs, clears (and the rate), fights won, furthest stop.
 func _mech_row(id: String) -> Control:
@@ -82,7 +119,7 @@ func _mech_row(id: String) -> Control:
 		return box
 	var clears := int(rec.get("clears", 0))
 	for t in [["%d" % runs, "runs"], ["%d (%d%%)" % [clears, roundi(100.0 * clears / runs)], "cleared"],
-			["%d" % int(rec.get("fights_won", 0)), "fights won"], ["%d" % int(rec.get("best_stops", 0)), "furthest stop"]]:
+			["%d" % int(rec.get("fights_won", 0)), "fights won"], ["%d" % int(rec.get("best_stops", 0)), "furthest encounter"]]:
 		var v := VBoxContainer.new()
 		v.add_theme_constant_override("separation", 0)
 		v.custom_minimum_size.x = 120
@@ -95,7 +132,7 @@ func _mech_row(id: String) -> Control:
 func _fill_enemies() -> void:
 	var ids := Profile.enemy_record.keys()
 	if ids.is_empty():
-		_list.add_child(UIKit.label("No fights logged yet (enemy records start with the next run).", 14, Palette.TEXT_MUTED))
+		_list.add_child(UIKit.label("No fights logged yet (enemy records start with the next mission).", 14, Palette.TEXT_MUTED))
 		return
 	ids.sort_custom(func(a, b): return int(Profile.enemy_record[a]["fought"]) > int(Profile.enemy_record[b]["fought"]))
 	var grid := GridContainer.new()
@@ -103,7 +140,7 @@ func _fill_enemies() -> void:
 	grid.add_theme_constant_override("h_separation", 32)
 	grid.add_theme_constant_override("v_separation", 6)
 	_list.add_child(grid)
-	for h in ["ENEMY", "FIGHTS", "YOU WON", "IT ENDED A RUN"]:
+	for h in ["ENEMY", "FIGHTS", "YOU WON", "IT ENDED A MISSION"]:
 		grid.add_child(UIKit.label(h, 11, Palette.TEXT_MUTED))
 	for id in ids:
 		var rec: Dictionary = Profile.enemy_record[id]
@@ -146,6 +183,9 @@ func _run_row(h: Dictionary) -> Control:
 	var detail := _run_detail(h)
 	if detail != "":
 		lines.add_child(UIKit.label(detail, 11, Color("9fb9b6")))
+	var watch := _watch_row(h)
+	if watch != null:
+		lines.add_child(watch)
 	row.add_child(UIKit.label("CLEARED" if cleared else "EJECTED", 13, Palette.OK if cleared else Palette.DANGER))
 	row.add_child(UIKit.label("%s · %s" % [h.get("location", ""), h.get("mission", "")], 14, Palette.TEXT))
 	if str(h.get("cause", "")) != "":
@@ -159,6 +199,40 @@ func _run_row(h: Dictionary) -> Control:
 	if h.has("seed"):
 		row.add_child(UIKit.seed_row(int(h["seed"]), 11))
 	return box
+
+## A button per recorded fight still on disk (Replays): watch it again.
+func _watch_row(h: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	var n := 0
+	for f in h.get("fights", []):
+		n += 1
+		if not Replays.exists(str(f.get("replay", ""))):
+			continue
+		if row.get_child_count() == 0:
+			row.add_child(UIKit.label("Watch:", 11, Palette.TEXT_MUTED))
+		var b := UIKit.button("%d%s" % [n, "" if f.get("won", false) else " ✕"], Color.TRANSPARENT, Vector2(34, 22), 11)
+		b.tooltip_text = "Fight %d: %s (%s, %d turns)" % [n, ", ".join(f.get("enemies", []).map(_enemy_name)), "won" if f.get("won", false) else "lost", int(f.get("turns", 0))]
+		b.pressed.connect(_watch.bind(str(f["replay"])))
+		row.add_child(b)
+	if row.get_child_count() == 0:
+		row.queue_free()
+		return null
+	return row
+
+## Plays a recorded fight in the combat screen, then comes back here.
+func _watch(file: String) -> void:
+	var rec := Replays.load_record(file)
+	if rec.is_empty() or SceneRouter.is_busy():
+		return
+	Audio.play("ui")
+	CombatScene.replay_record = rec
+	CombatScene.replay_return = SceneRouter.PILOT_LOG
+	SceneRouter.go(SceneRouter.COMBAT)
+
+static func _enemy_name(id) -> String:
+	var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/mechs/%s.json" % str(id)))
+	return d.get("name", str(id)) if typeof(d) == TYPE_DICTIONARY else str(id)
 
 ## The second line of a run: its order, variant, elites and bosses, fights.
 static func _run_detail(h: Dictionary) -> String:

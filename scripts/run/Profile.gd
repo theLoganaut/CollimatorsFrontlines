@@ -25,6 +25,9 @@ extends Node
 ##   won, and lost; counted from 2026-09-30).
 ## - daily: today's Daily Operation {date, played, score, result} and the
 ##   pilot's best {best, best_date} (Daily).
+## - lifetime: every run's stats summed (RunStats.merge; backfilled from
+##   history once), for career achievements.
+## - achievements: id -> the date it was earned (Achievements).
 
 const PATH := "user://profile.json"
 const HISTORY_MAX := 50
@@ -54,6 +57,8 @@ var mech_record: Dictionary = {}
 var seen_enemies: Array = []
 var seen_orders: Array = []
 var enemy_record: Dictionary = {}
+var lifetime: Dictionary = {}
+var achievements: Dictionary = {}
 ## The training run (or its skip) is behind this pilot.
 var tutorial_done: bool = false
 ## What came out of the last run, for the Operator: {result, location,
@@ -98,6 +103,14 @@ func load_profile() -> void:
 	tutorial_done = bool(d.get("tutorial_done", false))
 	daily = d.get("daily", {})
 	enemy_record = d.get("enemy_record", {})
+	achievements = d.get("achievements", {})
+	if d.has("lifetime"):
+		lifetime = d["lifetime"]
+	else: # a profile from before lifetime totals: sum what its history shows
+		var total := RunStats.new()
+		for h in history:
+			total.merge(RunStats.from_dict(h.get("stats", {})))
+		lifetime = total.to_dict()
 	seen_orders = d.get("seen_orders", [])
 	seen_enemies = d.get("seen_enemies", [])
 	for id in bosses_faced + enemy_record.keys(): # from before the codex
@@ -119,7 +132,7 @@ func save() -> void:
 		"directives": directives, "directives_done_total": directives_done_total, "weekly": weekly, "streak": streak,
 		"history": history, "boss_record": boss_record, "tutorial_done": tutorial_done,
 		"memorial_points": memorial_points, "daily": daily, "mech_record": mech_record, "enemy_record": enemy_record,
-		"seen_enemies": seen_enemies, "seen_orders": seen_orders,
+		"seen_enemies": seen_enemies, "seen_orders": seen_orders, "lifetime": lifetime, "achievements": achievements,
 	})
 
 func reroll_sector() -> void:
@@ -164,6 +177,7 @@ func record_run(run: RunData) -> void:
 		"result": "cleared" if run.result == RunData.Result.CLEARED else "ejected",
 		"location": run.location.get("name", ""), "mission": run.mission_name(),
 		"stops": run.path.size() + (1 if run.result == RunData.Result.EJECTED else 0),
+		"total": run.encounter_count(),
 		"new_bosses": new_bosses,
 		"intel": run.result == RunData.Result.CLEARED and run.mission.get("grants_boss_intel", false),
 		"alert": run.alert_tier(),
@@ -199,6 +213,9 @@ func record_run(run: RunData) -> void:
 	last_report["chips"] = earned
 	last_report["directives"] = finished
 	_count_mech(run.player_mech.id, run.result == RunData.Result.CLEARED, run.stats.get_stat("fights_won"), last_report["stops"])
+	var total := RunStats.from_dict(lifetime)
+	total.merge(run.stats)
+	lifetime = total.to_dict()
 	for id in run.orders.get("offer", []):
 		if not seen_orders.has(id):
 			seen_orders.append(id)
@@ -216,10 +233,11 @@ func record_run(run: RunData) -> void:
 			else:
 				rec["lost_to"] = int(rec["lost_to"]) + 1
 			enemy_record[id] = rec
+	last_report["achievements"] = _earn_achievements(run)
 	history.push_front({
 		"date": Meta.today(), "mech": run.player_mech.id, "location": run.location.get("name", ""),
 		"mission": run.mission_name(), "result": last_report["result"], "stops": last_report["stops"],
-		"seed": run.seed_value, "chips": earned + finished.reduce(func(a, f): return a + int(f["chips"]), 0),
+		"seed": run.seed_value, "chips": earned + (finished + last_report["achievements"]).reduce(func(a, f): return a + int(f["chips"]), 0),
 		"stats": run.stats.values.duplicate(), "cause": run.end_cause,
 		"order": run.orders.get("chosen", ""), "variant": Conditions.variant(run.mission).get("name", ""),
 		"daily": Daily.is_daily(run), "fights": run.fight_log.duplicate(true),
@@ -227,6 +245,22 @@ func record_run(run: RunData) -> void:
 	if history.size() > HISTORY_MAX:
 		history.resize(HISTORY_MAX)
 	reroll_sector()
+
+## Achievements this run earns: each is marked with today's date and pays
+## its Chips. Returns [{id, name, text, chips}].
+func _earn_achievements(run: RunData) -> Array:
+	var bosses_beaten: Array = boss_record.keys().filter(func(id): return int(boss_record[id].get("beaten", 0)) > 0)
+	var clears := {}
+	for id in mech_record:
+		clears[id] = int(mech_record[id].get("clears", 0))
+	var career := {"runs": runs, "stats": lifetime, "mech_clears": clears, "mechs": GameData.PLAYER_MECHS,
+		"streak": streak_days(), "bosses_beaten": bosses_beaten, "bosses": GameData.boss_ids()}
+	var out := []
+	for d in Achievements.newly_earned(run, career, achievements.keys()):
+		achievements[d["id"]] = Meta.today()
+		add_chips(int(d.get("chips", 0)))
+		out.append({"id": d["id"], "name": d["name"], "text": d["text"], "chips": int(d.get("chips", 0))})
+	return out
 
 ## Whether today's Daily Operation has been launched already.
 func daily_played_today() -> bool:

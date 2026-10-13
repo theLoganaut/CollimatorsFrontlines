@@ -49,6 +49,7 @@ func go(scene_path: String, caption: String = "", caption_color: Color = Palette
 	if _busy:
 		return
 	_busy = true
+	CrashLog.crumb("screen: %s" % scene_path.get_file())
 	get_tree().paused = false
 	_black.mouse_filter = Control.MOUSE_FILTER_STOP
 	await _fade(_black, 1.0, FADE_OUT)

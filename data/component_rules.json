@@ -4,14 +4,36 @@
   "play_mode": "'self' or 'attack', overriding the one derived from hits/statuses",
   "hit_chance": "chance each hit fires, by hit number; the last entry repeats (Logan's falloff: 100/90/70/40/20%)",
   "status_chance": "chance the card's statuses apply",
-  "mult_if_target_status": "{status, mult, hardpoint_only}: damage multiplier if the targeted part has the status",
+  "mult_if_target_status": "{status (a name or a list: any of them), mult, hardpoint_only}: damage multiplier if the targeted part has the status (a mech-scoped one, Smoke/Deflect/Absorb, is read on its mech)",
   "mult_if_target_below": "{fraction, mult, hardpoint_only}: damage multiplier if the targeted part is at or below that share of its HP",
   "on_hit_status": "{status, stacks, hardpoint_only}: put on the targeted part after the hits",
   "repeat_turns": "the attack repeats on the same part at the start of the attacker's next N turns (Logan)",
   "self_damage": "the card's damage lands on the part that played it (Self Splash, Logan: 'you take it all')",
   "hits_all_enemies": "every hit also lands on one living part (picked when the card is played) of every other enemy mech",
-  "protocol": "a protocol effect; see scripts/combat/Protocols.gd",
-  "volley": "presentation only: its hits land all but at once (a salvo of rockets, a shotgun blast), not one by one (Logan, 2026-09-30)"
+  "protocol": "a protocol effect; see scripts/combat/CombatProtocols.gd. Card pass: 'grant' (the next card that fits `on` gets the `grant` rule keys for one play; on = attack|self|shield|status), 'steal' (Echo), 'clear_enemy' (Scramble Signal), 'defer_heat' (Batch); 'discount' may carry if_below (Last Stand) and a negative amount (Borrow Time); 'overdrive' now hits every other hardpoint instead of doubling",
+  "volley": "presentation only: its hits land all but at once (a salvo of rockets, a shotgun blast), not one by one (Logan, 2026-09-30)",
+  "vs_attacking": "{mult?, status?, stacks?, turn?} vs a part attacking this turn (an enemy part with an attack in its shown plan; for enemy cards, a player part that attacked last turn): damage multiplier, a status after the hits, or turn = its attacks this round hit its own mech (card pass, 2026-10-13)",
+  "status_if_target_status": "{if, status, stacks}: after the hits, the status lands only if the target holds `if` (Lockout Round, Twist)",
+  "bonus_if_target_status": "{status, flat}: +flat damage per hit if the target holds the status (Grind, Rivet)",
+  "strip_shields": "removes the target mech's Deflect and Absorb before the hits (Rip Plating)",
+  "last_card": "no more cards this turn after it (Drive)",
+  "no_hardpoints": "can't be aimed at a hardpoint (Flak)",
+  "vent_on_kill": "vent this much if the card destroys its target (Devour)",
+  "guard": "{type: parry|static_field|decoy|scatter|thorns|heat_back|cap|floor, ...}: a self card's guard, up until its side's next turn (CombatAttack.self_rules)",
+  "status_on_attackers": "{status, stacks}: on every enemy part attacking this turn (Arc Lash)",
+  "if_heavy_incoming": "{status, stacks}: extra stacks on the playing side if any enemy shows a heavy attack (Hunker)",
+  "heal_lowest": "heals the playing mech's most damaged part (by share of HP) this much (Patch Job)",
+  "cleanse": "statuses removed from the playing mech, its parts and (Smoke) the mech itself",
+  "sure_hit": "no cover, Decoy/Smoke Screen, dodge, parry or misses (Zero Lock)",
+  "all_hardpoints": "also hits every other hardpoint of the target mech (Overdrive)",
+  "hits_top_attacker": "also hits the enemy part with the biggest attack shown this turn (Double Tap)",
+  "steal_shields": "takes the target mech's Deflect and Absorb for the attacker's mech (Leech Field)",
+  "spread_status": "its enemy-targeted part statuses also land on every part adjacent to the target (Chain)",
+  "transfer": "with heat_to_target: the attacker loses that much Heat (Heat Transfer)",
+  "self_disable": "the part that played it is Disabled 1 after (Ram)",
+  "heal_on_kill": "heals the attacker's most damaged part this much if it destroys its target (Scavenge)",
+  "swap_statuses": "the firing part and its target trade statuses, Offline excepted (Reverse Polarity)",
+  "gift_status": "{status, stacks}: after a hit lands, the target (its mech, for Deflect/Absorb) gains it (Hammer Down, Heavy Round: a tradeoff)"
  },
  "passives": {
   "redirect_spike": {
@@ -40,13 +62,13 @@
    "max_heat": 2
   },
   "coolant_loop": {
-   "type": "heat_mods",
-   "decay": 1
+   "type": "turn_start_coolant",
+   "stacks": 1
   },
   "overpressure_valve": {
    "type": "heat_mods",
    "max_heat": 2,
-   "decay": -1
+   "backlash_mult": 1.25
   },
   "recycling_loops": {
    "type": "recycle_vent"
@@ -191,9 +213,6 @@
     0.2
    ]
   },
-  "shock_round": {
-   "status_chance": 0.25
-  },
   "emp_round": {
    "mult_if_target_status": {
     "status": "shock",
@@ -236,11 +255,13 @@
    "volley": true
   },
   "lock_on": {
-   "protocol": "lock_on",
-   "mult": [
-    1.25,
-    1.35
-   ]
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "vs_attacking": {
+     "mult": 2
+    }
+   }
   },
   "split_feed": {
    "protocol": "split_feed"
@@ -274,13 +295,7 @@
    "play_mode": "attack"
   },
   "needle_storm": {
-   "hit_chance": [
-    1,
-    1,
-    0.8,
-    0.6,
-    0.5
-   ]
+   "random_part_hits": true
   },
   "quick_draw": {
    "double_if_first": true
@@ -314,7 +329,11 @@
    "protocol": "fan_out"
   },
   "arc": {
-   "arc_adjacent": true
+   "arc_adjacent": true,
+   "mult_if_target_status": {
+    "status": "shock",
+    "mult": 2
+   }
   },
   "lob": {
    "random_part_hits": true,
@@ -331,28 +350,43 @@
    "fraction": 0.5
   },
   "breach": {
-   "protocol": "pierce",
-   "mult": 1.25
+   "protocol": "pierce"
   },
   "chain": {
-   "protocol": "chain"
+   "protocol": "grant",
+   "on": "status",
+   "grant": {
+    "spread_status": true
+   }
   },
   "barrage": {
    "random_part_hits": true,
    "volley": true
   },
   "chew": {
-   "heal_on_hit": 0.3
+   "heal_on_hit": 0.5
   },
   "ram": {
-   "protocol": "knockback"
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "on_hit_status": {
+     "status": "disabled",
+     "stacks": 1
+    },
+    "self_disable": true
+   }
   },
   "ballast": {
    "protocol": "discount",
    "amount": 4
   },
   "double_tap": {
-   "protocol": "double_hits"
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "hits_top_attacker": true
+   }
   },
   "crush": {
    "mult_if_target_status": {
@@ -398,12 +432,12 @@
    "per_heat": 4
   },
   "loaded_dice": {
-   "protocol": "max_roll",
-   "mult": 1.5
+   "protocol": "max_roll"
   },
   "latch": {
    "repeat_turns": 3,
-   "heal_on_hit": 0.5
+   "heal_on_hit": 0.5,
+   "no_hardpoints": true
   },
   "recall": {
    "protocol": "recall"
@@ -420,7 +454,7 @@
   },
   "nova": {
    "hits_all_enemies": true,
-   "recoil": 6
+   "recoil": 12
   },
   "release_swarm": {
    "random_part_hits": true,
@@ -437,8 +471,9 @@
    "hits_all_enemies": true
   },
   "last_stand": {
-   "protocol": "last_stand",
-   "per_tenth": 0.2
+   "protocol": "discount",
+   "amount": 99,
+   "if_below": 0.5
   },
   "cataclysm": {
    "hits_all_enemies": true,
@@ -446,25 +481,536 @@
    "volley": true
   },
   "salvo_fire": {
-   "volley": true
+   "volley": true,
+   "random_part_hits": true
   },
   "all_0ut_salvo": {
    "volley": true
   },
   "blast_em": {
-   "volley": true
+   "volley": true,
+   "mult_if_target_below": {
+    "fraction": 0.5,
+    "mult": 1.5
+   }
   },
   "empty_clip": {
    "volley": true
   },
   "flak": {
-   "volley": true
+   "volley": true,
+   "no_hardpoints": true
   },
   "flechettes": {
    "volley": true
   },
   "targeted_napalm": {
    "volley": true
+  },
+  "tracer_burst": {
+   "vs_attacking": {
+    "status": "shock",
+    "stacks": 1
+   }
+  },
+  "lockout_round": {
+   "status_if_target_status": {
+    "if": "shock",
+    "status": "disabled",
+    "stacks": 1
+   }
+  },
+  "swipe": {
+   "vs_attacking": {
+    "mult": 2
+   }
+  },
+  "foresight": {
+   "play_mode": "self",
+   "guard": {
+    "type": "parry",
+    "damage": 8
+   }
+  },
+  "helix_drum": {
+   "mult_if_target_below": {
+    "fraction": 0.5,
+    "mult": 2
+   }
+  },
+  "rainbow_rain": {
+   "random_part_hits": true
+  },
+  "static_field": {
+   "play_mode": "self",
+   "guard": {
+    "type": "static_field",
+    "status": "shock",
+    "stacks": 1
+   }
+  },
+  "snap": {
+   "mult_if_target_status": {
+    "status": "shock",
+    "mult": 2
+   }
+  },
+  "jab_jab_jab": {
+   "mult_if_target_status": {
+    "status": "disabled",
+    "mult": 2
+   }
+  },
+  "twist": {
+   "status_if_target_status": {
+    "if": "disabled",
+    "status": "disabled",
+    "stacks": 1
+   }
+  },
+  "decoy_flares": {
+   "play_mode": "self",
+   "guard": {
+    "type": "decoy"
+   }
+  },
+  "tranq_dart": {
+   "vs_attacking": {
+    "status": "shock",
+    "stacks": 2
+   }
+  },
+  "blind_shot": {
+   "mult_if_target_status": {
+    "status": "smoke",
+    "mult": 2
+   }
+  },
+  "heat_dump": {
+   "vents": true
+  },
+  "arc_lash": {
+   "play_mode": "self",
+   "status_on_attackers": {
+    "status": "shock",
+    "stacks": 1
+   }
+  },
+  "purge": {
+   "play_mode": "self",
+   "cleanse": [
+    "burn",
+    "smoke"
+   ]
+  },
+  "grind": {
+   "bonus_if_target_status": {
+    "status": "acid",
+    "flat": 3
+   }
+  },
+  "rip_plating": {
+   "strip_shields": true
+  },
+  "smoke_screen": {
+   "guard": {
+    "type": "scatter"
+   }
+  },
+  "yank_aim": {
+   "vs_attacking": {
+    "turn": true
+   }
+  },
+  "drive": {
+   "last_card": true
+  },
+  "breaker": {
+   "mult_if_target_status": {
+    "status": [
+     "deflect",
+     "absorb"
+    ],
+    "mult": 2
+   }
+  },
+  "hunker": {
+   "if_heavy_incoming": {
+    "status": "deflect",
+    "stacks": 5
+   }
+  },
+  "devour": {
+   "vent_on_kill": 4
+  },
+  "rivet": {
+   "bonus_if_target_status": {
+    "status": "jam",
+    "flat": 4
+   }
+  },
+  "patch_job": {
+   "play_mode": "self",
+   "heal_lowest": 8
+  },
+  "echo": {
+   "protocol": "steal"
+  },
+  "zero_lock": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "sure_hit": true
+   }
+  },
+  "ricochet_feed": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "arc_adjacent": true
+   }
+  },
+  "purify": {
+   "protocol": "grant",
+   "on": "self",
+   "grant": {
+    "cleanse": [
+     "shock",
+     "acid",
+     "burn"
+    ]
+   }
+  },
+  "detonate": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "consume_status": {
+     "status": "burn",
+     "per_stack": 4
+    }
+   }
+  },
+  "batch": {
+   "protocol": "defer_heat"
+  },
+  "overclock": {
+   "protocol": "discount",
+   "amount": 2
+  },
+  "target_call": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "vs_attacking": {
+     "status": "disabled",
+     "stacks": 1
+    }
+   }
+  },
+  "heat_transfer": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "heat_to_target": 3,
+    "transfer": true
+   }
+  },
+  "scramble_signal": {
+   "protocol": "clear_enemy"
+  },
+  "borrow_time": {
+   "protocol": "discount",
+   "amount": -1
+  },
+  "ghost_signal": {
+   "play_mode": "self",
+   "guard": {
+    "type": "scatter"
+   }
+  },
+  "leech_field": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "steal_shields": true
+   }
+  },
+  "crack_open": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "on_hit_status": {
+     "status": "acid",
+     "stacks": 2
+    }
+   }
+  },
+  "backlash_link": {
+   "play_mode": "self",
+   "guard": {
+    "type": "static_field",
+    "status": "jam",
+    "stacks": 1
+   }
+  },
+  "push_back": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "vs_attacking": {
+     "turn": true
+    }
+   }
+  },
+  "overlay": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "sure_hit": true,
+    "vs_attacking": {
+     "status": "shock",
+     "stacks": 2
+    }
+   }
+  },
+  "kill_order": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "vent_on_kill": 5
+   }
+  },
+  "hold_the_line": {
+   "play_mode": "self",
+   "guard": {
+    "type": "cap",
+    "cap": 12
+   }
+  },
+  "rampart": {
+   "protocol": "grant",
+   "on": "shield",
+   "grant": {
+    "guard": {
+     "type": "thorns",
+     "damage": 4
+    }
+   }
+  },
+  "long_odds": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "mult_if_target_below": {
+     "fraction": 0.25,
+     "mult": 4
+    }
+   }
+  },
+  "scavenge": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "heal_on_kill": 15
+   }
+  },
+  "feedback_field": {
+   "play_mode": "self",
+   "guard": {
+    "type": "heat_back",
+    "amount": 2
+   }
+  },
+  "reverse_polarity": {
+   "protocol": "grant",
+   "on": "attack",
+   "grant": {
+    "swap_statuses": true
+   }
+  },
+  "final_order": {
+   "play_mode": "self",
+   "guard": {
+    "type": "floor"
+   }
+  },
+  "wide_swing": {
+   "random_part_hits": true
+  },
+  "cross_chop": {
+   "last_card": true
+  },
+  "extension": {
+   "if_heavy_incoming": {
+    "status": "deflect",
+    "stacks": 4
+   }
+  },
+  "acid_rain": {
+   "bonus_if_target_status": {
+    "status": "acid",
+    "flat": 3
+   }
+  },
+  "33_power_rail": {
+   "vs_attacking": {
+    "status": "disabled",
+    "stacks": 1
+   }
+  },
+  "hammer_down": {
+   "gift_status": {
+    "status": "deflect",
+    "stacks": 3
+   }
+  },
+  "twin_burst": {
+   "hit_chance": [
+    1,
+    1,
+    0.7,
+    0.4
+   ]
+  },
+  "heavy_round": {
+   "gift_status": {
+    "status": "deflect",
+    "stacks": 3
+   }
+  },
+  "smoke_rockets": {
+   "volley": true
+  },
+  "fan_the_flames": {
+   "bonus_if_target_status": {
+    "status": "burn",
+    "flat": 5
+   }
+  },
+  "drop_zone": {
+   "mult_if_target_status": {
+    "status": "burn",
+    "mult": 2
+   }
+  },
+  "wind_up": {
+   "protocol": "lock_on",
+   "mult": [
+    1.5,
+    1.5
+   ]
+  },
+  "pick_off": {
+   "mult_if_target_below": {
+    "fraction": 0.5,
+    "mult": 2
+   }
+  },
+  "ground_arc": {
+   "arc_adjacent": true,
+   "vs_attacking": {
+    "status": "shock",
+    "stacks": 2
+   }
+  },
+  "creeping_fire": {
+   "random_part_hits": true,
+   "repeat_turns": 1,
+   "volley": true
+  },
+  "pin_fire": {
+   "vs_attacking": {
+    "status": "jam",
+    "stacks": 2
+   }
+  },
+  "drag_down": {
+   "status_if_target_status": {
+    "if": "freeze",
+    "status": "disabled",
+    "stacks": 2
+   }
+  },
+  "flay": {
+   "bonus_if_target_status": {
+    "status": "acid",
+    "flat": 4
+   }
+  },
+  "collapse": {
+   "arc_adjacent": true
+  },
+  "containment": {
+   "vs_attacking": {
+    "status": "freeze",
+    "stacks": 1
+   }
+  },
+  "bank_shot": {
+   "arc_adjacent": true,
+   "vs_attacking": {
+    "status": "shock",
+    "stacks": 1
+   }
+  },
+  "overcharge_field": {
+   "play_mode": "self",
+   "guard": {
+    "type": "static_field",
+    "status": "shock",
+    "stacks": 2
+   }
+  },
+  "riposte": {
+   "play_mode": "self",
+   "guard": {
+    "type": "parry",
+    "damage": 14
+   }
+  },
+  "infest": {
+   "status_if_target_status": {
+    "if": "acid",
+    "status": "disabled",
+    "stacks": 1
+   }
+  },
+  "guard_break": {
+   "strip_shields": true,
+   "vs_attacking": {
+    "mult": 2
+   }
+  },
+  "spotting_round": {
+   "vs_attacking": {
+    "status": "acid",
+    "stacks": 2
+   }
+  },
+  "feed": {
+   "heal_on_hit": 1.0
+  },
+  "burrow": {
+   "repeat_turns": 1
+  },
+  "focused_nova": {
+   "recoil": 6
+  },
+  "core_purge": {
+   "vents": true
+  },
+  "shatter_note": {
+   "vs_attacking": {
+    "status": "disabled",
+    "stacks": 1
+   }
+  },
+  "resonant_ward": {
+   "if_heavy_incoming": {
+    "status": "deflect",
+    "stacks": 4
+   }
   }
  }
 }

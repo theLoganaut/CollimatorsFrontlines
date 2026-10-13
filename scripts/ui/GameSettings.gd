@@ -21,9 +21,9 @@ const PATH := "user://settings.cfg"
 ## Number keys 1–9 (play a card) and Esc (cancel / settings) stay fixed.
 const KEY_ACTIONS := [
 	["end_turn", "End turn", KEY_E],
-	["vent", "Vent", KEY_V],
 	["fast_forward", "Fast enemy turns (toggle)", KEY_F],
 	["log", "Show / hide the combat log", KEY_L],
+	["map", "Show / hide the location map (in a fight or at a stop)", KEY_M],
 	["next_target", "Next target (Shift: previous)", KEY_TAB],
 	["fire", "Fire at the target", KEY_ENTER],
 	["rotate", "Rotate a held part", KEY_R],
@@ -49,6 +49,9 @@ var music_volume: float = 0.5
 var ambience_volume: float = 0.5
 var colorblind: bool = false
 var reduce_motion: bool = false
+## Gamepad cursor speed (Gamepad): one of PAD_SPEEDS.
+var pad_cursor_speed: float = 1.0
+const PAD_SPEEDS := [0.6, 1.0, 1.5]
 ## action -> keycode (only the ones changed from KEY_ACTIONS' defaults).
 var keys: Dictionary = {}
 
@@ -154,6 +157,9 @@ func _load() -> void:
 	vsync = bool(cfg.get_value("display", "vsync", vsync))
 	colorblind = bool(cfg.get_value("accessibility", "colorblind", colorblind))
 	reduce_motion = bool(cfg.get_value("accessibility", "reduce_motion", reduce_motion))
+	pad_cursor_speed = float(cfg.get_value("game", "pad_cursor_speed", pad_cursor_speed))
+	if not PAD_SPEEDS.has(pad_cursor_speed):
+		pad_cursor_speed = 1.0
 	keys = {}
 	for a in KEY_ACTIONS:
 		if cfg.has_section_key("keys", a[0]):
@@ -173,6 +179,7 @@ func _save() -> void:
 	cfg.set_value("display", "vsync", vsync)
 	cfg.set_value("accessibility", "colorblind", colorblind)
 	cfg.set_value("accessibility", "reduce_motion", reduce_motion)
+	cfg.set_value("game", "pad_cursor_speed", pad_cursor_speed)
 	for a in keys:
 		cfg.set_value("keys", a, keys[a])
 	cfg.save(PATH)

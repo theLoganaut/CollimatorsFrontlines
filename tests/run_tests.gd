@@ -10,6 +10,8 @@ func _initialize() -> void:
 	for k in ["damage_mult", "heat_mult", "hp_mult"]:
 		Balance.set_value("combat", k, 1.0)
 	Balance.set_value("combat", "heat_add", 0)
+	# ...and heat vents by the ratio (TestHeatRules tests the full reset).
+	Balance.set_value("heat", "full_reset", false)
 
 	TestDataLoader.run_all(t)
 	TestHeatRules.run_all(t)

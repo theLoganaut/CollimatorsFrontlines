@@ -18,7 +18,7 @@ func _build() -> void:
 	var week := Profile.this_weeks_directives()
 	Profile.save()
 	_col.add_child(UIKit.label("TODAY'S DIRECTIVES", 12, Palette.TEXT_MUTED))
-	_col.add_child(UIKit.label("Three new ones every day. Progress counts when a run ends.", 14, Palette.TEXT_MUTED))
+	_col.add_child(UIKit.label("Three new ones every day. Progress counts when a mission ends.", 14, Palette.TEXT_MUTED))
 	for id in today["ids"]:
 		var d := Meta.directive(id)
 		if d.is_empty():
@@ -55,7 +55,7 @@ func _directive_card(d: Dictionary, progress: int, done: bool) -> Control:
 	bar.add_theme_stylebox_override("fill", fill)
 	bar.add_theme_stylebox_override("background", UIKit.style(Palette.PANEL_2, Palette.BORDER, 1, 3))
 	v.add_child(bar)
-	var note := "%d / %d" % [mini(progress, goal), goal] if str(d.get("kind", "sum")) == "sum" else ("Done in one run" if done else "In a single run")
+	var note := "%d / %d" % [mini(progress, goal), goal] if str(d.get("kind", "sum")) == "sum" else ("Done in one mission" if done else "In a single mission")
 	if d.has("mech"):
 		note += "  ·  in %s" % str(d["mech"]).capitalize()
 	if d.has("mission"):

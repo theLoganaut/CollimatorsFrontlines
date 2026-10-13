@@ -31,7 +31,7 @@ func _build() -> void:
 		_tabs.add_child(b)
 	var train := UIKit.button("Replay training", Palette.LINK, Vector2(160, 36), 13)
 	train.disabled = SaveGame.has_save()
-	train.tooltip_text = "Finish or abandon your run in progress first." if train.disabled else "Two short fights that walk you through the basics."
+	train.tooltip_text = "Finish or abandon your mission in progress first." if train.disabled else "Two short fights that walk you through the basics."
 	train.pressed.connect(func():
 		Tutorial.start()
 		SceneRouter.go(SceneRouter.WAR_ROOM))
@@ -99,7 +99,7 @@ func _enemy_card(id: String) -> Control:
 	col.add_child(UIKit.label(title, 16, Palette.TEXT))
 	col.add_child(UIKit.label("%s  ·  max heat %d  ·  %d HP%s  ·  %s" % [", ".join(where), m.max_heat, m.max_hp(),
 		"" if m.defeat_hp_fraction <= 0.0 else ", beaten at %d" % m.defeat_hp_threshold(),
-		"fought %d, won %d, it ended %d run%s" % [int(rec.get("fought", 0)), int(rec.get("beaten", 0)), int(rec.get("lost_to", 0)), "" if int(rec.get("lost_to", 0)) == 1 else "s"] if not rec.is_empty() else "no fights logged"], 12, Palette.TEXT_MUTED, true))
+		"fought %d, won %d, it ended %d mission%s" % [int(rec.get("fought", 0)), int(rec.get("beaten", 0)), int(rec.get("lost_to", 0)), "" if int(rec.get("lost_to", 0)) == 1 else "s"] if not rec.is_empty() else "no fights logged"], 12, Palette.TEXT_MUTED, true))
 	if str(m.ai.get("_why", "")) != "":
 		col.add_child(UIKit.label(str(m.ai["_why"]), 13, Palette.REACTOR, true))
 	for c in m.components:

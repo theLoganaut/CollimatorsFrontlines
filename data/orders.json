@@ -29,7 +29,7 @@
       "id": "field_repair",
       "kind": "boost",
       "name": "Field Repair Kit",
-      "text": "Repair bays restore 50% more HP this run."
+      "text": "Repair bays restore 50% more HP this mission."
     },
     {
       "id": "cold_start",
@@ -53,7 +53,7 @@
       "id": "stripped_frame",
       "kind": "tradeoff",
       "name": "Stripped Frame",
-      "text": "+{scraps} scraps. Choose one of your components to strip out; it's gone for the run."
+      "text": "+{scraps} scraps. Choose one of your components to strip out; it's gone for the mission."
     },
     {
       "id": "modular_chassis",

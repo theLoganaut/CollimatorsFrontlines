@@ -27,6 +27,7 @@ func _initialize() -> void:
 	_directives()
 	_orders()
 	_rules()
+	_enemy_ai()
 	_balance()
 	_classes()
 	for w in warnings:
@@ -231,6 +232,39 @@ func _rules() -> void:
 				var st := str(s.get("status", s.get("name", ""))).to_lower()
 				if st != "" and not ComponentLibrary.IMPLEMENTED_STATUSES.has(st) and StatusGlossary.get_entry(st).is_empty():
 					errors.append("components.json %s / %s: unknown status \"%s\"" % [id, c.get("id", ""), st])
+
+## data/enemy_ai.json (Phase 6): every entry is an enemy, its rhythms use
+## known themes and conditions, and its on_lost parts are on that enemy.
+func _enemy_ai() -> void:
+	var d = _json("res://data/enemy_ai.json")
+	if typeof(d) != TYPE_DICTIONARY:
+		errors.append("enemy_ai.json doesn't load")
+		return
+	var conds := ["player_hot", "player_shielded", "player_damaged", "player_primed", "self_hurt", "ally_hurt", "has_charge", "squad"]
+	var ids := _mech_ids()
+	for id in d:
+		if str(id).begins_with("_"):
+			continue
+		if not ids.has(id):
+			errors.append("enemy_ai.json: no enemy \"%s\"" % id)
+			continue
+		var mech = _json("res://data/mechs/%s.json" % id)
+		var parts := (mech.get("components", []) as Array).map(func(c): return str(c.get("id", "")))
+		var e: Dictionary = d[id]
+		var lists: Array = [e.get("rhythms", []), e.get("phase2", {}).get("rhythms", [])]
+		for key in e.get("on_lost", {}):
+			if not parts.has(key):
+				errors.append("enemy_ai.json %s: on_lost part \"%s\" isn't on it" % [id, key])
+			lists.append(e["on_lost"][key].get("rhythms", []))
+		for list in lists:
+			for r in list:
+				for t in r.get("turns", []):
+					if not EnemyAI.THEMES.has(t):
+						errors.append("enemy_ai.json %s: unknown theme \"%s\"" % [id, t])
+				var when = r.get("when", [])
+				for c in (when if when is Array else [when]):
+					if not conds.has(str(c)):
+						errors.append("enemy_ai.json %s: unknown condition \"%s\"" % [id, c])
 
 func _balance() -> void:
 	var data := Balance.data()

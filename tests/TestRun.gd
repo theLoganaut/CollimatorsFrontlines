@@ -568,7 +568,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("Fight stats: CombatManager counts what happens")
 	var cp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")
-	var cw: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var cw: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	var cm := CombatManager.new(cp, cw, 40)
 	cm.start_combat()
 	cm.play_attack_card(cp.get_component("neon_axe").cards[0], cw[0], cw[0].get_component("scatter_shot"))

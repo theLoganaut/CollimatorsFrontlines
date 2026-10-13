@@ -38,6 +38,10 @@ var _from: Rect2 = Rect2()         # the marker it projects from (empty: centere
 var _anchor: Vector2 = Vector2.INF # the beam's emitter on its side (INF: centered)
 var _attach: Vector2
 var _beam: float = 0.0
+var _vbox: VBoxContainer
+var _spacer: Control
+var _buttons: HBoxContainer
+const CONTINUE_W := 340.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -48,6 +52,7 @@ func _ready() -> void:
 	add_child(_panel)
 
 	var vbox := VBoxContainer.new()
+	_vbox = vbox
 	vbox.position = Vector2(PAD, PAD - 4.0)
 	vbox.size = PANEL_SIZE - Vector2(PAD * 2.0, PAD * 2.0 - 8.0)
 	vbox.add_theme_constant_override("separation", 5)
@@ -75,11 +80,13 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
+	_spacer = spacer
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	row.alignment = BoxContainer.ALIGNMENT_END
 	vbox.add_child(row)
+	_buttons = row
 	_secondary = GlassPanel.button("Cancel", 14)
 	_secondary.custom_minimum_size = Vector2(120, 40)
 	_secondary.pressed.connect(_on_secondary)
@@ -126,6 +133,7 @@ func _rule() -> Control:
 ## A location: `anchor` (global) is its marker and name on the map, `grid`
 ## its grid reference.
 func open(location: Dictionary, mission: Dictionary, anchor: Rect2 = Rect2(), grid: String = "") -> void:
+	_set_compact(false)
 	_location = location
 	_where.text = "HOSTILE OBJECTIVE" + ("  ·  GRID %s" % grid if grid != "" else "")
 	_where.add_theme_color_override("font_color", HOSTILE_TEXT)
@@ -142,7 +150,7 @@ func open(location: Dictionary, mission: Dictionary, anchor: Rect2 = Rect2(), gr
 		rules = Conditions.describe(location, mission)
 	if not rules.is_empty():
 		_summary.text += "\n\n" + "\n".join(rules)
-	_facts.text = "%d stops  ·  Mech: %s (change it in the Hangar)" % [stops, Profile.mech.capitalize()]
+	_facts.text = "%d encounters  ·  Mech: %s (change it in the Hangar)" % [stops, Profile.mech.capitalize()]
 	_continue_mode = false
 	_daily_mode = false
 	_primary.disabled = false
@@ -166,8 +174,8 @@ func open_daily(d: Dictionary, anchor: Rect2 = Rect2()) -> void:
 	var stops: int = int(mission.get("rows", 7)) + (1 if mission.get("boss", false) else 0)
 	var played := Profile.daily_played_today()
 	var best := int(Profile.daily.get("best", 0))
-	var lines := ["%d stops  ·  Mech: %s (its standard loadout)  ·  seed %d" % [stops, str(d["mech"]).capitalize(), int(d["seed"])],
-		"The same run for every pilot today. One scored attempt."]
+	var lines := ["%d encounters  ·  Mech: %s (its standard loadout)  ·  seed %d" % [stops, str(d["mech"]).capitalize(), int(d["seed"])],
+		"The same mission for every pilot today. One scored attempt."]
 	if played:
 		lines.append("Today's score: %d%s" % [int(Profile.daily.get("score", 0)), "" if str(Profile.daily.get("result", "")) != "" else " (in progress)"])
 	if best > 0:
@@ -182,11 +190,12 @@ func open_continue(summary: Dictionary) -> void:
 	var loc: Dictionary = summary.get("location", {})
 	var mission: Dictionary = summary.get("mission", {})
 	var total: int = int(mission.get("rows", 7)) + (1 if mission.get("boss", false) else 0)
-	_where.text = "RUN IN PROGRESS"
+	_where.text = "MISSION IN PROGRESS"
 	_where.add_theme_color_override("font_color", Palette.LINK)
 	_name.text = loc.get("name", "")
 	_desc.visible = false
-	_mission.text = "MISSION  ·  %s  ·  stop %d / %d" % [str(mission.get("name", "")).to_upper(), summary.get("stops", 0), total]
+	# the encounter it picks up at: the ones done, plus the one it's on or about to choose
+	_mission.text = "%s  ·  ENCOUNTER %d / %d" % [str(mission.get("name", "")).to_upper(), mini(int(summary.get("stops", 0)) + 1, total), total]
 	_summary.text = "%s  %d / %d HP" % [str(summary.get("mech", "bastion")).capitalize(), summary.get("hp", 0), summary.get("max_hp", 0)]
 	_facts.text = "%d scraps  ·  seed %d" % [summary.get("scraps", 0), summary.get("seed", 0)]
 	_continue_mode = true
@@ -194,7 +203,33 @@ func open_continue(summary: Dictionary) -> void:
 	_seed.visible = false
 	_primary.text = "Continue"
 	_secondary.text = "Abandon (eject)"
+	_set_compact(true)
 	_show(Rect2())
+
+## A saved run's box (Logan, 2026-10-02): everything centered, the glass
+## only as big as what's on it. Off: the full, left-aligned location panel.
+func _set_compact(on: bool) -> void:
+	var align := HORIZONTAL_ALIGNMENT_CENTER if on else HORIZONTAL_ALIGNMENT_LEFT
+	for l in [_where, _name, _desc, _mission, _summary, _facts]:
+		l.horizontal_alignment = align
+	_spacer.visible = not on
+	_buttons.alignment = BoxContainer.ALIGNMENT_CENTER if on else BoxContainer.ALIGNMENT_END
+	_panel.size = Vector2(CONTINUE_W, 200.0) if on else PANEL_SIZE
+	_vbox.size = _panel.size - Vector2(PAD * 2.0, PAD * 2.0 - 8.0)
+	_panel.queue_redraw()
+	if on:
+		_refit() # the wrapped lines know their height once laid out at this width
+
+func _refit() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not _continue_mode:
+		return
+	var h := _vbox.get_combined_minimum_size().y
+	_panel.size = Vector2(CONTINUE_W, h + PAD * 2.0 - 8.0)
+	_vbox.size = Vector2(CONTINUE_W - PAD * 2.0, h)
+	_place()
+	_panel.queue_redraw()
 
 func _show(anchor: Rect2) -> void:
 	visible = true
@@ -216,8 +251,8 @@ func _show(anchor: Rect2) -> void:
 func _place() -> void:
 	if _from.size == Vector2.ZERO:
 		_anchor = Vector2.INF
-		_panel.position = ((size - PANEL_SIZE) / 2.0).floor()
-		_panel.pivot_offset = PANEL_SIZE / 2.0
+		_panel.position = ((size - _panel.size) / 2.0).floor()
+		_panel.pivot_offset = _panel.size / 2.0
 		return
 	var right := _from.end.x + BEAM_GAP + PANEL_SIZE.x <= size.x - 12.0
 	_anchor = Vector2(_from.end.x if right else _from.position.x, _from.get_center().y)

@@ -60,10 +60,13 @@ static func stow(run: RunData, comp: ComponentData, steps: int, offset: Vector2i
 	run.player_mech.components.erase(comp)
 	return run.cargo.place(comp, steps, offset)
 
-## Whether parts can be moved around here: the chassis only at a refit,
-## Cargo and the workbench at a refit or an autonomous bay.
+## Whether parts can be moved around here: Cargo and the workbench at a
+## refit or an autonomous bay; the chassis at a refit, and at an autonomous
+## bay too while economy.shop_refit is on (a trial, 2026-10-02).
 static func can_rearrange(run: RunData, to: String) -> bool:
 	if to == RunData.MECH:
+		if run.phase == RunData.PHASE_SHOP:
+			return bool(Balance.section("economy").get("shop_refit", false))
 		return run.phase == RunData.PHASE_REFIT
 	return run.phase == RunData.PHASE_REFIT or run.phase == RunData.PHASE_SHOP
 

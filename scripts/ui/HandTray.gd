@@ -76,26 +76,12 @@ func refresh_heat() -> void:
 			var spent: bool = combat != null and combat.is_spent(child.card)
 			var over := HeatRules.is_overheated(mech.current_heat + cost, mech.heat_capacity())
 			child.set_state(cost, over, not usable, spent)
-			child.tooltip_text = _why_not(child.card, comp, spent, over)
+			child.set_protocol_glow(combat != null and combat.primed.any(func(p): return CombatProtocols.affects(p, child.card)))
 			if spent != child.gone:
 				child.set_gone(spent)
 				changed = true
 	if changed:
 		relayout()
-
-## Why a card can't (or shouldn't) be played right now, for its tooltip.
-func _why_not(card: CardData, comp: ComponentData, spent: bool, over: bool) -> String:
-	if spent:
-		return "Already played this turn: it's back next turn."
-	if comp == null or comp.destroyed:
-		return "Its part is destroyed."
-	if comp.status_stacks("offline") > 0:
-		return "%s is Offline for the rest of the fight." % comp.name
-	if comp.status_stacks("disabled") > 0:
-		return "%s is Disabled this turn." % comp.name
-	if over:
-		return "Playing this now would overheat you."
-	return ""
 
 ## Repositions the current set of CardUI children into the fan. Does not
 ## add or remove any card — see setup() / prune_destroyed(). Sides and

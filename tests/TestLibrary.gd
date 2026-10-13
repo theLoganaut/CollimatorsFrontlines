@@ -4,6 +4,7 @@ extends RefCounted
 ## passives, and only fully implemented parts reach the reward/shop pools.
 
 static func run_all(t: TestContext) -> void:
+	_keyword_hints(t)
 	t.group("ComponentLibrary: every Refit Bay part loads")
 	var ids := ComponentLibrary.all_ids()
 	t.assert_eq(ComponentLibrary.definition("heat_lance")["name"], "Heat Lance", "the game shows a draft's name without (C)")
@@ -21,8 +22,8 @@ static func run_all(t: TestContext) -> void:
 	_scaling(t)
 	_kits(t)
 	var cap := ComponentLibrary.make("capacitor_bank")
-	t.assert_eq(cap.passive_text(), "Gain Absorb 25. Triggers automatically at turn start (not a played card).", "a reactor's passive text is its Refit Bay card's statuses + text")
-	t.assert_eq(int(cap.passive["stacks"]), 25, "Capacitor Bank's stacks come from Refit Bay")
+	t.assert_eq(cap.passive_text(), "Gain Absorb 10. Triggers automatically at turn start (not a played card).", "a reactor's passive text is its Refit Bay card's statuses + text")
+	t.assert_eq(int(cap.passive["stacks"]), 10, "Capacitor Bank's stacks come from Refit Bay")
 
 	t.group("ComponentLibrary: only implemented parts are offered")
 	t.assert_true(["neon_axe", "voltage_spike", "scatter_shot", "redirect_spike", "capacitor_bank", "insulated_core"].all(func(id): return ComponentLibrary.is_implemented(id)), "the starting parts are implemented")
@@ -123,3 +124,18 @@ static func _kits(t: TestContext) -> void:
 		t.assert_true(m.components.all(func(c): return c.rarity == "surplus"), "%s's kit is all Surplus" % id)
 	for k in saved:
 		Balance.set_value("combat", k, saved[k])
+
+## Card text's statuses and keywords get a hover hint each, in one pass.
+static func _keyword_hints(t: TestContext) -> void:
+	t.group("StatusGlossary.annotate: keyword links")
+	var a := StatusGlossary.annotate("Apply Shock 2. Vent 3. Double damage vs Frozen. Overheating hurts. [x]")
+	t.assert_eq(a.count("[url="), 4, "Shock, Vent, Frozen and Overheating each get a link")
+	t.assert_true(a.contains("[lb]x]"), "a literal [ is escaped")
+	t.assert_eq(StatusGlossary.annotate("Pierce").count("[url="), 1, "a keyword is tagged once")
+	t.assert_eq(StatusGlossary.lookup("Frozen")["label"], "Freeze", "a status's other form looks up the status")
+	t.assert_eq(StatusGlossary.lookup("Overheating")["label"], "Overheat", "a keyword's other form looks up the keyword")
+	t.assert_true(StatusGlossary.lookup("Shockwave").is_empty(), "a word that names nothing looks up nothing")
+	var card_entries := StatusGlossary.entries_for("Reclaim 30%. Pierce.", ["shock", "shock"])
+	t.assert_eq(card_entries.map(func(e): return e["label"]), ["Shock", "Pierce", "Reclaim"], "a card's statuses, then its keywords in glossary order, once each")
+	t.assert_eq(StatusGlossary.annotate("Shockwave hits."), "Shockwave hits.", "only whole words")
+

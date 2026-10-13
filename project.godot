@@ -14,9 +14,11 @@ config/name="Collimators: Frontlines"
 run/main_scene="res://scenes/WarRoom.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
+run/flush_stdout_on_print=true
 
 [autoload]
 
+CrashWatch="*res://scripts/core/CrashLog.gd"
 GameData="*res://scripts/data/GameData.gd"
 UIState="*res://scripts/ui/UIState.gd"
 GameSettings="*res://scripts/ui/GameSettings.gd"
@@ -25,6 +27,13 @@ RunState="*res://scripts/run/RunState.gd"
 SceneRouter="*res://scripts/core/SceneRouter.gd"
 Sfx="*res://scripts/core/Sfx.gd"
 Tutorial="*res://scripts/core/Tutorial.gd"
+Gamepad="*res://scripts/core/Gamepad.gd"
+SteamService="*res://scripts/core/SteamService.gd"
+
+[debug]
+
+settings/gdscript/always_track_call_stacks=true
+file_logging/max_log_files=10
 
 [display]
 
@@ -42,3 +51,10 @@ window/stretch/aspect="expand"
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+
+[steam]
+
+initialization/app_data/app_id=5441720
+initialization/processes/initialize_on_startup=false
+initialization/processes/embed_callbacks=false

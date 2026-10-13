@@ -41,7 +41,12 @@ var _cells_by_component: Dictionary = {} # ComponentData -> Array[ComponentCellU
 var _shown_hp: Dictionary = {} # ComponentData -> int
 var _hp_tweens: Dictionary = {} # ComponentData -> Tween
 var _targeted: ComponentData = null
+var _status_lit: String = ""
 var _covering: ComponentData = null # the cover part that will actually take the hit
+## The part an aimed attack would destroy: pulses red (sure) or amber (might).
+var _doomed: ComponentData = null
+var _doomed_sure: bool = false
+var _t: float = 0.0
 var _hovered: ComponentData = null # the part under the mouse (outlined)
 ## The part whose card is hovered in the hand (outlined like a hover).
 var linked: ComponentData = null
@@ -103,7 +108,7 @@ func _process(delta: float) -> void:
 	var over_grid := hovered_ctrl != null and (hovered_ctrl == self or is_ancestor_of(hovered_ctrl))
 	var aiming := aim_area != null and UIState.is_dragging_attack_card() \
 		and aim_area.get_global_rect().has_point(get_global_mouse_position())
-	var lit := spotlight or over_grid or aiming or _targeted != null or linked != null
+	var lit := spotlight or over_grid or aiming or _targeted != null or linked != null or _status_lit != ""
 	modulate.a = move_toward(modulate.a, 1.0 if lit else FAINT_ALPHA, FADE_SPEED * delta)
 	if backdrop != null:
 		var faded := over_grid or aiming
@@ -115,12 +120,22 @@ func _process(delta: float) -> void:
 	if part != _hovered:
 		_hovered = part
 		_outline.queue_redraw()
+	if _doomed != null:
+		_t += delta
+		_outline.queue_redraw()
 
 ## A yellow line around the hovered part's outer edges (not around each of
 ## its cells): every cell side facing off the part, drawn in the gap outside
 ## it and run on across the gap wherever the part continues, so the line is
 ## unbroken around the whole shape.
 func _draw_hover_outline() -> void:
+	if _doomed != null:
+		var k := 0.75 if GameSettings.reduce_motion else 0.55 + 0.35 * sin(_t * 6.0)
+		var col: Color = Palette.DANGER if _doomed_sure else Palette.WARNING
+		for cell in _doomed.placed_cells:
+			var r := Rect2(Vector2(cell.y, cell.x) * (cell_size + gap), Vector2(cell_size, cell_size))
+			_outline.draw_rect(r, Color(col, 0.35 * k), true)
+			_outline.draw_rect(r, Color(col, k), false, 2.0)
 	var part := _hovered if _hovered != null else linked
 	if part == null:
 		return
@@ -199,6 +214,25 @@ func is_covering(component: ComponentData) -> bool:
 
 ## Outlines every cell of one component as the current crosshair target, and
 ## the cover part that would take the hit instead, if any (null clears).
+## A hovered status (UIState.status_hover_changed): every part holding it
+## lights in its colour; a mech-wide one (Absorb, Deflect, Smoke) lights the
+## whole mech. "" clears.
+func set_status_lit(status: String) -> void:
+	if status == _status_lit:
+		return
+	_status_lit = status
+	refresh_all()
+
+func status_lit(component: ComponentData) -> bool:
+	if _status_lit == "" or component == null or component.destroyed:
+		return false
+	if CardResolver.MECH_STATUSES.has(_status_lit):
+		return mech.mech_status_stacks(_status_lit) > 0
+	return component.status_stacks(_status_lit) > 0
+
+func lit_status() -> String:
+	return _status_lit
+
 func set_targeted(component: ComponentData) -> void:
 	var covering: ComponentData = mech.cover_for(component) if component != null else null
 	if component == _targeted and covering == _covering:
@@ -209,6 +243,15 @@ func set_targeted(component: ComponentData) -> void:
 	for c in previous + [component, covering]:
 		if c != null:
 			_refresh_component_cells(c)
+
+## Marks the part an aimed attack would destroy (`sure`), or might (null clears).
+func set_doomed(component: ComponentData, sure: bool = false) -> void:
+	if component == _doomed and sure == _doomed_sure:
+		return
+	_doomed = component
+	_doomed_sure = sure
+	_t = 0.0
+	_outline.queue_redraw()
 
 ## A brief white flash over every cell of a component (a hit landing).
 func flash(component: ComponentData) -> void:

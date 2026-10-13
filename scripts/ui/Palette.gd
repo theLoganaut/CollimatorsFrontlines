@@ -52,17 +52,17 @@ static var colorblind := false
 const STATUS_COLORS := {
 	"shock": Color("6fb7ff"), "acid": Color("8fd14f"), "burn": Color("ff8a3d"),
 	"disabled": Color("9aa3b5"), "offline": Color("d3402a"), "freeze": Color("bfefff"),
-	"coolant": Color("3fc4b8"), "jam": Color("a486e0"),
+	"coolant": Color("3fc4b8"), "jam": Color("a486e0"), "absorb": Color("5fd38a"),
 }
 ## Okabe-Ito, the colorblind-safe set, each status also getting its own shape.
 const STATUS_COLORS_SAFE := {
 	"shock": Color("56b4e9"), "acid": Color("f0e442"), "burn": Color("e69f00"),
 	"disabled": Color("bbbbbb"), "offline": Color("d55e00"), "freeze": Color("ffffff"),
-	"coolant": Color("009e73"), "jam": Color("cc79a7"),
+	"coolant": Color("009e73"), "jam": Color("cc79a7"), "absorb": Color("7ad9a8"),
 }
 const STATUS_SHAPES := {
 	"shock": "triangle", "acid": "diamond", "burn": "square", "disabled": "bar",
-	"offline": "cross", "freeze": "ring", "coolant": "circle", "jam": "hexagon",
+	"offline": "cross", "freeze": "ring", "coolant": "circle", "jam": "hexagon", "absorb": "circle",
 }
 
 static func status_color(status: String) -> Color:

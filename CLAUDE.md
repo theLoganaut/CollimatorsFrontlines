@@ -9,19 +9,21 @@ pop-up (optional seed) → Launch → `LocationMap` (Slay-the-Spire-style stops:
 autonomous bays, boss) → the stop's screen (`CombatScene`, `RewardScreen`, `RefitScreen`, `RepairBayScreen`,
 `ShopScreen`, `EventScreen`) → back to the map; a run ends in `DebriefScreen` → War Room. The War Room's Hangar
 (`HangarScreen`) picks the mech and its Surplus starting loadout. Autoloads: `RunState` (the run, `scripts/run/RunData.gd`,
-saved by `SaveGame`), `Profile` (what persists between runs), `SceneRouter` (fades), `Sfx`, `Tutorial`. `scenes/Main.tscn` is a standalone
+saved by `SaveGame`), `Profile` (what persists between runs), `SceneRouter` (fades), `Sfx`, `Tutorial`, `Gamepad`. `scenes/Main.tscn` is a standalone
 fight with no run, used by dev tools.
 
 **Data:** `data/components.json`, `data/chassis.json` and every enemy in `data/mechs/` are Refit Bay imported verbatim
 (`tools/import_refit_bay.py <export.json>`; enemies come from Refit Bay's **Enemies** tab, with their AI profile and boss
 lines). `data/component_rules.json` says how each effect plays. Player mechs (`bastion/redline/jackal.json`) name parts by id.
 Parts named "(C) …" in Refit Bay are Claude's drafts (shown without the prefix in game; `claude_draft` in components.json);
-their mechanics are written in `tools/claude_parts.py` (`rules` merges them into component_rules.json). Weight classes are
+their mechanics are written in `tools/claude_parts.py` (`rules` merges them into component_rules.json). The card rework
+(Notion: Dynamic Turn Rework, Phase 5) keeps its reworked/added cards and rewritten passives in `tools/card_pass.py`
+(`refit` patches a Refit Bay doc, `components` patches components.json + rules; claude_parts.py takes those parts' cards from it). Reactors are passive-only. Weight classes are
 enforced: Light/Medium/Heavy parts only fit that class, General fits all. Missions, sectors (with encounter pools), events,
 directives, liveries and Operator lines are JSON in `data/`. **Every tuning number is in `data/balance.json`**; rerun
 `tools/balance_sim.sh [runs] [--report] [--set=section.key=value]` after changing numbers (bots: smart, focused, casual, and
 builder, which also takes parts, refits and shops; they take deployment orders and random event choices; options like
-`--mech=<enemy>.swap=a:b`, `--orders=`, `--variants=`, `--sweeps=` are listed atop `tools/balance_sim.gd`). `tools/check_all.sh` runs the tests, `tools/validate_data.gd` (every
+`--mech=<enemy>.swap=a:b`, `--orders=`, `--variants=`, `--sweeps=` are listed atop `tools/balance_sim.gd`). `tools/card_value.gd` measures every attack card's damage per Heat (outliers by rarity) and what each protocol adds on the hardest-hitting cards. `tools/check_all.sh` runs the tests, `tools/validate_data.gd` (every
 data reference resolves) and a sim smoke run; run it before calling work done. `tools/golden.sh check [25]` is the golden
 master for refactors (seeded sim traces must stay identical); rerecord (`record`) after intended rule or data changes. `tools/Screenshot.tscn` opens a run screen
 (shop, refit, combat, map, event) in a set state and saves a PNG (needs a window, not `--headless`). New `class_name` scripts need
@@ -29,7 +31,9 @@ master for refactors (seeded sim traces must stay identical); rerecord (`record`
 
 **Code shape:** `CombatManager` holds a fight's state; its rules are static helpers taking it (`CombatAttack`, `CombatProtocols`,
 `CombatEnemyTurn`, `CombatHeat`). Player decisions go through `CombatManager.apply(cmd)` (id-based commands, logged in
-`command_log`, replayable). `RunData` likewise delegates to `RunEvents`, `RunShop`, `RunParts`, `RunSave`. Location rules and
+`command_log`, replayable). `RunData` likewise delegates to `RunEvents`, `RunShop`, `RunParts`, `RunSave`. Enemy turns (Phase 6): `data/enemy_ai.json` gives each enemy two-turn rhythms of themes (assault/guard/charge/afflict/recover/combo),
+openers, squad roles, on_lost and phase 2; `EnemyAI.plan_all` plays every affordable card in theme order, `EnemyAI.repair` updates
+the shown plan after each player command, and a Charge fires free at `enemy_ai.charge_mult` next enemy turn unless its part is stopped. Location rules and
 mission variants are `Conditions` (`data/conditions.json`); the seeded daily run is `Daily`.
 **Combat scaling:** `balance.json` "combat" (`damage_mult`, `heat_add`, `hp_mult`, `heat_mult`) is applied to every Refit Bay
 part as it loads (`ComponentLibrary.make`), player and enemy alike, so the game shows the scaled numbers while Refit Bay and
@@ -38,7 +42,7 @@ use Refit Bay's numbers; rule tests that need a kit use `tests/fixtures/*_classi
 Surplus, about 50 damage a turn; the Hangar and saved loadouts are Surplus only).
 **Combat rules to know:** each card plays once per turn and is back next turn (`CombatManager.spent`; Logan: nothing
 more, nothing less). The Vent action (player before any card; enemies with nothing to play) vents a flat
-`heat.vent_action_share` at the next dispersal. Pointing parts (Coolant Flush) give their status only at the start of
+`heat.vent_action_share` at the next dispersal. One protocol waits at a time (no stacking): priming another replaces it, for the player and enemies alike. Pointing parts (Coolant Flush) give their status only at the start of
 combat. Event buttons are built from their outcome (`EventOutcome`: "Choice (gain, but cost)"); every gain needs a cost. A run's frame grows at most
 one ring past the chassis' original bounds (`RunData.base_bounds`). Run saves go through `SafeFile` (atomic, with a backup),
 are versioned (`RunData.SAVE_VERSION`, `SaveMigration`) and carry their mission, so retuning missions.json doesn't change a
@@ -53,6 +57,27 @@ per machine in `user://settings.cfg`): per-bus volume, colorblind-safe statuses 
 the combat log's open state (closed by default; Log button / L), whether the description box (shown only while
 something is hovered) also needs Shift held, and key bindings (`GameSettings.KEY_ACTIONS`, `key()` / `is_key()`; never
 compare a letter keycode directly). `KitMath.best_turn` is the "damage a turn" yardstick (starting kits, salvage compare).
+**Recordings and playtests:** every run fight is recorded (`FightRecord`: mechs at the start, seed, fight-start
+statuses, commands; saved by `Replays` in `user://replays/`, named in the run's `fight_log`). The Pilot Log's Watch
+buttons play one back in `CombatScene`'s replay mode (`CombatScene.replay_record`). Every finished run also writes a
+playtest report (`PlaytestReport`, `user://playtests/`; Settings → "Save playtest report" mid-run);
+`tools/playtest_report.gd [file|folder] [--turns]` prints each fight and checks it still replays the same.
+**Crash reports** (`CrashLog`, autoload `CrashWatch`, first): a session file touched every 2 s and a trail of what the player did
+(screens, hovered parts/cards/intents, cards played, turns; `CrashLog.crumb`) plus every engine/script error with its backtrace,
+flushed line by line to `user://session/`. A launch that finds the last session never quit writes `<stamp>_crash.txt` (verdict,
+last action, system/GPU, trail, the end of that session's Godot log) to `user://playtests/`; a run continued after it lists it in
+`RunData.resumes`, and the run's playtest report carries the text.
+**Steam** (App ID 5441720, project setting `steam/initialization/app_data/app_id`): the GodotSteam GDExtension in
+`addons/godotsteam` (Steamworks SDK 1.65; the steam_api libraries are copied from Valve's SDK). The `SteamService` autoload
+starts it and `SteamService.available` / `api()` say whether Steam is up; without the extension or a running client the game plays on.
+**Releases to testers** ("build it" / "push a build"): `tools/steam_release.sh [--desc "..."]` exports Windows (macOS too if
+`DEPOT_MACOS` is set) and uploads it with SteamCMD (one branch, default: Logan sets each build live on the Steamworks Builds page; settings: `tools/steam/config.sh`; logs:
+`build/steam/logs/`). If it says SteamCMD needs a login, Logan runs `tools/steam_release.sh --login` himself (password + Steam Guard).
+**Achievements** (`data/achievements.json`, `Achievements`, earned in `Profile.record_run`, Pilot Log tab).
+**Gamepad** (`Gamepad` autoload): the stick drives the mouse cursor and A clicks, so screens need nothing of their own;
+buttons press the bound keys; a screen can take buttons first (`Gamepad.handler.pad_button`, combat does). Code that
+polls the left mouse button uses `Gamepad.left_held()`. Card text in part cards uses `UIKit.rich_label`
+(`StatusGlossary.annotate`: statuses and keywords tinted, with their rule as a hover hint).
 Mech sprites (PixelLab, 128×128, straight-on) are `assets/enemies/<id>.png` and `assets/mechs/<id>_front.png` /
 `_back.png`, loaded through `MechArt`; a mech without one keeps the placeholder.
 Component art is `assets/components/<library id>.png` (32 px per cell of the unrotated shape), drawn tile by tile over

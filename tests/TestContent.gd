@@ -134,7 +134,7 @@ static func _conditions(t: TestContext) -> void:
 	t.group("content: location modifiers and mission variants")
 	var ship := _run("shipyard", "assault", 11)
 	var p := ship.player_mech
-	var ws: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var ws: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	ship.current_node_id = ship.available_nodes()[0]
 	ship.prepare_player_for_fight()
 	var log := ship.apply_fight_start_effects(p, ws)
@@ -151,7 +151,7 @@ static func _conditions(t: TestContext) -> void:
 	var hard := RunData.new(_sector("mining_grounds"), DataLoader.load_mech_from_file("res://data/mechs/bastion.json"), 11, Conditions.with_variant(_mission("assault"), "hardened"))
 	hard.current_node_id = hard.available_nodes()[0]
 	hard.prepare_player_for_fight()
-	var foe: Array[MechData] = [DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")]
+	var foe: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	hard.apply_fight_start_effects(hard.player_mech, foe)
 	t.assert_eq(foe[0].mech_status_stacks("deflect"), 3, "Hardened: enemies start braced with Deflect 3")
 	t.assert_eq(hard.player_mech.mech_status_stacks("smoke"), 1, "Dust at the Mining Grounds: mechs start with Smoke 1")

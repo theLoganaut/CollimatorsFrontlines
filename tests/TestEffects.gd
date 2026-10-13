@@ -348,6 +348,21 @@ static func _protocols(t: TestContext) -> void:
 	t.assert_true(d >= 25 and d <= 27, "Lock On: 20 × 1.25–1.35 (%d)" % d)
 	t.assert_eq(cm.primed.size(), 0, "and it's used up")
 
+	t.group("Protocols: one waits at a time; a new one replaces it")
+	var op := _mech([["targeting_computer", Vector2i(0, 0)], ["munitions_splitter", Vector2i(0, 4)]])
+	op.components.append(_gun("g", 10, 2, 0))
+	var oe := _dummy()
+	var ocm := _cm(op, [oe] as Array[MechData])
+	var on := [0]
+	ocm.hit_landed.connect(func(_m, _c, _d): on[0] += 1)
+	ocm.play_self_card(_card(op, "targeting_computer", "lock_on"))
+	ocm.play_self_card(_card(op, "munitions_splitter", "split_feed"))
+	t.assert_eq(ocm.primed.size(), 1, "only one primed")
+	t.assert_eq(ocm.primed[0]["type"], "split_feed", "the newest")
+	ocm.play_attack_card(op.get_component("g").cards[0], oe, oe.components[0])
+	t.assert_eq(oe.components[0].max_hp - oe.components[0].current_hp, 20, "Split Feed alone: 4 hits of 5, no Lock On")
+	t.assert_eq(on[0], 4, "2 hits became 4")
+
 	t.group("Split Feed: double the hits at half the damage")
 	var sp := _mech([["munitions_splitter", Vector2i(0, 0)]])
 	sp.components.append(_gun("g", 10, 2, 0))
@@ -436,7 +451,7 @@ static func _protocols(t: TestContext) -> void:
 
 	t.group("Intercept: a one-use copy of the enemy's next planned attack")
 	var ip := _mech([["signal_interceptor", Vector2i(0, 0)]])
-	var iw := DataLoader.load_mech_from_file("res://data/mechs/scrap_warden.json")
+	var iw := DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")
 	var icm := _cm(ip, [iw] as Array[MechData], 4)
 	var planned: CardData = icm.enemy_plans[iw][0]["card"]
 	icm.play_attack_card(_card(ip, "signal_interceptor", "intercept"), iw, iw.components[0])

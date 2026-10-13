@@ -8,8 +8,10 @@ extends WorkshopScreen
 ## (2026-09-28: click a "+" beside the frame, 25 scraps and then 25 more each
 ## time). Bought parts land on the 6×6 workbench (WorkshopScreen; into Cargo
 ## if the bench is full): drag them into Cargo to keep them, since whatever
-## is left on the bench is scrapped when you leave. Parts can't go onto the
-## chassis here (that waits for a refit). Stock is rolled on arrival and
+## is left on the bench is scrapped when you leave. While economy.shop_refit
+## is on (a trial, Logan 2026-10-02) the frame grid takes parts too: drag
+## them between Cargo, the bench and the mech as at a refit (leaving needs a
+## working hardpoint, as a refit does). Stock is rolled on arrival and
 ## saved, so leaving and continuing doesn't reroll it.
 
 const ROW_H := 44.0
@@ -85,10 +87,8 @@ func _build_left() -> void:
 	y += 36.0
 	_frame_label = _title_at("", y)
 	_left.add_child(_frame_label)
-	_frame_grid = PackingGrid.new()
+	_frame_grid = _add_grid(_left, RunData.MECH)
 	_frame_grid.cell_pressed.connect(_buy_cell)
-	_frame_grid.part_hovered.connect(_on_part_hovered)
-	_left.add_child(_frame_grid)
 
 func _title_at(text: String, y: float) -> Label:
 	var l := UIKit.label(text, 11, Color("b9d8d4"))
@@ -100,6 +100,8 @@ func _after_build() -> void:
 		_say("Friendly Merchant: one part here is free. Take your pick.", Palette.OK)
 	elif run.shop.get("from_event", false):
 		_say("The signal led to an abandoned autonomous bay, still stocked. Buy a part, then drag it into Cargo to keep it.", Palette.OK)
+	elif run.can_rearrange(RunData.MECH):
+		_say("Buy a part, then drag it into Cargo or onto your frame to keep it.")
 	else:
 		_say("Buy a part, then drag it into Cargo to keep it.")
 
@@ -112,6 +114,8 @@ func _refresh_extra() -> void:
 	_col_btn.disabled = bought or run.scraps < price
 	_refresh_services()
 	_refresh_frame()
+	if not _can_leave():
+		_say("Install at least one working hardpoint before you leave.", Palette.WARNING)
 
 func _refresh_services() -> void:
 	if _picked != null and not run.can_sell(_picked):
@@ -216,11 +220,12 @@ func _refresh_frame() -> void:
 	var bounds := b + Vector2i(2, 2)
 	var cell := minf(FRAME_CELL, minf((FRAME_MAX.x + PackingGrid.GAP) / bounds.y, (FRAME_MAX.y + PackingGrid.GAP) / bounds.x) - PackingGrid.GAP)
 	_frame_grid.setup(run.chassis_cells(), bounds, floorf(cell))
-	_frame_grid.set_parts(mech.components)
+	_frame_grid.set_parts(_shown(mech.components))
 	_frame_grid.position = Vector2(floorf((LEFT.size.x - _frame_grid.size.x) / 2.0), FRAME_TOP)
 	var price := run.cell_price()
 	_frame_grid.set_offers(run.cell_options(), run.scraps >= price)
-	_frame_label.text = "FRAME SQUARE  ·  %d scraps  ·  click a + beside the frame" % price
+	_frame_label.text = ("YOUR FRAME  ·  drag parts on  ·  + buys a square (%d)" if run.can_rearrange(RunData.MECH) \
+		else "FRAME SQUARE  ·  %d scraps  ·  click a + beside the frame") % price
 
 func _buy_cell(_grid: PackingGrid, cell: Vector2i) -> void:
 	if run.scraps < run.cell_price():
@@ -229,7 +234,7 @@ func _buy_cell(_grid: PackingGrid, cell: Vector2i) -> void:
 		return
 	if run.buy_cell(cell):
 		Audio.play("frame_square", 0.02)
-		_say("Square added to your frame. Fill it at the next refit.", Palette.OK)
+		_say("Square added to your frame." + ("" if run.can_rearrange(RunData.MECH) else " Fill it at the next refit."), Palette.OK)
 	_refresh()
 
 func _buy(slot: int) -> void:
@@ -266,8 +271,17 @@ func leave_warnings() -> Array[String]:
 		out.append("you still have %d scraps, enough for %d of the parts on offer" % [run.scraps, affordable])
 	return out
 
+## With the frame open here, the mech can't leave without a working hardpoint.
+func _can_leave() -> bool:
+	return not run.can_rearrange(RunData.MECH) or run.can_finish_refit()
+
 func _on_leave() -> void:
-	if SceneRouter.is_busy() or not _confirm_leave():
+	if SceneRouter.is_busy():
+		return
+	if not _can_leave():
+		_say("Install at least one working hardpoint before you leave.", Palette.WARNING)
+		return
+	if not _confirm_leave():
 		return
 	run.leave_shop()
 	RunState.advance()

@@ -32,9 +32,9 @@ static func next_action(cm: CombatManager) -> Dictionary:
 		if not step["component"].is_usable():
 			continue
 		var card: CardData = step["card"]
-		if card.protocol() != "":
+		if card.protocol() != "" or step.get("charge", false):
 			cm._in_flight = step
-			return {"mech": w, "component": step["component"], "card": card, "target": null}
+			return {"mech": w, "component": step["component"], "card": card, "target": null, "charge": step.get("charge", false)}
 		var target: ComponentData = step.get("target", null)
 		if target == null or target.destroyed:
 			target = EnemyAI.choose_target(cm.player_mech, cm.rng, w, card, cm.ai_memory)
@@ -67,12 +67,22 @@ static func upcoming_actions(cm: CombatManager, mech: MechData) -> Array:
 			first = cm._enemy_step
 			if not cm._in_flight.is_empty():
 				first -= 1
+	# A charged attack fires as its turn starts (shown first, card and all).
+	var player_turn := cm.phase == CombatManager.Phase.PLAYER_TURN
+	if player_turn and cm.enemy_charged.has(mech):
+		var ch: Dictionary = cm.enemy_charged[mech]
+		var cc: ComponentData = ch["component"]
+		if not cc.destroyed:
+			out.append({"card": ch["card"], "active": false, "target": null, "component": cc, "charged": true, "cancelled": not cc.is_usable()})
 	for i in range(first, plan.size()):
 		var step: Dictionary = plan[i]
-		if not step["component"].is_usable() and step != cm._in_flight:
+		var usable: bool = step["component"].is_usable()
+		# During the player's turn a cancelled step stays on show, struck out.
+		if not usable and step != cm._in_flight and (not player_turn or (step["component"] as ComponentData).destroyed):
 			continue
 		out.append({"card": step["card"], "active": step == cm._in_flight and not cm._in_flight.is_empty(),
-			"target": step.get("target", null), "component": step["component"]})
+			"target": step.get("target", null), "component": step["component"], "charge": step.get("charge", false),
+			"cancelled": not usable and step != cm._in_flight, "added": step.get("added", false)})
 	return out
 
 ## Whether an enemy's plan for this turn takes it over its max heat (a
@@ -82,7 +92,8 @@ static func will_overheat(cm: CombatManager, mech: MechData) -> bool:
 		return false
 	var heat := mech.current_heat
 	for step in cm.enemy_plans.get(mech, []):
-		heat += cm.effective_cost(step["card"], mech)
+		if (step["component"] as ComponentData).is_usable():
+			heat += cm.effective_cost(step["card"], mech)
 	return heat > mech.heat_capacity()
 
 ## Pays the heat and makes the action the pending attack; the caller steps
@@ -95,10 +106,14 @@ static func begin_attack(cm: CombatManager, action: Dictionary) -> void:
 	var target: ComponentData = action["target"]
 	var proto := card.protocol()
 	cm._spend(card)
+	if action.get("charge", false):
+		_charge(cm, warden, comp, card)
+		return
 	if proto != "":
 		_protocol(cm, warden, comp, card)
 		return
 	cm._pay_heat(warden, card, cm.effective_cost(card, warden), false)
+	card = CombatProtocols.granted(cm.enemy_primed.get(warden, []), func(t): return _take_primed(cm, warden, t), card)
 	CombatAttack.start(cm, card, warden, comp, cm.player_mech, target, mods(cm, warden, card))
 	if card.hits > 0:
 		cm.ai_memory[warden] = target
@@ -119,15 +134,67 @@ static func _protocol(cm: CombatManager, warden: MechData, comp: ComponentData, 
 					CombatAttack.start(cm, last["card"], warden, last["component"], cm.player_mech, t, {})
 					cm._after_use(comp)
 					return
+		# Echo: the player's waiting protocol becomes this enemy's.
+		"steal":
+			if not cm.primed.is_empty():
+				var e: Dictionary = cm.primed.pop_front()
+				cm.primed_changed.emit()
+				cm.enemy_primed[warden] = [{"type": e["type"], "card": e["card"], "component": comp}]
+		# One protocol waits at a time, as for the player: a new one replaces it.
 		"standby":
+			cm.enemy_primed.erase(warden)
 			cm._enemy_standby_pending[warden] = true
 		_:
 			var list: Array = cm.enemy_primed.get(warden, [])
 			if not list.any(func(e): return e["type"] == type):
-				list.append({"type": type, "card": card, "component": comp})
+				list = [{"type": type, "card": card, "component": comp}]
+				cm._enemy_standby_pending.erase(warden)
 			cm.enemy_primed[warden] = list
 	CombatAttack.start(cm, card, warden, comp, cm.player_mech, _any_player_part(cm), {})
 	cm._after_use(comp)
+
+## Charge: the part pays for its attack now; it fires as this enemy's next
+## turn starts (run_charged). Resolves as an attack with no hits, so the
+## paced enemy turn shows it.
+static func _charge(cm: CombatManager, warden: MechData, comp: ComponentData, card: CardData) -> void:
+	cm._pay_heat(warden, card, cm.effective_cost(card, warden), false)
+	cm.enemy_charged[warden] = {"card": card, "component": comp}
+	var still := card.clone()
+	still.hits = 0
+	still.statuses = []
+	still.rule = {}
+	CombatAttack.start(cm, still, warden, comp, cm.player_mech, _any_player_part(cm), {})
+	cm._after_use(comp)
+
+## Charged attacks fire as their enemy's turn starts, free and +50%, if
+## the part can still act (the Charge promise); a Disabled, Frozen or
+## destroyed part's charge fizzles.
+static func run_charged(cm: CombatManager) -> void:
+	for w in cm.enemy_charged.keys():
+		var ch: Dictionary = cm.enemy_charged[w]
+		cm.enemy_charged.erase(w)
+		var comp: ComponentData = ch["component"]
+		var card: CardData = ch["card"]
+		if w.is_defeated() or cm.player_mech.is_defeated():
+			continue
+		if comp.destroyed or not comp.is_usable():
+			cm.ai_note.emit(w, "%s's charged %s fizzles." % [w.name, card.name])
+			continue
+		var t := EnemyAI.choose_target(cm.player_mech, cm.rng, w, card, cm.ai_memory)
+		if t == null:
+			continue
+		cm._attack = {}
+		cm._spend(card)
+		var shot := card.clone()
+		for st in shot.statuses.duplicate():
+			if st.target == StatusEffectData.TARGET_SELF and st.status == "offline":
+				shot.statuses.erase(st)
+		var m := mods(cm, w, shot)
+		m["mult"] = float(m.get("mult", 1.0)) * Balance.get_num("enemy_ai", "charge_mult", 1.5)
+		CombatAttack.start(cm, shot, w, comp, cm.player_mech, t, m)
+		CombatAttack.resolve_now(cm, cm.player_mech, t)
+		cm.ai_note.emit(w, "%s unleashes its charged %s." % [w.name, card.name])
+		cm.card_played.emit(w, card)
 
 static func _any_player_part(cm: CombatManager) -> ComponentData:
 	var parts := cm.player_mech.non_destroyed_components()
@@ -152,8 +219,8 @@ static func mods(cm: CombatManager, mech: MechData, card: CardData) -> Dictionar
 			var r: Array = lock["card"].rule.get("mult", [1.25, 1.35])
 			out["mult"] = float(out.get("mult", 1.0)) * cm.rng.randf_range(float(r[0]), float(r[1]))
 		if not _take_primed(cm, mech, "overdrive").is_empty():
-			out["mult"] = float(out.get("mult", 1.0)) * 2.0
 			out["overdrive"] = true
+			out["all_hardpoints"] = true
 		if not _take_primed(cm, mech, "split_feed").is_empty():
 			out["split"] = true
 	if not card.statuses.is_empty():

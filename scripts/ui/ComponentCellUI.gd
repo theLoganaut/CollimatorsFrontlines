@@ -94,6 +94,10 @@ func _draw() -> void:
 			draw_rect(rect, Color(0, 0, 0, 0.45), true) # Disabled / Offline: can't act
 		if is_first_cell and not component.statuses.is_empty():
 			_draw_status_dots(rect)
+	if grid != null and grid.status_lit(component):
+		var sc := Palette.status_color(grid.lit_status())
+		draw_rect(rect, Color(sc, 0.28), true)
+		draw_rect(rect, sc.lightened(0.2), false, 2.5)
 	if grid != null and grid.is_targeted(component):
 		draw_rect(rect, Color(1, 1, 1, 0.22), true)
 		draw_rect(rect, Color.WHITE, false, 2.0)

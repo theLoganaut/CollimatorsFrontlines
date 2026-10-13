@@ -82,13 +82,13 @@ func show_part(part: ComponentData) -> void:
 	_info.add_child(_rule())
 	if part.category == ComponentData.CATEGORY_REACTOR:
 		_info.add_child(UIKit.label("PASSIVE  ·  always in play", 10, cat_color))
-		_info.add_child(UIKit.label(part.passive_text(), 12, Palette.TEXT, true))
+		_info.add_child(UIKit.rich_label(part.passive_text(), 12, Palette.TEXT))
 	else:
 		for card in part.cards:
 			_info.add_child(_card_line(card, cat_color))
 			var sub := _card_details(card)
 			if sub != "":
-				_info.add_child(UIKit.label(sub, 11, Color("9fb9b6"), true))
+				_info.add_child(UIKit.rich_label(sub, 11, Color("9fb9b6")))
 	_shape.queue_redraw()
 	queue_redraw()
 

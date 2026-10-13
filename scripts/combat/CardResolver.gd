@@ -74,6 +74,9 @@ static func apply_deflect(damage: int, defender_mech: MechData) -> int:
 static func deal_damage(mech: MechData, comp: ComponentData, amount: int) -> Dictionary:
 	if comp.destroyed or amount <= 0:
 		return {"applied": 0, "saved_by": null}
+	# Final Order: its parts can't drop below 1 HP until its next turn.
+	if mech != null and mech.get_meta("guard_floor", false) and amount >= comp.current_hp:
+		return {"applied": comp.apply_damage(comp.current_hp - 1), "saved_by": null}
 	if amount >= comp.current_hp and mech != null:
 		for w in mech.living_passives(ComponentData.PASSIVE_SAVE):
 			if w != comp:
@@ -89,11 +92,12 @@ static func deal_damage(mech: MechData, comp: ComponentData, amount: int) -> Dic
 	return {"applied": comp.apply_damage(amount), "saved_by": null}
 
 ## The card's own damage multiplier against this target (EMP Round,
-## Thrust Through), from its rule.
-static func card_multiplier(card: CardData, target: ComponentData) -> float:
+## Thrust Through), from its rule. A mech-scoped status (Smoke, Deflect,
+## Absorb) is looked up on `defender`; `status` may list several (any of them).
+static func card_multiplier(card: CardData, target: ComponentData, defender: MechData = null) -> float:
 	var m := 1.0
 	var s: Dictionary = card.rule.get("mult_if_target_status", {})
-	if not s.is_empty() and target.status_stacks(s["status"]) > 0:
+	if not s.is_empty() and target_has_status(target, defender, s["status"]):
 		if not s.get("hardpoint_only", false) or target.category == ComponentData.CATEGORY_HARDPOINT:
 			m *= float(s["mult"])
 	var b: Dictionary = card.rule.get("mult_if_target_below", {})
@@ -102,23 +106,38 @@ static func card_multiplier(card: CardData, target: ComponentData) -> float:
 			m *= float(b["mult"])
 	return m
 
+## Whether the target part (or its mech, for a mech-scoped status) holds
+## any of `statuses` (a name or a list of names).
+static func target_has_status(target: ComponentData, defender: MechData, statuses) -> bool:
+	for st in (statuses if statuses is Array else [statuses]):
+		if MECH_STATUSES.has(st):
+			if defender != null and defender.mech_status_stacks(st) > 0:
+				return true
+		elif target != null and target.status_stacks(st) > 0:
+			return true
+	return false
+
 ## One hit of an attack card against one component. If the target is
 ## already destroyed (an earlier hit from the same card killed it), the hit
 ## is wasted with no spill-over (Combat Slice §4.4). A cover part (Plated
 ## Housing facing it, or a Redirect Spike) takes the hit instead
-## (`hit_component` says which part actually took it).
+## (`hit_component` says which part actually took it, `hit_mech` whose it
+## is: an ally's Redirect Spike can cover this mech).
 static func resolve_hit(card: CardData, attacker_component: ComponentData, defender_mech: MechData, target_component: ComponentData, rng: RandomNumberGenerator, mods: Dictionary = {}) -> Dictionary:
 	if target_component.destroyed:
 		return {"damage_dealt": 0, "wasted": true, "hit_component": target_component}
 	var pierce: bool = mods.get("pierce", false) or card.rule.get("pierce", false)
 	var hit_component := target_component
-	var cover := defender_mech.cover_for(target_component) if not pierce else null
+	var hit_mech := defender_mech
+	var cover := defender_mech.cover_for(target_component) if not pierce and not mods.get("no_cover", false) else null
 	if cover != null:
 		hit_component = cover
-	var dmg := roll_damage(card, rng, mods.get("max_roll", false))
+		if cover == defender_mech.covered_by:
+			hit_mech = defender_mech.covered_by_mech
+	var dmg := card.damage_min if mods.get("min_roll", false) and card.damage_max > 0 else roll_damage(card, rng, mods.get("max_roll", false))
 	if mods.get("split", false):
 		dmg /= 2
-	var mult: float = float(mods.get("mult", 1.0)) * card_multiplier(card, target_component)
+	var mult: float = float(mods.get("mult", 1.0)) * card_multiplier(card, target_component, defender_mech)
 	var ex: Dictionary = mods.get("execute", {})
 	if not ex.is_empty() and target_component.current_hp <= target_component.max_hp * float(ex.get("fraction", 0.34)):
 		mult *= float(ex.get("mult", 3))
@@ -130,19 +149,19 @@ static func resolve_hit(card: CardData, attacker_component: ComponentData, defen
 	var before_defenses := dmg
 	var hp_before := hit_component.current_hp
 	if not pierce:
-		dmg = apply_absorb(dmg, defender_mech, hit_component)
+		dmg = apply_absorb(dmg, hit_mech, hit_component)
 	var healed := hit_component.current_hp - hp_before
 	if not pierce:
-		dmg = apply_deflect(dmg, defender_mech)
-	dmg = mini(dmg, damage_cap(defender_mech, hit_component))
-	var dealt := deal_damage(defender_mech, hit_component, dmg)
-	return {"damage_dealt": dealt["applied"], "wasted": false, "hit_component": hit_component,
+		dmg = apply_deflect(dmg, hit_mech)
+	dmg = mini(dmg, damage_cap(hit_mech, hit_component))
+	var dealt := deal_damage(hit_mech, hit_component, dmg)
+	return {"damage_dealt": dealt["applied"], "wasted": false, "hit_component": hit_component, "hit_mech": hit_mech,
 		"blocked": before_defenses - dmg, "healed": healed, "saved_by": dealt["saved_by"]}
 
 ## The most one hit can deal to `comp` (Bulwark Frame on the parts it
 ## points at), or a huge number when nothing caps it.
 static func damage_cap(mech: MechData, comp: ComponentData) -> int:
-	var cap := 1 << 30
+	var cap: int = int(mech.get_meta("guard_cap", 1 << 30)) # Hold the Line
 	for b in mech.living_passives("damage_cap_linked"):
 		if b != comp and Links.linked(mech, b).has(comp):
 			cap = mini(cap, int(b.passive.get("cap", cap)))
@@ -261,6 +280,16 @@ static func apply_burn(mech: MechData) -> int:
 		heat += c.status_stacks("burn")
 	mech.current_heat += heat
 	return heat
+
+## Removes every stack of each named status from a mech: its parts, and
+## the mech itself for a mech-scoped status (Purge: Burn and Smoke).
+static func cleanse(mech: MechData, statuses: Array) -> void:
+	for st in statuses:
+		if MECH_STATUSES.has(st):
+			mech.clear_mech_status(st)
+		else:
+			for c in mech.non_destroyed_components():
+				c.remove_status(st, 99)
 
 ## Resolves a self card (0 hits): just its statuses, onto the playing side.
 static func resolve_self_card(card: CardData, owner_mech: MechData, owner_component: ComponentData, mods: Dictionary = {}) -> void:

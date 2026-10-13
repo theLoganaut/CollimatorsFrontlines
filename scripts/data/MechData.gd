@@ -31,6 +31,13 @@ var heat_check_timing: String
 var components: Array[ComponentData] = []
 
 var current_heat: int = 0
+## Redirect Spike in a squad (Logan, 2026-10-13: "cover yourself OR an
+## ally"): an ally's Spike covering this mech (`covered_by`, on
+## `covered_by_mech`), and whether this mech's own Spike is away covering an
+## ally. Set each round by CombatManager._assign_spikes.
+var covered_by: ComponentData = null
+var covered_by_mech: MechData = null
+var spike_away: bool = false
 var mech_statuses: Array[StatusInstance] = []  # Absorb / Deflect / Smoke (mech-scoped)
 
 ## A boss with phase-2 overrides switches once it falls to half its HP
@@ -99,6 +106,10 @@ func cover_for(target: ComponentData) -> ComponentData:
 	for c in living_passives(ComponentData.PASSIVE_FACING_COVER):
 		if c != target and Links.facing(self, c).has(target):
 			return c
+	if covered_by != null and not covered_by.destroyed:
+		return covered_by
+	if spike_away:
+		return null
 	for c in living_passives(ComponentData.PASSIVE_REDIRECT):
 		if c != target:
 			return c

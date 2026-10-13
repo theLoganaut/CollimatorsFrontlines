@@ -5,7 +5,7 @@ extends Control
 ## balance and a way back, over the background. Subclasses override
 ## screen_title(), _build() and _layout(screen).
 
-const TOP_BAR_H := 45.0
+const TOP_BAR_H := TopBar.HEIGHT
 const MARGIN := 28.0
 
 var top_row: HBoxContainer
@@ -28,10 +28,8 @@ func _ready() -> void:
 	top_row = UIKit.top_bar(self, screen_title())
 	top_row.add_child(UIKit.spacer())
 	chips_label = UIKit.label("", 14, Palette.SCRAPS)
-	chips_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top_row.add_child(chips_label)
-	var back := UIKit.button("◀  War Room", Color.TRANSPARENT, Vector2(130, 34), 13)
-	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top_row.add_child(TopBar.chip(chips_label, Palette.SCRAPS))
+	var back := UIKit.back_button()
 	back.pressed.connect(func(): SceneRouter.go(SceneRouter.WAR_ROOM))
 	top_row.add_child(back)
 	_build()

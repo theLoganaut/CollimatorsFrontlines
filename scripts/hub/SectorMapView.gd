@@ -178,7 +178,7 @@ func _hover_lines(i: int) -> Array:
 	var loc: Dictionary = _markers[i]["location"]
 	var mission: Dictionary = _markers[i]["mission"]
 	var stops := int(mission.get("rows", 7)) + (1 if mission.get("boss", false) else 0)
-	var lines: Array = ["%s  ·  %d stops  ·  grid %s" % [str(mission.get("name", "")).to_upper(), stops, WarMap.grid_ref(_markers[i]["uv"])]]
+	var lines: Array = ["%s  ·  %d encounters  ·  grid %s" % [str(mission.get("name", "")).to_upper(), stops, WarMap.grid_ref(_markers[i]["uv"])]]
 	lines.append_array(_wrap(str(mission.get("summary", "")), 52))
 	var desc := str(loc.get("description", ""))
 	if desc != "" and not desc.begins_with("["):

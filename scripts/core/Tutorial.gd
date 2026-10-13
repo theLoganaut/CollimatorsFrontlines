@@ -15,21 +15,21 @@ const TRAINING_MISSION := "training"
 ## [point, target name ("" = none), text, wait ("next" or an event)]
 const STEPS := [
 	["war_room", "table", "Welcome aboard, pilot. This is the War Room, and every sortie starts at the War Table. Click it.", "table_opened"],
-	["sector_map", "map", "The sector: three locations, each running a mission. Pick any of them. For training they all run the same short route.", "location_opened"],
-	["popup", "launch", "Launch drops you in. Your mech's HP and any parts you lose carry through the whole run, so every fight counts.", "launched"],
-	["location_map", "starts", "The route: one stop per row, bottom to top. Fights, repair bays, autonomous bays and events, with a boss waiting at the top of a real run. Pick where to start.", "node_chosen"],
+	["sector_map", "map", "The sector: three locations, each running a mission. Pick any of them. For training they all take the same short route.", "location_opened"],
+	["popup", "launch", "Launch drops you in. Your mech's HP and any parts you lose carry through the whole mission, so every fight counts.", "launched"],
+	["location_map", "starts", "The route: one encounter per row, bottom to top. Fights, repair bays, autonomous bays and events, with a boss waiting at the top of a real mission. Pick where to start.", "node_chosen"],
 	["combat", "player", "Your mech. Each coloured block is a component with its own HP. Red ones are hardpoints (your weapons): lose all of them and you're out. Hover any part for its details; hover a card and its part lights up.", "next"],
 	["combat", "hand", "Your hand. Every component still standing gives you its cards. Lose a part, lose its cards. Each card plays once per turn, and they all come back when your next turn starts.", "next"],
-	["combat", "heat", "Heat. Cards cost heat. Go over your max and you overheat: the backlash deals 15% of your max HP across random parts, and your turn ends. You vent some heat every turn: the line under the box says how far.", "next"],
+	["combat", "heat", "Heat. Cards cost heat. Go over your max and you overheat: the backlash deals 15% of your max HP across random parts, and your turn ends. Ending your turn vents it.", "next"],
 	["combat", "intents", "Enemy intent: what it'll do on its turn. Hover an icon to see the card, and which of your parts it's aiming at.", "next"],
-	["combat", "enemy", "Drag an attack card onto one of its parts to hit that part: the number over the part is what it'll deal. Knock out its hardpoints, or wear its HP down into the dark red on its bar.", "card_played"],
-	["combat", "end_turn", "Play what you can afford, then End Turn. The enemy acts, then your heat vents. Too hot to play anything? Vent instead: it takes your turn and dumps most of your heat. Number keys play cards too, the Log button keeps a record, and every key is in Settings.", "turn_ended"],
+	["combat", "enemy", "Drag an attack card onto one of its parts to hit that part: its health bar shows what it'll take off, and a part about to be destroyed flashes red. Knock out its hardpoints, or wear its HP down into the dark red on its bar.", "card_played"],
+	["combat", "end_turn", "Play what you can afford, then End Turn. The enemy acts, then your heat vents for your next turn. Number keys play cards too, the Log button keeps a record, and every key is in Settings.", "turn_ended"],
 	["combat", "", "That's the loop. Finish it off.", "next"],
 	["reward", "reward", "Salvage. Your Scraps are banked automatically (spend them at autonomous bays). Choose one category and take one part: new parts go into your Cargo. Or skip it for a few scraps.", "reward_done"],
 	["refit", "mech", "A refit. Drag parts between your mech and your Cargo; R or right-click rotates. Lit squares show where a part fits, and Undo puts a move back.", "next"],
 	["refit", "cargo", "Where a part sits matters. Yellow arrows are links: some parts affect whatever they point at. Finish the refit when you're happy.", "refit_done"],
 	["combat", "", "One more fight with your new setup. Then you're cleared.", "next"],
-	["debrief", "", "Training complete. The War Table's yours now: pick a sector for a real run. Directives pay Chips every day, and the Hangar lets you change mechs and loadouts.", "next"],
+	["debrief", "", "Training complete. The War Table's yours now: pick a sector for a real mission. Directives pay Chips every day, and the Hangar lets you change mechs and loadouts.", "next"],
 ]
 
 signal finished()
@@ -109,7 +109,7 @@ func offer() -> void:
 		return
 	_offer = true
 	_targets = {}
-	_show("New pilot? Take the training run: two short fights that walk you through the War Table, combat, and fitting parts. About five minutes.", "", false)
+	_show("New pilot? Take the training mission: two short fights that walk you through the War Table, combat, and fitting parts. About five minutes.", "", false)
 
 func _accept_offer() -> void:
 	_offer = false

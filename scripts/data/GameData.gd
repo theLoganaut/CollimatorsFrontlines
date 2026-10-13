@@ -59,6 +59,17 @@ func player_mech(mech_id: String, loadout: Array = []) -> MechData:
 const SECTORS_PATH := "res://data/sectors.json"
 var _sectors: Array = []
 
+## Every boss's mech id (data/mechs/ files with tier "boss").
+func boss_ids() -> Array:
+	var out := []
+	for f in DirAccess.get_files_at("res://data/mechs"):
+		if not f.ends_with(".json"):
+			continue
+		var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/mechs/" + f))
+		if typeof(d) == TYPE_DICTIONARY and d.get("tier", "") == "boss":
+			out.append(d["id"])
+	return out
+
 func sectors() -> Array:
 	if _sectors.is_empty():
 		var parsed = JSON.parse_string(FileAccess.get_file_as_string(SECTORS_PATH))

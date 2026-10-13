@@ -11,7 +11,9 @@
     "_why": "Ratio venting: at max heat (or over) this share vents; below max it scales down with the heat % (Logan, 2026-09-28).",
     "vent_at_max": 0.8,
     "_why_vent_action": "The Vent action (Proposed default, 2026-09-30): a mech that spends its turn venting (the player before playing any card; an enemy with nothing it can play) vents this share of its heat at its next dispersal, as if it were at max.",
-    "vent_action_share": 0.8
+    "vent_action_share": 0.8,
+    "_why_full_reset": "Trial (Logan, 2026-10-02): every mech's heat resets to 0 at its dispersal, player and enemies alike, so enemies aren't stuck playing one card a turn. Smoke still holds back a point per stack, and Overpressure Valve still vents 1 less. false goes back to ratio venting (vent_at_max).",
+    "full_reset": true
   },
   "economy": {
     "rarity_weights": {
@@ -20,6 +22,8 @@
       "prototype": 0.05
     },
     "options_per_pick": 3,
+    "_why_shop_refit": "Trial (Logan, 2026-10-02): at an autonomous bay the frame takes parts too (drag between Cargo, the workbench and the mech, as at a refit). false: the chassis only changes at a refit.",
+    "shop_refit": true,
     "elite_boss_rarity_rolls": 2,
     "cell_price_base": 25,
     "cell_price_step": 25,
@@ -72,7 +76,9 @@
     "boss_phase_at": 0.5,
     "_self_cost_note": "How much an enemy's card choice counts what the card costs its own part (EnemyAI._self_cost): subtracted from its score. self_offline_penalty for taking the part Offline for the rest of the fight (Precision Throw), self_disable_penalty per turn of Disabled or Freeze (Wrap Up). 0 = ignored (the AI before 2026-09-30). Claude's proposal for Logan: 30 and 0 (Balance Targets; a Disable penalty made Cipher easier).",
     "self_offline_penalty": 0,
-    "self_disable_penalty": 0
+    "self_disable_penalty": 0,
+    "charge_mult": 1.5,
+    "_why_charge_mult": "Phase 6 (2026-10-13): a charged attack fires free at the start of the enemy's next turn at this multiple, unless its part is Disabled, Frozen or destroyed first."
   },
   "meta": {
     "_note": "Chips: the meta currency (Logan, 2026-09-28). A day of 1-2 hours \u2248 2-3 runs + that day's Directives; a cosmetic should take several days.",

@@ -323,7 +323,7 @@ func _refresh() -> void:
 			if c.x >= real.x or c.y >= real.y:
 				temp[c] = true
 	_cargo_grid.temp_cells = temp
-	_cargo_title.text = "CARGO  ·  %d×%d  ·  carried through the run" % [cg.rows, cg.cols] if real == Vector2i.ZERO \
+	_cargo_title.text = "CARGO  ·  %d×%d  ·  carried through the mission" % [cg.rows, cg.cols] if real == Vector2i.ZERO \
 		else "CARGO  ·  %d×%d FOR THIS REFIT  ·  amber is scrapped" % [cg.rows, cg.cols]
 	_cargo_grid.position = Vector2(floorf((RIGHT.size.x - _cargo_grid.size.x) / 2.0), 32)
 	var bench_top := 32.0 + CARGO_MAX.y + 22.0

@@ -19,7 +19,7 @@ extends Control
 
 const BASE := Vector2(1152, 720)
 const ART_SCALE := 1152.0 / 624.0
-const TOP_BAR_H := 45.0
+const TOP_BAR_H := TopBar.HEIGHT
 const CELL := 34.0
 const BENCH_SIZE := 6
 ## The projector pad in hangar_bay.png pixels, and the hologram's height.
@@ -87,8 +87,7 @@ func _ready() -> void:
 
 	var row := UIKit.top_bar(self, "Hangar")
 	row.add_child(UIKit.spacer())
-	var back := UIKit.button("◀  War Room", Color.TRANSPARENT, Vector2(130, 34), 13)
-	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var back := UIKit.back_button()
 	back.pressed.connect(func(): SceneRouter.go(SceneRouter.WAR_ROOM))
 	row.add_child(back)
 

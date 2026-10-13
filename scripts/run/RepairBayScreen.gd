@@ -156,7 +156,7 @@ func _on_hovered(_g: PackingGrid, part: ComponentData) -> void:
 func _process(delta: float) -> void:
 	if not _holding:
 		return
-	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if not Gamepad.left_held():
 		_holding = false
 		_heal_carry = 0.0
 		if _hovered != null:

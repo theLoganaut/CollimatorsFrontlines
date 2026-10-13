@@ -1,3 +1,4 @@
+class_name CombatScene
 extends Control
 ## The whole combat screen (Combat Slice §5-6), built from Logan's UI
 ## sketch layout (UI & Screens). Wires CombatManager's signals to the UI
@@ -17,6 +18,12 @@ extends Control
 ## to the reward screen; losing, or Eject in settings, ejects the pilot
 ## (debrief, then the War Room). With no run active
 ## (Main.tscn, dev tools) it's a standalone Bastion vs 3 Wardens with Restart.
+##
+## Every run fight is recorded (FightRecord, saved by Replays when it ends).
+## With `replay_record` set, the screen plays a recorded fight back instead:
+## the same mechs and seed, the player's commands fed in one by one at a
+## watchable pace (the speed buttons and fast-forward still work), no input
+## but hovering, and the end screen goes back to `replay_return`.
 
 const SIDE_MARGIN := 16.0
 ## The enemy row starts below the speed/settings buttons plus this much.
@@ -53,6 +60,20 @@ const REVEAL_DIM := 0.55 # backdrop alpha; the mech being revealed stays lit
 const REVEAL_Z := 240
 
 var combat: CombatManager
+## A recorded fight to play back (set before changing to this scene; the
+## Pilot Log does), and where to go once it's over.
+static var replay_record: Dictionary = {}
+static var replay_return: String = SceneRouter.PILOT_LOG
+## Pause before each replayed command (scaled by game speed).
+const REPLAY_STEP := 0.55
+var _replaying: bool = false
+var _replay_driving: bool = false # the replay itself is playing a command
+var _replay_hit: Dictionary = {} # the part a replayed attack is aimed at
+var _replay_bar: HBoxContainer = null
+## This fight's recording (FightRecord), {} when not recording.
+var _record: Dictionary = {}
+var _seed: int = 0
+var _background: Dictionary = {}
 var player_mech: MechData
 var enemy_mechs: Array[MechData] = []
 var enemy_labels: Dictionary = {} # MechData -> String
@@ -71,6 +92,9 @@ var play_field: PlayField
 var player_reticle: TargetingReticle
 var enemy_reticle: TargetingReticle
 var speed_controls: SpeedControls
+var turn_plate: TurnPlate
+## Opens the location map over the fight (a run fight only), left of the speed buttons.
+var map_button: MapButton
 var settings_menu: SettingsMenu
 var hit_fx: HitFx
 
@@ -80,10 +104,24 @@ var _acting_panel: EnemyPanel = null
 var _reveal_running: bool = false
 var _reveal_nodes: Array[Node] = [] # cards/captions on screen during the reveal
 var _reveal_dim: ColorRect = null
-var _primed_label: Label = null
 var _picker: PanelContainer = null # Reroute's status choice
-## While aiming an attack: what it would deal to the part under the reticle.
-var _preview_label: Label = null
+## While aiming an attack: the enemy whose health bar shows what it would
+## take, and whose grid marks the part it would destroy.
+var _preview_panel: EnemyPanel = null
+## The screen's edges pulse red while the card in hand would overheat (Logan, 2026-10-02).
+var _overheat_glow: ColorRect = null
+var _glow: float = 0.0 # 0..1, eased toward on/off
+var _glow_on: bool = false
+var _glow_t: float = 0.0
+const GLOW_SHADER := """
+shader_type canvas_item;
+uniform float strength = 0.0;
+void fragment() {
+	vec2 uv = UV * 2.0 - 1.0;
+	float edge = smoothstep(0.8, 1.45, length(uv));
+	COLOR = vec4(0.85, 0.08, 0.04, edge * 0.7 * strength);
+}
+"""
 
 ## Keyboard play: a number key picks the Nth card in the fan; an attack
 ## then aims at an enemy part (Tab / Shift+Tab cycle, Enter / Space or the
@@ -92,6 +130,10 @@ var _preview_label: Label = null
 var _aim_card: CardData = null
 var _aim_ui: CardUI = null
 var _aim_target: ComponentData = null
+## Gamepad: a self card picked with LB / RB, waiting for A (an attack card
+## picked that way aims, like its number key). See Gamepad.
+var _pad_card: CardData = null
+var _pad_ui: CardUI = null
 
 ## A play that would overheat into a possible defeat needs a second press
 ## within CONFIRM_MS (the card's key, or "end_turn").
@@ -106,9 +148,22 @@ var _ff_on: bool = false
 
 func _exit_tree() -> void:
 	Engine.time_scale = GameSettings.speed # fast-forward never outlives the fight
+	PlaytestReport.current_fight = Callable()
+	if Gamepad.handler == self:
+		Gamepad.handler = null
+
+## The fight so far, as a record (a mid-run playtest report carries it).
+func _record_so_far() -> Dictionary:
+	if _record.is_empty() or combat == null:
+		return {}
+	var rec := _record.duplicate(true)
+	FightRecord.finish(rec, combat, "in progress")
+	return rec
 
 func _ready() -> void:
 	UIState.drop_handler = _handle_card_drop
+	PlaytestReport.current_fight = _record_so_far
+	Gamepad.handler = self
 	get_viewport().size_changed.connect(_layout)
 	GameSettings.changed.connect(_apply_settings)
 	_start_new_combat()
@@ -126,8 +181,20 @@ func _start_new_combat() -> void:
 	_reveal_running = false
 	_reveal_nodes.clear()
 	_reveal_dim = null
+	_record = {}
+	_replay_bar = null
+	_replaying = not replay_record.is_empty()
 
-	if RunState.is_active():
+	var recorded := FightRecord.mechs(replay_record) if _replaying else {}
+	if _replaying and recorded.is_empty():
+		_replaying = false
+		replay_record = {}
+		SceneRouter.go(replay_return)
+		return
+	if _replaying:
+		player_mech = recorded["player"]
+		enemy_mechs = recorded["enemies"]
+	elif _in_run():
 		RunState.run.prepare_player_for_fight() # full carry-over: HP and destroyed parts stay
 		player_mech = RunState.run.player_mech
 		enemy_mechs = RunState.run.encounter_enemies()
@@ -143,7 +210,8 @@ func _start_new_combat() -> void:
 		seen[m.name] = int(seen.get(m.name, 0)) + 1
 		enemy_labels[m] = m.name if counts[m.name] == 1 else "%s %d" % [m.name, seen[m.name]]
 
-	combat = CombatManager.new(player_mech, enemy_mechs)
+	_seed = int(replay_record["seed"]) if _replaying else randi() % 1000000000
+	combat = CombatManager.new(player_mech, enemy_mechs, _seed)
 	combat.auto_resolve_enemy_turn = false
 	combat.component_damaged.connect(_on_component_damaged)
 	combat.component_destroyed.connect(_on_component_destroyed)
@@ -158,8 +226,11 @@ func _start_new_combat() -> void:
 	combat.hand_changed.connect(_on_hand_changed)
 	combat.primed_changed.connect(_refresh_primed)
 	combat.boss_phase_changed.connect(_on_boss_phase)
+	combat.ai_note.connect(func(_m: MechData, text: String): combat_log.log_line(text, CombatLog.CAT_ENEMY))
 	if not UIState.intent_hover_changed.is_connected(_on_intent_hover):
 		UIState.intent_hover_changed.connect(_on_intent_hover)
+	if not UIState.status_hover_changed.is_connected(_on_status_hover):
+		UIState.status_hover_changed.connect(_on_status_hover)
 	if not UIState.hovered_card_changed.is_connected(_on_card_hover):
 		UIState.hovered_card_changed.connect(_on_card_hover)
 		UIState.hover_changed.connect(_on_part_hover)
@@ -167,21 +238,41 @@ func _start_new_combat() -> void:
 	combat.mech_vented.connect(_on_mech_vented)
 	combat.chance_failed.connect(_on_chance_failed)
 	combat.game_over.connect(_on_game_over)
+	_trail_fight()
 
 	call_deferred("_build_ui_and_start")
+
+## The fight's beats in the crash trail (CrashLog): who, the seed, cards
+## played, turns, parts lost, the result.
+func _trail_fight() -> void:
+	CrashLog.crumb("%s: %s vs %s, seed %d" % ["replay" if _replaying else "fight", player_mech.name,
+		", ".join(enemy_mechs.map(func(m): return enemy_labels.get(m, m.name))), _seed])
+	combat.card_played.connect(func(mech: MechData, card: CardData): CrashLog.crumb("%s plays %s" % [mech.name, card.name]))
+	combat.turn_changed.connect(func(phase, turn_number: int): CrashLog.crumb("turn %d: %s" % [turn_number, CombatManager.Phase.keys()[phase]]))
+	combat.component_destroyed.connect(func(mech: MechData, component: ComponentData): CrashLog.crumb("%s loses %s" % [mech.name, component.name]))
+	combat.mech_vented.connect(func(mech: MechData, amount: int): CrashLog.crumb("%s vents %d" % [mech.name, amount]))
+	combat.game_over.connect(func(result): CrashLog.crumb("fight over: %s" % CombatManager.Result.keys()[result]))
 
 func _build_ui_and_start() -> void:
 	play_field = PlayField.new()
 	add_child(play_field)
 	var bg := _pick_background()
+	_background = bg
 	play_field.set_background(bg)
 	Audio.music("boss" if enemy_mechs.any(func(m): return m.tier == "boss") else "combat")
-	Audio.ambience("rain" if bg.get("weather", "") == "rain" else (Audio.location_ambience(RunState.run.location) if RunState.is_active() else ""))
+	Audio.ambience("rain" if bg.get("weather", "") == "rain" else (Audio.location_ambience(RunState.run.location) if _in_run() else ""))
 
 	settings_button = SettingsButton.new()
 	add_child(settings_button)
 	speed_controls = SpeedControls.new()
 	add_child(speed_controls)
+	if _in_run():
+		map_button = MapButton.new()
+		add_child(map_button)
+		map_button.pressed.connect(func(): LocationMapScreen.peek(self))
+	turn_plate = TurnPlate.new()
+	add_child(turn_plate)
+	turn_plate.resized.connect(func(): _place_turn_plate())
 
 	for i in range(enemy_mechs.size()):
 		var panel := EnemyPanel.new()
@@ -208,7 +299,6 @@ func _build_ui_and_start() -> void:
 	turn_panel = TurnPanel.new()
 	add_child(turn_panel)
 	turn_panel.end_turn_pressed.connect(_on_end_turn_pressed)
-	turn_panel.vent_pressed.connect(_on_vent_pressed)
 
 	hand_tray = HandTray.new()
 	add_child(hand_tray)
@@ -221,6 +311,19 @@ func _build_ui_and_start() -> void:
 	hit_fx = HitFx.new()
 	add_child(hit_fx)
 
+	_overheat_glow = ColorRect.new()
+	_overheat_glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_overheat_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overheat_glow.z_index = 140
+	var glow_mat := ShaderMaterial.new()
+	glow_mat.shader = Shader.new()
+	glow_mat.shader.code = GLOW_SHADER
+	_overheat_glow.material = glow_mat
+	_overheat_glow.visible = false
+	add_child(_overheat_glow)
+	player_panel.overheat_warning.connect(func(on: bool): _glow_on = on)
+	HoloHint.keep_clear = [player_panel.heat_rect] # a card's hint never covers the heat readout
+
 	end_screen = EndScreen.new()
 	end_screen.z_index = 300
 	end_screen.action_pressed.connect(_on_end_action)
@@ -230,14 +333,13 @@ func _build_ui_and_start() -> void:
 	settings_menu.z_index = 400
 	settings_menu.restart_requested.connect(_on_restart_pressed)
 	add_child(settings_menu)
-	if RunState.is_active():
-		settings_menu.set_restart_action("Eject (ends the run)", "Click again to eject")
+	if _replaying:
+		settings_menu.set_restart_action("Leave replay")
+	elif _in_run():
+		settings_menu.set_restart_action("Eject (ends the mission)", "Click again to eject")
 	settings_button.pressed.connect(settings_menu.open)
 
 	player_panel.combat = combat
-	_primed_label = UIKit.label("", 12, Palette.PROTOCOL)
-	_primed_label.z_index = 20
-	add_child(_primed_label)
 
 	_layout()
 	_apply_settings()
@@ -247,11 +349,20 @@ func _build_ui_and_start() -> void:
 	for m in enemy_mechs:
 		names.append(enemy_labels[m] if m.title == "" else "%s (%s)" % [enemy_labels[m], m.title])
 	combat_log.log_line("Contact: %s." % ", ".join(names), CombatLog.CAT_TURN)
+	if _replaying:
+		_build_replay_bar()
 	_run_passive_reveal(_generation) # then combat.start_combat()
 
 ## Positions everything for the current screen shape. The logical screen is
 ## at least BASE_SIZE (1152×720) and grows in one direction to match the
 ## display's aspect ratio (stretch aspect "expand"), so nothing is letterboxed.
+## Top middle, level with the speed and settings buttons (same height).
+func _place_turn_plate() -> void:
+	if turn_plate == null:
+		return
+	var screen := get_viewport_rect().size
+	turn_plate.position = Vector2(round((screen.x - turn_plate.size.x) / 2.0), SIDE_MARGIN)
+
 func _layout() -> void:
 	if player_panel == null:
 		return
@@ -261,6 +372,9 @@ func _layout() -> void:
 
 	settings_button.position = Vector2(screen.x - SettingsButton.BUTTON_SIZE.x - SIDE_MARGIN, SIDE_MARGIN)
 	speed_controls.position = Vector2(settings_button.position.x - SPEED_GAP - speed_controls.size.x, SIDE_MARGIN)
+	if map_button != null:
+		map_button.position = Vector2(speed_controls.position.x - SPEED_GAP - MapButton.BUTTON_SIZE.x, SIDE_MARGIN)
+	_place_turn_plate()
 	hit_fx.size = screen
 	settings_menu.size = screen
 	end_screen.size = screen
@@ -309,8 +423,6 @@ func _layout() -> void:
 	hand_tray.left_gap = screen.x / 2.0 - image_left + HAND_GAP_MARGIN
 	hand_tray.right_gap = player_right - screen.x / 2.0 + HAND_GAP_MARGIN
 	hand_tray.relayout()
-	if _primed_label != null:
-		_primed_label.position = Vector2(player_panel.position.x, player_panel.position.y - PassiveIcon.ICON_SIZE.y - 34.0)
 
 	# Side column, between the enemy row and the hand: log on the left;
 	# description box and turn panel to the right of the player mech.
@@ -328,7 +440,9 @@ func _layout() -> void:
 ## location's for the fight's tier (its strongest enemy), picked per fight.
 ## {} = none (no run, or none drawn for this location and tier yet).
 func _pick_background() -> Dictionary:
-	if not RunState.is_active():
+	if _replaying:
+		return replay_record.get("background", {})
+	if not _in_run():
 		return {}
 	var tier := "regular"
 	for m in enemy_mechs:
@@ -347,7 +461,9 @@ func _run_passive_reveal(gen: int) -> void:
 	_reveal_running = true
 	UIState.input_locked = true
 	turn_panel.set_enabled(false)
-	turn_panel.set_label("Deploying")
+	turn_plate.set_label("Deploying")
+	if _in_run() and not RunState.run.current_node().is_empty():
+		turn_plate.set_encounter(int(RunState.run.current_node()["row"]) + 1, RunState.run.encounter_count())
 	_reveal_dim = ColorRect.new()
 	_reveal_dim.color = Color(0, 0, 0, REVEAL_DIM)
 	_reveal_dim.size = get_viewport_rect().size
@@ -391,8 +507,6 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 	var n := comps.size()
 	var slot_w: float = CardUI.BASE_SIZE.x * REVEAL_SCALE + REVEAL_CARD_GAP
 
-	var caption := _reveal_caption("%s · passive%s" % [_label_for(g["mech"]), "s" if n > 1 else ""],
-		center.y - CardUI.BASE_SIZE.y * REVEAL_SCALE / 2.0 - 44.0, screen.x)
 	var cards: Array[CardUI] = []
 	for i in range(n):
 		var card := CardUI.new()
@@ -410,9 +524,19 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 		tw.tween_property(card, "scale", Vector2(REVEAL_SCALE, REVEAL_SCALE), REVEAL_IN).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 		tw.tween_property(card, "modulate:a", 1.0, REVEAL_IN * 0.6)
 		grid.flash(comps[i])
-	caption.create_tween().tween_property(caption, "modulate:a", 1.0, REVEAL_IN)
 
-	await get_tree().create_timer(REVEAL_IN + REVEAL_HOLD, false).timeout
+	# The caption goes under where the cards actually came to rest (measured,
+	# scale included), once they're there.
+	await get_tree().create_timer(REVEAL_IN, false).timeout
+	if not _reveal_active(gen):
+		return
+	var span := cards[0].get_global_rect()
+	for c in cards:
+		span = span.merge(c.get_global_rect())
+	var caption := _reveal_caption("%s · passive%s" % [_label_for(g["mech"]), "s" if n > 1 else ""], span.get_center().x, span.end.y + 14.0)
+	caption.create_tween().tween_property(caption, "modulate:a", 1.0, 0.15)
+
+	await get_tree().create_timer(REVEAL_HOLD, false).timeout
 	if not _reveal_active(gen):
 		return
 	for i in range(n):
@@ -439,22 +563,32 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 		panel.set_acting(false)
 	await get_tree().create_timer(REVEAL_AFTER, false).timeout
 
-func _reveal_caption(text: String, y: float, width: float) -> Label:
-	var l := Label.new()
-	l.text = text + "\n(click to skip)"
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 18)
-	l.add_theme_color_override("font_color", Palette.TEXT)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	l.add_theme_constant_override("outline_size", 4)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.z_index = REVEAL_Z + 10
-	l.position = Vector2(0, y)
-	l.size = Vector2(width, 44)
-	l.modulate.a = 0.0
-	add_child(l)
-	_reveal_nodes.append(l)
-	return l
+## The reveal's caption: a holo glass plate under the cards (Logan,
+## 2026-10-02: above them, as bare text, it was hard to read) naming whose
+## passives these are, with "Click to skip" under it.
+func _reveal_caption(text: String, center_x: float, top: float) -> Control:
+	const W := 380.0
+	var plate := PanelContainer.new()
+	plate.add_theme_stylebox_override("panel", GlassPanel.panel_style(GlassPanel.HOLO, 10.0))
+	plate.draw.connect(func(): GlassPanel.draw_frame(plate, Rect2(Vector2.ZERO, plate.size), 0.9, GlassPanel.HOLO, 8.0))
+	plate.custom_minimum_size = Vector2(W, 0)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.z_index = REVEAL_Z + 12 # over the cards, should they ever reach it
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(box)
+	var title := UIKit.label(text.to_upper(), 16, Color("eefcfa"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+	var skip := UIKit.label("Click to skip", 11, Color("8fd8d0"))
+	skip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(skip)
+	plate.modulate.a = 0.0
+	add_child(plate)
+	plate.global_position = Vector2(center_x - W / 2.0, top) # global, like the cards
+	_reveal_nodes.append(plate)
+	return plate
 
 ## Finishes the reveal (or skips the rest of it) and starts the fight.
 func _end_passive_reveal() -> void:
@@ -482,14 +616,26 @@ func _end_passive_reveal() -> void:
 		for c in player_mech.components:
 			if c.destroyed:
 				hit_fx.smolder(player_panel.grid.component_center_global(c))
+	if _in_run():
+		var labels := enemy_mechs.map(func(m): return enemy_labels[m])
+		_record = FightRecord.begin(player_mech, enemy_mechs, _seed, labels, _background)
+		_record["location"] = RunState.run.location.get("name", "")
+		_record["kind"] = RunState.run.current_node().get("kind", "")
 	combat.start_combat() # -> turn_changed: Turn 1, End Turn enabled
+	if _replaying:
+		FightRecord.apply_opening(replay_record, player_mech, enemy_mechs)
+		_refresh_all_panels()
+		_replay_drive(_generation)
+		return
 	Tutorial.reached("combat", {"player": player_panel, "hand": hand_tray, "heat": player_panel._heat_box,
 		"intents": enemy_panels[0]._intent_row if not enemy_panels.is_empty() else null,
 		"enemy": enemy_panels[0] if not enemy_panels.is_empty() else null, "end_turn": turn_panel})
-	if RunState.is_active():
+	if _in_run():
 		for line in RunState.run.apply_fight_start_effects(player_mech, enemy_mechs):
 			combat_log.log_line(line)
 		_refresh_all_panels()
+		if not _record.is_empty():
+			FightRecord.set_opening(_record, player_mech, enemy_mechs)
 	for m in enemy_mechs:
 		if m.tier == "boss" and m.lines.has("intro"):
 			combat_log.log_line("%s: \"%s\"" % [m.title if m.title != "" else m.name, m.lines["intro"]], CombatLog.CAT_ENEMY)
@@ -512,7 +658,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_toggle_log()
 		return
-	if UIState.input_locked or UIState.dragging_card != null or not combat.is_player_turn():
+	if map_button != null and GameSettings.is_key(event, "map"):
+		get_viewport().set_input_as_handled()
+		LocationMapScreen.peek(self)
+		return
+	if _replaying or UIState.input_locked or UIState.dragging_card != null or not combat.is_player_turn():
 		return
 	var k: int = event.keycode
 	if (k >= KEY_1 and k <= KEY_9) or (k >= KEY_KP_1 and k <= KEY_KP_9):
@@ -530,9 +680,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif GameSettings.is_key(event, "end_turn"):
 		get_viewport().set_input_as_handled()
 		_on_end_turn_pressed()
-	elif GameSettings.is_key(event, "vent"):
-		get_viewport().set_input_as_handled()
-		_on_vent_pressed()
 
 ## A click (anywhere but the speed/settings buttons) or Space/Enter skips
 ## the reveal. Esc while aiming cancels the aim (before the settings menu
@@ -547,7 +694,8 @@ func _input(event: InputEvent) -> void:
 	var skip := false
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p: Vector2 = event.position
-		skip = not settings_button.get_global_rect().has_point(p) and not speed_controls.get_global_rect().has_point(p)
+		skip = not settings_button.get_global_rect().has_point(p) and not speed_controls.get_global_rect().has_point(p) \
+			and not (map_button != null and map_button.get_global_rect().has_point(p))
 	elif event is InputEventKey and event.pressed and not event.echo:
 		skip = event.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]
 	if skip:
@@ -647,12 +795,97 @@ func _cancel_aim(hide_reticle: bool = true) -> void:
 		if hide_reticle and player_reticle != null and not combat.has_pending_attack():
 			player_reticle.hide_now()
 
+# ---------- gamepad ----------
+
+## Gamepad buttons the fight takes before the cursor does (Gamepad.handler).
+func pad_button(b: JoyButton) -> bool:
+	if combat == null or _replaying or _reveal_running or end_screen == null or end_screen.visible:
+		return false
+	match b:
+		JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER:
+			if combat.is_player_turn() and not UIState.input_locked and UIState.dragging_card == null:
+				_pad_pick(-1 if b == JOY_BUTTON_LEFT_SHOULDER else 1)
+			return true
+		JOY_BUTTON_A:
+			if _aim_card != null:
+				_fire_aimed()
+				return true
+			if _pad_card != null:
+				_pad_play()
+				return true
+		JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_UP:
+			if _aim_card != null:
+				_cycle_target(-1)
+				return true
+		JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_DOWN:
+			if _aim_card != null:
+				_cycle_target(1)
+				return true
+		JOY_BUTTON_B:
+			if _aim_card != null or _pad_card != null:
+				_cancel_aim()
+				_pad_clear()
+				return true
+	return false
+
+## While a card aims, the D-pad steps its target instead of the cursor.
+func pad_dpad_claimed() -> bool:
+	return _aim_card != null
+
+## LB / RB: the previous / next playable card in the fan. An attack aims at
+## once; a self card waits, lifted, for A.
+func _pad_pick(dir: int) -> void:
+	var cards := hand_tray.ordered_cards()
+	var playable: Array[int] = []
+	for i in range(cards.size()):
+		if not cards[i].gone and combat.can_play(cards[i].card):
+			playable.append(i)
+	if playable.is_empty():
+		Audio.play("denied", 0.0)
+		return
+	var current := _aim_card if _aim_card != null else _pad_card
+	var at := -1
+	for j in range(playable.size()):
+		if cards[playable[j]].card == current:
+			at = j
+	var next := (0 if dir > 0 else playable.size() - 1) if at < 0 else posmod(at + dir, playable.size())
+	_pad_clear()
+	_cancel_aim()
+	var i := playable[next]
+	if cards[i].card.is_attack():
+		_hotkey_card(i)
+		return
+	_pad_card = cards[i].card
+	_pad_ui = cards[i]
+	_pad_ui.set_selected(true)
+	UIState.set_hovered_card(_pad_card)
+	Audio.play("ui")
+
+func _pad_play() -> void:
+	var card := _pad_card
+	_pad_clear()
+	var cards := hand_tray.ordered_cards()
+	for i in range(cards.size()):
+		if cards[i].card == card:
+			_hotkey_card(i)
+			return
+
+func _pad_clear() -> void:
+	if _pad_ui != null and is_instance_valid(_pad_ui):
+		_pad_ui.set_selected(false)
+	if _pad_card != null:
+		UIState.clear_hovered_card(_pad_card)
+	_pad_card = null
+	_pad_ui = null
+
 # ---------- lethal overheat ----------
 
 ## A play that overheats into a possible defeat needs confirming: the first
 ## press warns and returns false, a second press of the same thing within
 ## CONFIRM_MS returns true.
 func _confirm_lethal(key: String) -> bool:
+	if _replaying: # it was confirmed when it was played
+		return true
 	var now := Time.get_ticks_msec()
 	if _confirm_key == key and now < _confirm_until:
 		_confirm_key = ""
@@ -669,6 +902,8 @@ func _confirm_lethal(key: String) -> bool:
 
 ## The live enemy component under a global point, if any.
 func _target_at(global_point: Vector2) -> Dictionary:
+	if _replay_driving and not _replay_hit.is_empty():
+		return _replay_hit
 	for panel in enemy_panels:
 		if panel.mech.is_defeated():
 			continue
@@ -680,6 +915,9 @@ func _target_at(global_point: Vector2) -> Dictionary:
 func _process(_delta: float) -> void:
 	if combat == null or player_reticle == null:
 		return
+	_update_overheat_glow(_delta)
+	if _replaying and not UIState.input_locked:
+		UIState.input_locked = true # watching: no dragging cards
 	if UIState.is_dragging_attack_card() and combat.is_player_turn():
 		var mouse := get_global_mouse_position()
 		var hit := _target_at(mouse)
@@ -694,6 +932,8 @@ func _process(_delta: float) -> void:
 			_cancel_aim()
 	elif _targeted_grid != null:
 		_set_targeting({})
+	if _pad_card != null and (not combat.is_player_turn() or UIState.input_locked):
+		_pad_clear()
 	# fast-forward the enemy turn (Shift or Space held, or F toggled on)
 	var ff := combat.phase == CombatManager.Phase.ENEMY_TURN \
 		and (_ff_on or Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SPACE))
@@ -712,39 +952,44 @@ func _set_targeting(hit: Dictionary) -> void:
 		grid.set_targeted(hit["component"])
 	_show_damage_preview(hit)
 
-## The expected damage over the aimed-at part: "12–18", the part that
-## really takes it if something covers it, and whether it would go down.
+## What the aimed attack would do, shown rather than written (Logan,
+## 2026-10-02: less numbers on screen): the HP it takes off pulses on the
+## enemy's health bar (the sure part dark, the rest of the roll paler), and
+## the part that takes it (the cover, if something covers it, already ringed
+## by the grid) pulses red if it would be destroyed, amber if it might.
 func _show_damage_preview(hit: Dictionary) -> void:
 	var card: CardData = _aim_card if _aim_card != null else UIState.dragging_card
 	var p := {} if hit.is_empty() or card == null or combat == null else combat.preview_attack(card, hit["mech"], hit["component"])
-	if p.is_empty():
-		if _preview_label != null:
-			_preview_label.visible = false
+	var panel: EnemyPanel = null if p.is_empty() else hit["panel"]
+	if _preview_panel != null and _preview_panel != panel and is_instance_valid(_preview_panel):
+		_preview_panel.preview_damage(0, 0)
+		_preview_panel.grid.set_doomed(null)
+	_preview_panel = panel
+	if panel == null:
 		return
-	if _preview_label == null:
-		_preview_label = Label.new()
-		_preview_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_preview_label.add_theme_font_size_override("font_size", 17)
-		_preview_label.add_theme_color_override("font_outline_color", Color.BLACK)
-		_preview_label.add_theme_constant_override("outline_size", 5)
-		_preview_label.z_index = 160
-		_preview_label.size = Vector2(240, 46)
-		add_child(_preview_label)
 	var part: ComponentData = p["part"]
-	var dmg := str(p["lo"]) if p["lo"] == p["hi"] else "%d–%d" % [p["lo"], p["hi"]]
-	var lines: Array[String] = [("up to " if p["may_miss"] else "") + dmg + " dmg"]
-	if part != hit["component"]:
-		lines[0] += " → %s" % part.name
-	if p["lethal_lo"]:
-		lines.append("destroys it")
+	panel.preview_damage(0 if p["may_miss"] else mini(p["lo"], part.current_hp), mini(p["hi"], part.current_hp))
+	if p["lethal_lo"] and not p["may_miss"]:
+		panel.grid.set_doomed(part, true)
 	elif p["lethal_hi"]:
-		lines.append("may destroy it")
-	_preview_label.text = "\n".join(lines)
-	_preview_label.add_theme_color_override("font_color", Palette.LINK if p["lethal_lo"] else (Palette.WARNING if p["lethal_hi"] else Palette.TEXT))
-	var at: Vector2 = hit["panel"].grid.component_center_global(hit["component"])
-	_preview_label.position = at - Vector2(_preview_label.size.x / 2.0, 62.0)
-	_preview_label.visible = true
+		panel.grid.set_doomed(part, false)
+	else:
+		panel.grid.set_doomed(null)
+
+## Eases the red edge glow in and out; it pulses slowly while on (steady
+## with reduce motion).
+func _update_overheat_glow(delta: float) -> void:
+	if _overheat_glow == null:
+		return
+	var on := _glow_on and combat.is_player_turn() and not _replaying
+	_glow = move_toward(_glow, 1.0 if on else 0.0, delta * (2.5 if on else 4.0))
+	_overheat_glow.visible = _glow > 0.0
+	if not _overheat_glow.visible:
+		_glow_t = 0.0
+		return
+	_glow_t += delta
+	var pulse := 0.75 if GameSettings.reduce_motion else 0.55 + 0.45 * (0.5 - 0.5 * cos(_glow_t * TAU / 1.4))
+	(_overheat_glow.material as ShaderMaterial).set_shader_parameter("strength", _glow * pulse)
 
 ## UIState.drop_handler: a dragged card was released at `global_point`.
 ## Returns whether the card was played; if not, it just returns to the hand.
@@ -757,7 +1002,9 @@ func _handle_card_drop(card: CardData, global_point: Vector2, drag_distance: flo
 	var fly_from := ui.global_position if ui != null else Vector2.ZERO
 	var fly_rot := ui.rotation_degrees if ui != null else 0.0
 	var fly_scale := ui.scale.x if ui != null else 1.0
-	if combat != null and combat.is_player_turn() and not UIState.input_locked:
+	if _replaying and not _replay_driving:
+		return false
+	if combat != null and combat.is_player_turn() and (not UIState.input_locked or _replay_driving):
 		var lethal := combat.can_play(card) and combat.would_overheat(card) and combat.overheat_could_kill()
 		if lethal and (drag_distance >= CardUI.FADE_END or card.is_attack()) and (not card.is_attack() or not _target_at(global_point).is_empty()) \
 				and not _confirm_lethal(CombatManager.card_key(card)):
@@ -883,32 +1130,60 @@ func _run_player_attack(gen: int, mech: MechData, target: ComponentData) -> void
 		turn_panel.set_enabled(true)
 
 func _on_end_turn_pressed() -> void:
+	if _replaying and not _replay_driving:
+		return
 	if combat.is_player_turn() and combat.end_turn_overheats() and combat.overheat_could_kill() and not _confirm_lethal("end_turn"):
+		return
+	# A turn ended without playing a card is spent venting (the Vent action,
+	# which never vents less than the turn's own dispersal). A replay plays
+	# its recorded command as it was.
+	if not _replay_driving and combat.can_vent():
+		combat_log.log_line("%s vents instead of attacking." % player_mech.name, CombatLog.CAT_YOU)
+		combat.apply({"type": "vent"})
 		return
 	combat.apply({"type": "end_turn"})
 
-## Vent: the whole turn spent dumping heat (only before a card this turn).
-func _on_vent_pressed() -> void:
-	if UIState.input_locked or not combat.can_vent():
+## Vent, from a replay: the whole turn spent dumping heat (only before a card this turn).
+func _vent() -> void:
+	if (_replaying and not _replay_driving) or (UIState.input_locked and not _replay_driving) or not combat.can_vent():
 		return
 	combat_log.log_line("%s vents instead of attacking." % player_mech.name, CombatLog.CAT_YOU)
 	combat.apply({"type": "vent"})
 
 # ---------- protocols in the UI ----------
 
-## Primed protocols, listed above the player's mech.
+## The primed protocol (and a Standby card): the purple badge by the player's passives, and a glow on the cards it will affect.
 func _refresh_primed() -> void:
-	if _primed_label == null or combat == null:
+	if player_panel == null or combat == null:
 		return
-	var names: Array[String] = []
+	var titles: Array[String] = []
+	var lines: Array[String] = []
 	for p in combat.primed:
-		var n: String = p["card"].name
+		var c: CardData = p["card"]
+		var n := c.name
 		if p["type"] == "reroute":
 			n += " → %s" % str(p["status"]).capitalize()
-		names.append(n)
+		titles.append(n)
+		lines.append("%s: %s" % [n, c.effect_text])
 	if not combat.standby.is_empty():
-		names.append("Standby: %s" % combat.standby["card"].name)
-	_primed_label.text = "PRIMED  " + "  ·  ".join(names) if not names.is_empty() else ""
+		titles.append("Standby")
+		lines.append("Standby: %s plays itself at the start of your next turn, for 0 heat." % combat.standby["card"].name)
+	if titles.is_empty():
+		player_panel.set_protocol([])
+	else:
+		if not combat.primed.is_empty():
+			lines.append("Used up by the next card it affects: those glow purple in your hand.")
+		player_panel.set_protocol(["Protocol: " + " · ".join(titles), "\n".join(lines)])
+	if hand_tray != null:
+		hand_tray.refresh_heat()
+	# enemies hold protocols too (CombatEnemyTurn): the same badge on their row
+	for panel in enemy_panels:
+		var list: Array = combat.enemy_primed.get(panel.mech, [])
+		if list.is_empty():
+			panel.set_protocol([])
+		else:
+			var c: CardData = list[0]["card"]
+			panel.set_protocol(["Protocol: %s" % c.name, "%s\n%s will use it on its next card it affects." % [c.effect_text, panel.mech.name]])
 
 ## Reroute: pick the status the next card's status becomes.
 func _open_reroute_picker(card: CardData) -> void:
@@ -947,6 +1222,7 @@ func _on_reroute_picked(card: CardData, status: String) -> void:
 
 func _on_hand_changed() -> void:
 	_cancel_aim()
+	_pad_clear()
 	if hand_tray != null:
 		hand_tray.setup(player_mech, combat)
 
@@ -960,7 +1236,9 @@ func _on_hit_missed(mech: MechData, component: ComponentData) -> void:
 func _on_restart_pressed() -> void:
 	if SceneRouter.is_busy():
 		return
-	if RunState.is_active():
+	if _replaying:
+		_leave_replay()
+	elif _in_run():
 		_eject()
 	else:
 		_start_new_combat()
@@ -969,15 +1247,19 @@ func _on_restart_pressed() -> void:
 func _on_end_action() -> void:
 	if SceneRouter.is_busy(): # a second click during the fade out
 		return
-	if not RunState.is_active():
+	if _replaying:
+		_leave_replay()
+	elif not _in_run():
 		_start_new_combat()
 	elif combat.result == CombatManager.Result.WIN:
+		_save_record("win")
 		RunState.run.fight_won(combat.stats) # -> the reward screen
 		RunState.advance()
 	else:
 		_eject()
 
 func _eject() -> void:
+	_save_record("loss" if combat.result == CombatManager.Result.LOSE else "ejected")
 	RunState.run.fight_lost(combat.stats)
 	RunState.advance() # -> debrief -> War Room
 
@@ -1159,7 +1441,8 @@ func _toggle_log() -> void:
 
 func _refresh_intents() -> void:
 	for panel in enemy_panels:
-		panel.set_intents(combat.upcoming_enemy_actions(panel.mech), combat.enemy_will_overheat(panel.mech), combat.enemy_venting(panel.mech))
+		var theme: String = combat.enemy_theme.get(panel.mech, "") if combat.is_player_turn() else ""
+		panel.set_intents(combat.upcoming_enemy_actions(panel.mech), combat.enemy_will_overheat(panel.mech), combat.enemy_venting(panel.mech), theme)
 
 ## Card ↔ part (Logan, 2026-09-30): hovering a card outlines the part that
 ## grants it; hovering one of your parts lifts its cards in the hand.
@@ -1179,6 +1462,14 @@ func _on_intent_hover(intent: Dictionary) -> void:
 		return
 	var target: ComponentData = intent.get("target", null)
 	player_panel.grid.set_targeted(target if target != null and not target.destroyed else null)
+
+## A hovered status lights the parts holding it: on its own mech (a badge),
+## or on every mech (a status word in card text).
+func _on_status_hover(status: String, mech: MechData) -> void:
+	if player_panel != null:
+		player_panel.grid.set_status_lit(status if mech == null or mech == player_mech else "")
+	for panel in enemy_panels:
+		panel.grid.set_status_lit(status if mech == null or mech == panel.mech else "")
 
 # ---------- CombatManager signal handlers ----------
 
@@ -1253,7 +1544,7 @@ func _on_turn_changed(phase, turn_number: int) -> void:
 	if turn_panel == null:
 		return
 	if phase == CombatManager.Phase.PLAYER_TURN:
-		turn_panel.set_turn_number(turn_number)
+		turn_plate.set_turn_number(turn_number)
 		if not combat.is_game_over():
 			Audio.play("turn", 0.0)
 			_turn_flash("YOUR TURN · %d" % turn_number, Palette.TEXT)
@@ -1261,7 +1552,7 @@ func _on_turn_changed(phase, turn_number: int) -> void:
 		_turn_flash("ENEMY TURN", Palette.HARDPOINT)
 		combat_log.log_line("— Turn %d: your move —" % turn_number)
 	else:
-		turn_panel.set_label("Enemy turn")
+		turn_plate.set_label("Enemy turn")
 	turn_panel.set_enabled(phase == CombatManager.Phase.PLAYER_TURN)
 	_refresh_all_panels()
 
@@ -1424,6 +1715,125 @@ func _on_game_over(result) -> void:
 			if m.tier == "boss" and m.lines.has("defeat"):
 				combat_log.log_line("%s: \"%s\"" % [m.title if m.title != "" else m.name, m.lines["defeat"]], CombatLog.CAT_ENEMY)
 	var action := "Restart"
-	if RunState.is_active():
+	if _replaying:
+		action = "Back"
+	elif _in_run():
 		action = "Continue" if result == CombatManager.Result.WIN else "Eject"
 	end_screen.show_result(result, action, combat.stats)
+
+# ---------- recording and replays ----------
+
+## A run fight (a replay is never one).
+func _in_run() -> bool:
+	return not _replaying and RunState.is_active()
+
+## Saves this fight's recording once it's over or left, and tells the run
+## which file it went to (its fight log names it).
+func _save_record(result: String) -> void:
+	if _record.is_empty() or combat == null:
+		return
+	FightRecord.finish(_record, combat, result)
+	var name := Replays.save(_record)
+	_record = {}
+	if _in_run():
+		RunState.run.last_replay = name
+
+## The top-left strip while watching: what this is, and a way out.
+func _build_replay_bar() -> void:
+	_replay_bar = HBoxContainer.new()
+	_replay_bar.add_theme_constant_override("separation", 10)
+	_replay_bar.position = Vector2(SIDE_MARGIN, SIDE_MARGIN)
+	_replay_bar.z_index = 150
+	var when := str(replay_record.get("date", "")).replace("T", " ").left(16)
+	var where := str(replay_record.get("location", ""))
+	var l := UIKit.label("REPLAY%s%s" % ["  ·  " + where if where != "" else "", "  ·  " + when if when != "" else ""], 15, Palette.LINK)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
+	l.add_theme_constant_override("outline_size", 4)
+	_replay_bar.add_child(l)
+	var leave := GlassPanel.button("Leave replay", 12)
+	leave.custom_minimum_size = Vector2(110, 26)
+	leave.pressed.connect(_leave_replay)
+	_replay_bar.add_child(leave)
+	add_child(_replay_bar)
+
+## Feeds the recorded commands in, each once the player's turn is ready
+## (attacks played out, the enemy turn done), after a short beat.
+func _replay_drive(gen: int) -> void:
+	for cmd in replay_record.get("commands", []):
+		while gen == _generation and not combat.is_player_turn():
+			if combat.is_game_over():
+				return
+			await get_tree().process_frame
+		if gen != _generation:
+			return
+		await get_tree().create_timer(REPLAY_STEP, false).timeout
+		if gen != _generation:
+			return
+		if not await _replay_command(gen, cmd):
+			if gen == _generation:
+				combat_log.log_line("The replay went out of step here: the game's rules or parts have changed since this fight was played.", CombatLog.CAT_TURN)
+				show_banner("REPLAY OUT OF STEP", "The rules or parts changed since this fight was played.", Palette.WARNING)
+			return
+	while gen == _generation and not combat.is_player_turn() and not combat.is_game_over():
+		await get_tree().process_frame
+	if gen == _generation and not combat.is_game_over():
+		show_banner("END OF RECORDING", "The pilot left the fight here.", Palette.TEXT_MUTED)
+		end_screen.show_result(CombatManager.Result.LOSE, "Back", combat.stats)
+
+## Plays one recorded command the way the pilot did: the card lifts, an
+## attack's crosshair finds its part, then it goes through the same path as
+## a drop. Returns whether the fight took it.
+func _replay_command(gen: int, cmd: Dictionary) -> bool:
+	var before := combat.command_log.size()
+	match str(cmd.get("type", "")):
+		"play":
+			var card := combat.find_card(str(cmd.get("card", "")))
+			if card == null:
+				return false
+			var ui := hand_tray.card_ui_for(card)
+			if ui != null:
+				ui.set_selected(true)
+			UIState.set_hovered_card(card)
+			_replay_hit = {}
+			var point := Vector2.ZERO
+			if card.is_attack():
+				var t: Array = cmd.get("target", [])
+				var mech := combat.mech_at(int(t[0])) if t.size() == 2 else null
+				var comp := mech.get_component(str(t[1])) if mech != null else null
+				var panel := _panel_for(mech) if mech != null else null
+				if comp == null or panel == null:
+					return false
+				point = panel.grid.component_center_global(comp)
+				_replay_hit = {"mech": mech, "component": comp, "panel": panel}
+				player_reticle.follow(point, 1.0, true)
+				_set_targeting(_replay_hit)
+			await get_tree().create_timer(REPLAY_STEP, false).timeout
+			if gen != _generation:
+				return true
+			if ui != null and is_instance_valid(ui):
+				ui.set_selected(false)
+			UIState.clear_hovered_card(card)
+			_replay_driving = true
+			if card.protocol() == "reroute":
+				combat.apply(combat.play_command(card, null, null, cmd.get("options", {})).merged({"paced": true}))
+			else:
+				_handle_card_drop(card, point, CardUI.FADE_END)
+			_replay_driving = false
+			_replay_hit = {}
+		"vent":
+			_replay_driving = true
+			_vent()
+			_replay_driving = false
+		"end_turn":
+			_replay_driving = true
+			_on_end_turn_pressed()
+			_replay_driving = false
+	return combat.command_log.size() > before
+
+func _leave_replay() -> void:
+	if SceneRouter.is_busy():
+		return
+	_generation += 1 # stops the replay's coroutines
+	replay_record = {}
+	SceneRouter.go(replay_return)
+

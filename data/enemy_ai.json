@@ -1,0 +1,142 @@
+{
+ "_source": "How each enemy fights (Notion: Dynamic Turn Rework, Phase 4 'Enemy AI Design', Phase 6 build). Keyed by enemy id; read by EnemyAI beside the Refit Bay 'ai' profile in data/mechs/. Refit Bay keeps its format.",
+ "_keys": {
+  "archetype": "label only (Bruiser, Sniper, Controller, Turtle, Heat-pressure, Support, Scavenger, Pack, Artillery, Driller, Juggernaut)",
+  "rhythms": "[{name, turns: [theme, theme], weight, when?}]: a two-turn plan; the first turn is shown, the second held. Themes: assault, guard, charge, afflict, recover, combo. `when` (one condition, or a list: any) triples the weight while it holds",
+  "when conditions": "player_hot (the player ended their last turn at 60%+ Heat), player_shielded (Deflect or Absorb up), player_damaged (a part of yours at 60% HP or less), player_primed (you have a protocol waiting), self_hurt (below its profile's guard share), ally_hurt, has_charge (it can charge something), squad (another enemy is alive)",
+  "squad_role": "marker (its first target is the squad's mark), striker (aims at the mark), cover (its Redirect Spike covers the most hurt ally), pressure, support",
+  "opener": "fight-start setup, one or a list: {type: charged} (turn 1 shows a charged attack), {type: primed, card?} (a protocol waiting), {type: player_status, status, stacks, target: strongest_weapon|most_damaged|any} on your part (or mech, for Smoke), {type: self_status, status, stacks}",
+  "on_lost": "{part id: {rhythms?, profile keys?, note}}: what changes once that part is destroyed",
+  "phase2": "a boss's rhythms (and note) from half HP",
+  "desperate": "parts whose self-Offline cards (Precision Throw) it only plays below this share of HP (default 0.3)"
+ },
+ "scrap_warden": {
+  "archetype": "Scavenger",
+  "rhythms": [
+   {"name": "Pick at the wreck", "turns": ["assault", "assault"], "weight": 2, "when": "player_damaged"},
+   {"name": "Duck and scatter", "turns": ["guard", "assault"], "weight": 1, "when": "self_hurt"}
+  ],
+  "squad_role": "cover",
+  "opener": {"type": "player_status", "status": "acid", "stacks": 1, "target": "most_damaged", "note": "found the weak spot"},
+  "on_lost": {"redirect_spike": {"rhythms": [{"name": "Panic", "turns": ["assault", "assault"], "weight": 1}], "slip": 0.6, "note": "panics"}}
+ },
+ "rivet_brute": {
+  "archetype": "Bruiser",
+  "rhythms": [
+   {"name": "Wind-up", "turns": ["charge", "combo"], "weight": 2, "when": "has_charge"},
+   {"name": "Grind", "turns": ["assault", "recover"], "weight": 1, "when": "self_hurt"}
+  ],
+  "squad_role": "striker",
+  "opener": {"type": "charged", "note": "already wound up"}
+ },
+ "needle_drone": {
+  "archetype": "Pack",
+  "rhythms": [
+   {"name": "Paint", "turns": ["afflict", "assault"], "weight": 2, "when": "squad"},
+   {"name": "Pick", "turns": ["combo", "assault"], "weight": 2}
+  ],
+  "squad_role": "marker",
+  "opener": {"type": "primed", "note": "locked on"},
+  "on_lost": {"targeting_computer": {"targets": "random", "note": "fires blind"}}
+ },
+ "arc_sentry": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Lattice", "turns": ["afflict", "afflict"], "weight": 2},
+   {"name": "Lockdown", "turns": ["afflict", "combo"], "weight": 2}
+  ],
+  "squad_role": "marker",
+  "opener": {"type": "player_status", "status": "shock", "stacks": 1, "target": "strongest_weapon", "note": "shocks your best weapon"}
+ },
+ "ember_hound": {
+  "archetype": "Heat-pressure",
+  "rhythms": [
+   {"name": "Stoke", "turns": ["afflict", "afflict"], "weight": 2, "when": "player_hot"},
+   {"name": "Lunge", "turns": ["assault", "assault"], "weight": 2}
+  ],
+  "squad_role": "pressure",
+  "desperate": 0.3,
+  "opener": {"type": "player_status", "status": "burn", "stacks": 1, "target": "any", "note": "sets you smouldering"}
+ },
+ "siege_warden": {
+  "archetype": "Artillery",
+  "rhythms": [
+   {"name": "Range in", "turns": ["charge", "combo"], "weight": 2, "when": ["has_charge", "player_shielded"]},
+   {"name": "Suppress", "turns": ["afflict", "guard"], "weight": 1}
+  ],
+  "opener": {"type": "charged", "note": "the rail is already charging"},
+  "on_lost": {"railspike": {"rhythms": [{"name": "Rockets only", "turns": ["assault", "assault"], "weight": 1}], "heat": "reckless", "note": "turns reckless with its rockets"}}
+ },
+ "dock_breaker": {
+  "archetype": "Bruiser",
+  "rhythms": [
+   {"name": "Overdrive", "turns": ["combo", "assault"], "weight": 2},
+   {"name": "Brace", "turns": ["guard", "assault"], "weight": 1, "when": "self_hurt"},
+   {"name": "Range in", "turns": ["charge", "combo"], "weight": 1, "when": "has_charge"}
+  ],
+  "opener": {"type": "primed", "card": "overdrive", "note": "Overdrive primed"},
+  "on_lost": {"overdrive_chip": {"rhythms": [{"name": "Brace", "turns": ["guard", "assault"], "weight": 1}, {"name": "Range in", "turns": ["charge", "combo"], "weight": 1}], "note": "falls back to bracing"}}
+ },
+ "bore_crawler": {
+  "archetype": "Driller",
+  "rhythms": [
+   {"name": "Drill", "turns": ["assault", "charge"], "weight": 2},
+   {"name": "Burn through", "turns": ["afflict", "combo"], "weight": 1, "when": "player_shielded"}
+  ],
+  "desperate": 0.3,
+  "opener": {"type": "charged", "note": "its drill is set aside"},
+  "on_lost": {"queue_processor": {"rhythms": [{"name": "Drill", "turns": ["assault", "assault"], "weight": 1}], "note": "can't hold a shot any more"}}
+ },
+ "caustic_engine": {
+  "archetype": "Heat-pressure",
+  "rhythms": [
+   {"name": "Coat", "turns": ["afflict", "combo"], "weight": 2, "when": "player_hot"},
+   {"name": "Purge", "turns": ["recover", "afflict"], "weight": 1, "when": "self_hurt"}
+  ],
+  "opener": [{"type": "player_status", "status": "burn", "stacks": 1, "target": "most_damaged"}, {"type": "player_status", "status": "acid", "stacks": 1, "target": "most_damaged", "note": "coats a part in Burn and Acid"}],
+  "on_lost": {"redirect_spike": {"rhythms": [{"name": "Coat", "turns": ["afflict", "combo"], "weight": 1}], "note": "stops purging"}}
+ },
+ "relay_sentinel": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Network", "turns": ["afflict", "combo"], "weight": 2},
+   {"name": "Insulate", "turns": ["guard", "afflict"], "weight": 1, "when": ["self_hurt", "ally_hurt"]}
+  ],
+  "squad_role": "support",
+  "opener": [{"type": "self_status", "status": "absorb", "stacks": 5}, {"type": "primed", "card": "catalyze", "note": "shielded, Catalyze primed"}]
+ },
+ "anchor": {
+  "archetype": "Juggernaut",
+  "rhythms": [
+   {"name": "Methodical", "turns": ["assault", "guard"], "weight": 2},
+   {"name": "Firebomb", "turns": ["afflict", "combo"], "weight": 2, "when": "player_hot"}
+  ],
+  "phase2": {"rhythms": [{"name": "Breach", "turns": ["charge", "combo"], "weight": 1}], "heat": "reckless", "note": "the breach charges go off"},
+  "opener": {"type": "charged", "note": "a breach charge is laid"},
+  "on_lost": {"plated_housing": {"rhythms": [{"name": "Methodical", "turns": ["assault", "assault"], "weight": 1}, {"name": "Firebomb", "turns": ["afflict", "combo"], "weight": 1}], "note": "no more guard turns"}}
+ },
+ "bedrock": {
+  "archetype": "Turtle / Driller",
+  "rhythms": [
+   {"name": "Dig in", "turns": ["guard", "assault"], "weight": 2},
+   {"name": "Tunnel", "turns": ["charge", "combo"], "weight": 2, "when": "player_damaged"},
+   {"name": "Shore up", "turns": ["recover", "assault"], "weight": 1, "when": "player_primed"}
+  ],
+  "phase2": {"rhythms": [{"name": "Dig in", "turns": ["guard", "assault"], "weight": 2}, {"name": "Shore up", "turns": ["recover", "guard"], "weight": 1}], "note": "digs in"},
+  "opener": {"type": "self_status", "status": "deflect", "stacks": 4, "note": "dug in"}
+ },
+ "cipher": {
+  "archetype": "Sniper / Controller",
+  "rhythms": [
+   {"name": "Calibrate", "turns": ["afflict", "combo"], "weight": 3},
+   {"name": "Cover", "turns": ["guard", "afflict"], "weight": 1, "when": "self_hurt"},
+   {"name": "Range in", "turns": ["charge", "combo"], "weight": 2, "when": "player_shielded"}
+  ],
+  "phase2": {"rhythms": [{"name": "Cash in", "turns": ["combo", "combo"], "weight": 2}, {"name": "Range in", "turns": ["charge", "combo"], "weight": 1}], "note": "cashes in"},
+  "opener": [{"type": "primed", "card": "lock_on"}, {"type": "player_status", "status": "shock", "stacks": 1, "target": "strongest_weapon", "note": "Lock On primed, your best weapon Shocked"}],
+  "on_lost": {
+   "targeting_computer": {"rhythms": [{"name": "Cover", "turns": ["guard", "afflict"], "weight": 1}, {"name": "Cash in", "turns": ["combo", "assault"], "weight": 1}], "note": "can't calibrate any more"},
+   "echo_buffer": {"protocols": 0.4, "note": "no more Replays"}
+  }
+ }
+}

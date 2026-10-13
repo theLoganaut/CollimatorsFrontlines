@@ -74,7 +74,7 @@ func _build() -> void:
 
 	if component.category == ComponentData.CATEGORY_REACTOR:
 		_box.add_child(UIKit.label("PASSIVE · always in play", 10, cat_color))
-		_box.add_child(UIKit.label(component.passive_text(), 11, Palette.TEXT, true))
+		_box.add_child(UIKit.rich_label(component.passive_text(), 11, Palette.TEXT))
 	else:
 		for card in component.cards:
 			var line := card.name
@@ -87,7 +87,7 @@ func _build() -> void:
 			if card.effect_text != "":
 				sub.append(card.effect_text)
 			if not sub.is_empty():
-				_box.add_child(UIKit.label("\n".join(sub), 10, Palette.TEXT_MUTED, true))
+				_box.add_child(UIKit.rich_label("\n".join(sub), 10, Palette.TEXT_MUTED))
 	_box.add_child(UIKit.spacer(false))
 	_footer = UIKit.label(footer_text, 12, footer_color)
 	_footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

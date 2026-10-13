@@ -9,6 +9,12 @@ extends Control
 ## what it does and whether its component still stands. It's a holo glass
 ## screen tinted by what it shows (the part's category; red for an enemy's
 ## intent), with the part's shape and art in its top corner.
+##
+## Logan, 2026-10-02: a hovered card no longer opens it (it sat over the
+## hand; the card's own HoloHint explains it now). The combat screen's
+## buttons and bars explain themselves here (UIState.describe_on_hover)
+## instead of in tooltips. While a part is hovered, the mouse wheel scrolls
+## the box, wherever the mouse is.
 
 const PADDING := 12.0
 const THUMB := Vector2(64, 56) # the part's shape, top right
@@ -43,6 +49,8 @@ func _ready() -> void:
 	UIState.hover_changed.connect(_refresh.unbind(2))
 	UIState.hovered_card_changed.connect(_refresh.unbind(1))
 	UIState.intent_hover_changed.connect(_refresh.unbind(1))
+	UIState.hint = {} # left over from a screen that closed under the mouse
+	UIState.hint_changed.connect(_refresh.unbind(1))
 	UIState.drag_started.connect(_refresh.unbind(1))
 	UIState.drag_ended.connect(_refresh)
 	_refresh()
@@ -55,6 +63,22 @@ func _process(delta: float) -> void:
 	if a != modulate.a:
 		modulate.a = a
 	visible = a > 0.0
+
+## The wheel scrolls the box while a part is hovered (the box itself
+## scrolls on its own when the mouse is over it).
+func _input(event: InputEvent) -> void:
+	if not visible or _shown_component == null or not (event is InputEventMouseButton) or not event.pressed:
+		return
+	if get_global_rect().has_point(get_global_mouse_position()):
+		return
+	var step := 0
+	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		step = 40
+	elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		step = -40
+	if step != 0:
+		_scroll.scroll_vertical += step
+		get_viewport().set_input_as_handled()
 
 ## Resize after it's already built (the screen changed shape).
 func set_box_size(v: Vector2) -> void:
@@ -131,6 +155,12 @@ func _refresh() -> void:
 		_set_look(Palette.DANGER, null)
 		_has_content = true
 		return
+	if UIState.hovered_component == null and not UIState.hint.is_empty():
+		_show_hint(UIState.hint)
+		_set_look(GlassPanel.HOLO, null)
+		_shown_component = null
+		_has_content = true
+		return
 	var component := UIState.hovered_component
 	_set_look(Palette.category_color(component.category) if component != null else GlassPanel.HOLO, component)
 	var has_component := component != null
@@ -194,7 +224,9 @@ func _refresh() -> void:
 			for s in passive_statuses:
 				if not status_names.has(s):
 					status_names.append(s)
-	var relevant_card: CardData = UIState.dragging_card if UIState.dragging_card != null else UIState.hovered_card
+	# (a hovered card explains itself above the card; a dragged one, aimed
+	# at a part, adds what it would apply here)
+	var relevant_card: CardData = UIState.dragging_card if has_component else null
 	if relevant_card != null:
 		for s in relevant_card.statuses:
 			if not status_names.has(s.status):
@@ -204,7 +236,7 @@ func _refresh() -> void:
 	for status_name in status_names:
 		var entry := StatusGlossary.get_entry(status_name)
 		glossary_lines.append("%s — %s" % [entry["label"], entry["rule"]])
-	# and any keyword the text uses (Vent, Pierce, Lifesteal)
+	# and any keyword the text uses (Vent, Pierce, Reclaim)
 	var text := ""
 	if has_component:
 		text += component.passive_text()
@@ -242,6 +274,16 @@ func _draw() -> void:
 		var box := Rect2(Vector2(size.x - THUMB.x - PADDING, PADDING), THUMB)
 		draw_circle(box.get_center(), THUMB.x * 0.45, Color(_accent, 0.08))
 		PartArt.draw_shape(self, box, _thumb_part, 1.0, 22.0)
+
+## A button or bar on the combat screen explaining itself.
+func _show_hint(hint: Dictionary) -> void:
+	for l in [_statuses_header, _statuses_label, _cards_header, _cards_label, _hp_label, _empty_label, _glossary_header, _glossary_label]:
+		l.visible = false
+	_title_label.visible = true
+	_title_label.text = str(hint.get("title", ""))
+	_effect_label.text = str(hint.get("text", ""))
+	_effect_label.visible = _effect_label.text != ""
+	_scroll.scroll_vertical = 0
 
 ## An enemy's planned action: the card, its numbers, and what it's aimed at.
 func _show_intent(intent: Dictionary) -> void:

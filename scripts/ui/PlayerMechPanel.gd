@@ -22,15 +22,18 @@ const PANEL_SIZE := Vector2(IMAGE_X + IMAGE_SIZE.x, IMAGE_Y + IMAGE_SIZE.y)
 const CELL_SIZE := 35.0
 const PASSIVE_GAP := 6.0 # between the passive row and the health bar
 
+## The hovered or dragged card would overheat the mech (CombatScene pulses the screen red).
+signal overheat_warning(on: bool)
+
 var mech: MechData
 var combat: CombatManager = null # set by CombatScene: card costs for the heat preview
 var grid: ChassisGridUI
 var passive_row: PassiveRow
 
 var _heat_box: HeatBox
-var _heat_caption: Label
 var _health_bar: HealthBar
 var _image_rect: ColorRect
+var _warning: bool = false
 
 func _ready() -> void:
 	custom_minimum_size = PANEL_SIZE
@@ -51,26 +54,23 @@ func _build_children() -> void:
 	add_child(_health_bar)
 
 	passive_row = PassiveRow.new()
+	passive_row.numbers_below = false # the row sits over the health bar: stacks show above it
+	passive_row.part_statuses = true # Shock on your weapon, Burn, Disabled...: a badge each, as for enemies
 	passive_row.position = Vector2(IMAGE_X, -PassiveIcon.ICON_SIZE.y - PASSIVE_GAP)
 	add_child(passive_row)
 	passive_row.setup(mech, IMAGE_SIZE.x)
 
+
 	_heat_box = HeatBox.new()
 	_heat_box.font_size = 24
-	_heat_box.show_forecast = true
 	add_child(_heat_box)
 	_heat_box.custom_minimum_size = HEAT_BOX_SIZE
 	_heat_box.size = HEAT_BOX_SIZE
 	_heat_box.position = Vector2(0, 0) # top aligned with the health bar's top
 
-	# Heat preview caption under the heat box: "+4" or "OVERHEAT −24 HP".
-	_heat_caption = Label.new()
-	_heat_caption.position = Vector2(-20, HEAT_BOX_SIZE.y + 4)
-	_heat_caption.size = Vector2(HEAT_BOX_SIZE.x + 40, 34)
-	_heat_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_heat_caption.add_theme_font_size_override("font_size", 12)
-	_heat_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_heat_caption)
+	# No text under the box (Logan, 2026-10-02: clutter): the box itself turns
+	# amber for a card's heat, red for an overheat, and what an overheat
+	# would cost shows on the health bar.
 	UIState.hovered_card_changed.connect(_refresh_preview.unbind(1))
 	UIState.drag_started.connect(_refresh_preview.unbind(1))
 	UIState.drag_ended.connect(_refresh_preview)
@@ -115,20 +115,33 @@ func _refresh_preview() -> void:
 	var card: CardData = UIState.dragging_card if UIState.dragging_card != null else UIState.hovered_card
 	if card == null or UIState.input_locked:
 		_heat_box.set_preview(-1)
-		_heat_caption.text = ""
+		_health_bar.set_preview_loss(0)
+		_set_warning(false)
 		return
 	var cost: int = combat.effective_cost(card) if combat != null else card.heat_cost
 	var projected := maxi(0, mech.current_heat + cost)
 	_heat_box.set_preview(projected)
-	if HeatRules.is_overheated(projected, mech.heat_capacity()) and mech.heat_check_timing == MechData.HEAT_CHECK_END_OF_TURN:
-		_heat_caption.text = "OVER MAX\nvent before turn end"
-		_heat_caption.add_theme_color_override("font_color", Palette.WARNING)
-	elif HeatRules.is_overheated(projected, mech.heat_capacity()):
-		_heat_caption.text = "OVERHEAT\n−%d HP" % HeatRules.backlash_for(mech)
-		_heat_caption.add_theme_color_override("font_color", Palette.DANGER)
-	else:
-		_heat_caption.text = ("+%d heat" % cost) if cost >= 0 else ("vent %d" % -cost)
-		_heat_caption.add_theme_color_override("font_color", Palette.WARNING)
+	_health_bar.set_preview_loss(0)
+	_set_warning(false)
+	# (Redline checks heat at the end of its turn: over max mid-turn isn't an overheat yet.)
+	if HeatRules.is_overheated(projected, mech.heat_capacity()) and mech.heat_check_timing != MechData.HEAT_CHECK_END_OF_TURN:
+		_health_bar.set_preview_loss(HeatRules.backlash_for(mech))
+		_set_warning(true)
+
+## The primed protocol's badge on the passive row: [title, text] for its
+## hover, or [] to hide it.
+func set_protocol(info: Array) -> void:
+	passive_row.set_protocol(info)
+
+func _set_warning(on: bool) -> void:
+	if on != _warning:
+		_warning = on
+		overheat_warning.emit(on)
+
+## The heat box in global coordinates: kept clear by a card's keyword hint
+## (HoloHint.keep_clear).
+func heat_rect() -> Rect2:
+	return _heat_box.get_global_rect().grow(4.0)
 
 ## The mech image's rect in global coordinates (the enemy crosshair wanders over it).
 func image_global_rect() -> Rect2:

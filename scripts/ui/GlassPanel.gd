@@ -40,6 +40,18 @@ static func draw_frame(ci: CanvasItem, r: Rect2, a: float = 1.0, accent: Color =
 		ci.draw_line(corner, corner + Vector2(bracket * sx, 0), Color(accent, a), 2.0)
 		ci.draw_line(corner, corner + Vector2(0, bracket * sy), Color(accent, a), 2.0)
 
+## A small square glass tile for an icon button (speed, settings): as
+## see-through as the Log button (control_style: a light smoke, a teal
+## edge), with corner brackets; lit teal when `lit`, edged yellow while
+## hovered. Call from the button's draw (with the button flat); the icon
+## goes on top.
+static func draw_tile(b: BaseButton, lit: bool) -> void:
+	var r := Rect2(Vector2.ZERO, b.size)
+	b.draw_rect(r, Color(HOLO, 0.28) if lit else Color(0, 0, 0, 0.35), true)
+	draw_frame(b, r, 0.8, HOLO, 6.0)
+	var edge := Color(Palette.LINK, 0.9) if b.is_hovered() and not b.disabled else Color(HOLO, 0.9 if lit else 0.45)
+	b.draw_rect(r, edge, false, 1.0)
+
 ## A flat style for controls sitting on the glass (search box, chips, buttons).
 static func control_style(border: Color = HOLO, fill: float = 0.0, border_a: float = 0.45) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
