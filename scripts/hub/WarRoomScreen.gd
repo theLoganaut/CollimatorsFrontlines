@@ -70,6 +70,10 @@ var _room_tex: Texture2D
 var _floors: Array[Texture2D] = []
 var _top_bar: TopBar
 var _settings_button: SettingsButton
+var _build_label: Label # which build this is (BuildInfo), bottom right
+var _base_name_btn: Button
+## Said instead of the usual line (a saved run closed after an update).
+var _operator_override: String = ""
 var _back_button: Button
 var _daily_button: Button
 var _operator: GlassPanel
@@ -102,6 +106,12 @@ func _ready() -> void:
 		_floors.append(load(ART + f))
 
 	var saved := SaveGame.has_save()
+	var closed_run := false
+	if saved and not SaveGame.problems().is_empty(): # an update removed something it needs
+		CrashLog.crumb("run save can't load after an update: %s" % ", ".join(SaveGame.problems()))
+		SaveGame.set_aside()
+		saved = false
+		closed_run = true
 	for s in STATIONS:
 		var spot := _build_station(s)
 		if s[0] == "war_table":
@@ -122,8 +132,13 @@ func _ready() -> void:
 	_label.bounds = Rect2(6, TOP_BAR_H + 6, BASE.x - 12, BASE.y - TOP_BAR_H - 12)
 	room.add_child(_label)
 
+	if closed_run:
+		_operator_override = "Your last sortie was logged on an older build and can't be picked up after the update. I've closed it out. Your Chips, record and hangar are untouched."
 	_build_operator()
 	_build_top_bar()
+	_build_label = UIKit.label(BuildInfo.label(), 10, Color(Palette.TEXT_MUTED, 0.7))
+	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_build_label)
 
 	# the room darkens behind the table's hologram
 	_dim = Control.new()
@@ -172,7 +187,11 @@ func _ready() -> void:
 
 	get_viewport().size_changed.connect(_layout)
 	_layout()
-	if not Tutorial.active and not Profile.tutorial_done and not saved:
+	Tutorial.base_named.connect(_on_base_named)
+	if Profile.base_name == "" and not Tutorial.active:
+		_operator.visible = false # one Operator at a time: his War Room line waits for the name
+		Tutorial.ask_base_name() # offers training after, if it's due
+	elif not Tutorial.active and not Profile.tutorial_done and not saved:
 		Tutorial.offer()
 	Tutorial.reached("war_room", {"table": table})
 
@@ -198,6 +217,7 @@ func _layout() -> void:
 	_daily_button.position = Vector2(16, TOP_BAR_H + 56)
 	popup.size = screen
 	settings_menu.size = screen
+	_build_label.position = screen - _build_label.get_minimum_size() - Vector2(10, 6)
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Palette.BG, true)
@@ -391,7 +411,8 @@ func _build_operator() -> void:
 	var who := UIKit.label("OPERATOR  ·  SECURE CHANNEL", 10, Color("b9d8d4"))
 	who.position = Vector2(100, 10)
 	_operator.add_child(who)
-	_operator_line = UIKit.label(Operator.line(Profile.last_report, Profile.runs, SaveGame.summary() if SaveGame.has_save() else {}), 14, Color("eefcfa"), true)
+	var said := _operator_override if _operator_override != "" else Operator.line(Profile.last_report, Profile.runs, SaveGame.summary() if SaveGame.has_save() else {})
+	_operator_line = UIKit.label(said, 14, Color("eefcfa"), true)
 	_operator_line.position = Vector2(100, 30)
 	_operator_line.size = Vector2(r.size.x - 100 - 124, r.size.y - 40)
 	_operator_line.visible_ratio = 0.0
@@ -428,17 +449,30 @@ func _dismiss_operator() -> void:
 func _build_top_bar() -> void:
 	_top_bar = TopBar.make(self, "Home Base")
 	var row := _top_bar.row
-	row.add_child(_bar_label("[BASE NAME]", 12, Color("7f9d9a")))
+	# the base's name (Profile.base_name); click it to rename
+	_base_name_btn = Button.new()
+	_base_name_btn.flat = true
+	_base_name_btn.focus_mode = Control.FOCUS_NONE
+	_base_name_btn.add_theme_font_size_override("font_size", 12)
+	_base_name_btn.add_theme_color_override("font_color", Color("7f9d9a"))
+	_base_name_btn.add_theme_color_override("font_hover_color", Color("eefcfa"))
+	_base_name_btn.tooltip_text = "Rename the base"
+	_base_name_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_base_name_btn.pressed.connect(func(): if not Tutorial.active: Tutorial.ask_base_name())
+	row.add_child(_base_name_btn)
+	_on_base_named()
 	row.add_child(UIKit.spacer())
 	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
-	var coop := GlassPanel.button("Co-op lobby · post-demo", 12)
-	coop.disabled = true
-	coop.custom_minimum_size = Vector2(0, TopBar.CHIP_H)
-	coop.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(coop)
+	# (the co-op lobby button comes back once co-op exists; Logan, 2026-10-13)
 	_settings_button = SettingsButton.new()
 	_settings_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_settings_button)
+
+func _on_base_named() -> void:
+	_base_name_btn.text = Profile.base_name.to_upper()
+	if _operator != null and not _operator.visible and not _operator_dismissed and not _zoomed:
+		_operator.visible = true # held back while the base was being named
+		_operator_talk()
 
 func _bar_label(text: String, font_size: int, c: Color) -> Label:
 	var l := Label.new()

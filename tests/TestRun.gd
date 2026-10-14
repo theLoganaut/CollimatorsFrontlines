@@ -635,13 +635,15 @@ static func _saves_and_maps(t: TestContext) -> void:
 
 	t.group("Event buttons say what a choice gains and what it costs")
 	t.assert_eq(EventOutcome.summary({"scraps": 50, "next_fight": [{"side": "enemy", "status": "deflect", "stacks": 4, "parts": "mech"}]}, false),
-		"+50 scraps, but enemies start the next fight with Deflect 4", "gain, but cost")
-	t.assert_eq(EventOutcome.summary({"damage_random_part": 15}, false), "a random part takes 15", "a cost alone")
-	t.assert_eq(EventOutcome.summary({}, false), "nothing happens", "a safe pass")
+		"+50 Scraps. Enemies Deflect 4 next fight.", "gain, then cost")
+	t.assert_eq(EventOutcome.summary({"damage_random_part": 15}, false), "Random part −15 HP.", "a cost alone")
+	t.assert_eq(EventOutcome.summary({"next_fight": [{"side": "player", "status": "deflect", "stacks": 5, "parts": "mech"}]}, false), "Deflect 5 next fight.", "on your mech")
+	t.assert_eq(EventOutcome.summary({}, false), "Nothing happens.", "a safe pass")
 	t.assert_eq(EventOutcome.summary({"chance": 0.6, "then": {"gain_part": {"category": "protocol", "rarity": "surplus"}}, "else": {"damage_random_part": 10}}, false),
-		"60%: a random Surplus protocol  ·  else: a random part takes 10", "a gamble shows both sides")
-	t.assert_eq(EventOutcome.summary({"alert_turns": 12}, false), "nothing happens", "Alert only matters on Rescue")
-	t.assert_eq(EventOutcome.summary({"alert_turns": 12}, true), "Alert rises", "and shows there")
+		"60%: Gain random Surplus Protocol. Otherwise: Random part −10 HP.", "a gamble shows both sides")
+	t.assert_eq(EventOutcome.button_text({"label": "Squeeze in", "outcome": {"goto": "inside"}}, false), "Squeeze in\nThen another choice.", "the label, then what it does")
+	t.assert_eq(EventOutcome.summary({"alert_turns": 12}, false), "Nothing happens.", "Alert only matters on Rescue")
+	t.assert_eq(EventOutcome.summary({"alert_turns": 12}, true), "Alert rises.", "and shows there")
 	var free := []
 	for e in JSON.parse_string(FileAccess.get_file_as_string("res://data/events.json"))["events"]:
 		var all_choices: Array = e["choices"].duplicate()

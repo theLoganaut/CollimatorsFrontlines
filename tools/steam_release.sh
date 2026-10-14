@@ -48,6 +48,9 @@ STAMP="$(date '+%Y-%m-%d %H:%M')"
 [[ -n "$DESC" ]] || DESC="$STAMP ($COMMIT)"
 
 echo "== Exporting ($DESC)"
+# Stamped into the build for the game to show (BuildInfo); only there while exporting.
+printf '{"stamp": "%s", "commit": "%s", "feedback_webhook": "%s"}\n' "$STAMP" "$COMMIT" "${FEEDBACK_WEBHOOK:-}" > "$ROOT/build_info.json"
+trap 'rm -f "$ROOT/build_info.json"' EXIT
 rm -rf "$OUT/windows" "$OUT/macos"
 mkdir -p "$OUT/windows" "$OUT/logs"
 "$GODOT" --headless --path "$ROOT" --export-release "Windows" "$OUT/windows/CollimatorsFrontlines.exe" > "$OUT/logs/export_windows.log" 2>&1 \
@@ -63,43 +66,64 @@ ls -la "$OUT/windows"
 
 [[ $UPLOAD == 1 ]] || { echo "== Exported to $OUT (no upload)"; exit 0; }
 
-# The app build script, written fresh each time (SetLive, description).
-VDF="$OUT/app_build.vdf"
-{
-	echo '"AppBuild"'
-	echo '{'
-	echo "	\"AppID\" \"$APP_ID\""
-	echo "	\"Desc\" \"${DESC//\"/\'}\""
-	echo "	\"Preview\" \"$PREVIEW\""
-	echo "	\"SetLive\" \"$BRANCH\""
-	echo "	\"ContentRoot\" \"$OUT\""
-	echo "	\"BuildOutput\" \"$OUT/output\""
-	echo '	"Depots"'
-	echo '	{'
-	echo "		\"$DEPOT_WINDOWS\" { \"FileMapping\" { \"LocalPath\" \"windows/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
-	[[ -n "$DEPOT_MACOS" ]] && echo "		\"$DEPOT_MACOS\" { \"FileMapping\" { \"LocalPath\" \"macos/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
-	echo '	}'
-	echo '}'
-} > "$VDF"
+# The app build script for one app, written fresh each time (SetLive, description).
+write_vdf() { # app_id windows_depot mac_depot vdf_path
+	{
+		echo '"AppBuild"'
+		echo '{'
+		echo "	\"AppID\" \"$1\""
+		echo "	\"Desc\" \"${DESC//\"/\'}\""
+		echo "	\"Preview\" \"$PREVIEW\""
+		echo "	\"SetLive\" \"$BRANCH\""
+		echo "	\"ContentRoot\" \"$OUT\""
+		echo "	\"BuildOutput\" \"$OUT/output\""
+		echo '	"Depots"'
+		echo '	{'
+		echo "		\"$2\" { \"FileMapping\" { \"LocalPath\" \"windows/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
+		[[ -n "$3" ]] && echo "		\"$3\" { \"FileMapping\" { \"LocalPath\" \"macos/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
+		echo '	}'
+		echo '}'
+	} > "$4"
+}
 
-echo "== Uploading to Steam (app $APP_ID, branch '${BRANCH:-none}'$([[ $PREVIEW == 1 ]] && echo ", preview only"))"
+ARGS=(+login "$STEAM_USER")
+write_vdf "$APP_ID" "$DEPOT_WINDOWS" "$DEPOT_MACOS" "$OUT/app_build.vdf"
+ARGS+=(+run_app_build "$OUT/app_build.vdf")
+APPS=("$APP_ID")
+if [[ -n "$PLAYTEST_APP_ID" && -n "$PLAYTEST_DEPOT" ]]; then
+	write_vdf "$PLAYTEST_APP_ID" "$PLAYTEST_DEPOT" "" "$OUT/app_build_playtest.vdf"
+	ARGS+=(+run_app_build "$OUT/app_build_playtest.vdf")
+	APPS+=("$PLAYTEST_APP_ID")
+fi
+ARGS+=(+quit)
+
+echo "== Uploading to Steam (apps ${APPS[*]}, branch '${BRANCH:-none}'$([[ $PREVIEW == 1 ]] && echo ", preview only"))"
 LOG="$OUT/logs/upload.log"
 set +e
-"$STEAMCMD" +login "$STEAM_USER" +run_app_build "$VDF" +quit 2>&1 | tee "$LOG"
+"$STEAMCMD" "${ARGS[@]}" 2>&1 | tee "$LOG"
 set -e
-if grep -q "Successfully finished AppID $APP_ID build" "$LOG"; then
-	BUILD_ID="$(grep -oE 'BuildID [0-9]+' "$LOG" | tail -1)"
-	if [[ -n "$BRANCH" ]]; then
-		echo "== Done: $BUILD_ID, live on '$BRANCH'. Testers on that branch get it next time Steam updates."
+FAILED=0
+for app in "${APPS[@]}"; do
+	if line="$(grep -E "Successfully finished AppID $app build" "$LOG" | tail -1)"; then
+		BUILD_ID="$(echo "$line" | grep -oE 'BuildID [0-9]+' || true)"
+		if [[ $PREVIEW == 1 ]]; then
+			echo "== App $app: preview OK (nothing uploaded)."
+		elif [[ -n "$BRANCH" ]]; then
+			echo "== App $app: $BUILD_ID, live on '$BRANCH'."
+		else
+			echo "== App $app: $BUILD_ID uploaded. Set it live: https://partner.steamgames.com/apps/builds/$app"
+			echo "   (find $BUILD_ID, 'Set build live on branch' -> default -> Preview Change -> Set Build Live Now)"
+		fi
 	else
-		echo "== Done: $BUILD_ID uploaded. Set it live: https://partner.steamgames.com/apps/builds/$APP_ID"
-		echo "   (find $BUILD_ID, 'Set build live on branch' -> default -> Preview Change -> Set Build Live Now)"
+		FAILED=1
+		echo "== App $app: upload failed." >&2
 	fi
-else
+done
+if [[ $FAILED == 1 ]]; then
 	if grep -qiE "Two-factor|Steam Guard|password|Login Failure|Cached credentials not found" "$LOG"; then
-		echo "== Upload failed: SteamCMD needs you to log in. Run: tools/steam_release.sh --login" >&2
+		echo "== SteamCMD needs you to log in. Run: tools/steam_release.sh --login" >&2
 	else
-		echo "== Upload failed, see $LOG" >&2
+		echo "== See $LOG" >&2
 	fi
 	exit 1
 fi

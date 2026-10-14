@@ -194,6 +194,11 @@ func _set_shown_hp(value: float, component: ComponentData) -> void:
 	_shown_hp[component] = v
 	_refresh_component_cells(component)
 
+## A status just landed on `component`: its markers pop.
+func pop_status(component: ComponentData) -> void:
+	for cell_ui in _cells_by_component.get(component, []):
+		cell_ui.pop_status()
+
 func _refresh_component_cells(component: ComponentData) -> void:
 	for cell_ui in _cells_by_component.get(component, []):
 		cell_ui.refresh()

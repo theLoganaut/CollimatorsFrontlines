@@ -26,6 +26,26 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(p["mech"].current_heat, 4, "heat cost paid")
 	t.assert_eq(e_comp.current_hp, 20, "10 damage applied (30 - 10)")
 
+	t.group("CombatManager: an enemy with nothing left to play retreats (a kill)")
+	var rp := _build_player(0, 1, 1, 1)
+	var r_card := TestFixtures.make_card("r_hit", "r_gun", 1, 1, 5, 5)
+	var r_cards: Array[CardData] = [r_card]
+	var r_gun := TestFixtures.make_component("r_gun", 30, r_cards)
+	var r_enemy := TestFixtures.make_mech("runner", 8, [r_gun])
+	var r_cm := CombatManager.new(rp["mech"], [r_enemy], 4)
+	r_cm.start_combat()
+	r_cm.end_player_turn()
+	t.assert_true(not r_enemy.retreated, "an enemy that can still play stays")
+	r_gun.add_status("offline", 1)
+	t.assert_true(not r_enemy.has_cards_left(), "its only card part Offline: nothing left")
+	var r_seen := []
+	r_cm.enemy_retreated.connect(func(m): r_seen.append(m))
+	r_cm.end_player_turn()
+	t.assert_true(r_enemy.retreated and r_enemy.is_defeated(), "it retreats as its turn starts, and counts as defeated")
+	t.assert_eq(r_seen.size(), 1, "the screen hears about it")
+	t.assert_eq(r_cm.result, CombatManager.Result.WIN, "the last enemy retreating wins the fight")
+	t.assert_eq(r_cm.stats.get_stat("enemies_destroyed"), 1, "…and it counts as destroyed")
+
 	t.group("CombatManager: rejects illegal plays")
 	var destroyed_target := TestFixtures.make_component("dt", 10)
 	destroyed_target.destroyed = true

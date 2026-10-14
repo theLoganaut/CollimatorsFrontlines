@@ -4,8 +4,11 @@ extends Node
 ##   Godot --path . res://tools/Screenshot.tscn -- <shop|combat|combat_play|map|refit|event>[_settings] <out.png> [seconds] [event id] [choice taken]
 ##        [--colorblind] [--reduce-motion] [--pad-page (with _settings: the gamepad controls page)]
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
+##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ## A screen name ending in _settings opens the settings menu over it.
 ## "hub_<station>" [tab] opens a War Room station (hub_pilot_log mechs).
+## "weather" <out folder> <frames> <background id> [interval] saves a frame every 0.25 s (or interval) of
+## that background and its weather (rain, snow, dust), to watch it move.
 ## "daily" opens the War Room, zooms into the War Table and opens the Daily
 ## Operation's pop-up (it reads the real profile but never saves it).
 ## combat_keys does the same with key presses (number keys, Tab, Enter, E).
@@ -19,13 +22,16 @@ extends Node
 ## combat_record plays a whole fight that way (up to 15 turns, at 3× speed),
 ## writes its recording (FightRecord) to <out.png>.json, and checks that it
 ## replays headless to the same end: the UI path and the rules agree.
+## refit_drag picks a part up with a click, turns it with the rotate key,
+## puts it down with a second click, then drags one into Cargo holding the
+## button; prints what happened at each step.
 ## combat_pad fakes a gamepad (Input.parse_input_event): RB picks a card,
 ## A fires it, the stick moves the cursor; prints what happened.
 ## replay <out.png> [seconds] <record.json> opens a recorded fight in the
 ## combat screen's replay mode and prints whether it ended as recorded.
 ## profile_<screen> (profile_combat, profile_map) measures instead of saving:
 ## vsync off, then frame time and draw calls over 6 seconds,
-## once as is and once with each experiment (no MSAA on HoloTerrain, no rain).
+## once as is and once with each experiment (no MSAA on HoloTerrain, no weather).
 ## It never saves the run or touches the profile.
 
 func _ready() -> void:
@@ -43,6 +49,8 @@ func _ready() -> void:
 					Profile.seen_enemies.append(f.get_basename())
 				for o in DeploymentOrders.all():
 					Profile.seen_orders.append(o["id"])
+	# no one-time Operator tips in shots (they'd save to the real profile), unless asked for
+	GameSettings.operator_tips = "--explain" in OS.get_cmdline_user_args()
 	GameSettings.apply()
 	var what: String = args[0] if args.size() > 0 else "shop"
 	var settings := what.ends_with("_settings") # open the settings menu over the screen
@@ -53,6 +61,20 @@ func _ready() -> void:
 		what = what.trim_prefix("profile_")
 	var out: String = args[1] if args.size() > 1 else "/tmp/shot.png"
 	var wait: float = float(args[2]) if args.size() > 2 else 2.5
+	if what == "weather": # weather <out folder> <frames> <background id> [interval s]: one background and its weather
+		var field := PlayField.new()
+		get_tree().root.add_child.call_deferred(field)
+		await get_tree().process_frame
+		field.size = Vector2(get_viewport().get_visible_rect().size)
+		for b in GameData.backgrounds():
+			if b["id"] == (args[3] if args.size() > 3 else ""):
+				field.set_background(b)
+		for i in range(int(wait)):
+			await get_tree().create_timer(float(args[4]) if args.size() > 4 else 0.25).timeout
+			get_viewport().get_texture().get_image().save_png("%s/%03d.png" % [out, i])
+		print("saved ", int(wait), " frames to ", out)
+		get_tree().quit()
+		return
 	if what.begins_with("hub_"): # a War Room station: hub_pilot_log [tab], hub_info_bay [tab], hub_directives...
 		var station: Node = load(SceneRouter.get(what.trim_prefix("hub_").to_upper())).instantiate()
 		get_tree().root.add_child.call_deferred(station)
@@ -61,20 +83,46 @@ func _ready() -> void:
 		if args.size() > 3 and "_tab" in station:
 			station._tab = args[3]
 			station._rebuild() if station.has_method("_rebuild") else station._fill()
+		if "--open-stats" in OS.get_cmdline_user_args(): # the Pilot Log: open the first run's Stats
+			await get_tree().process_frame
+			for b in station.find_children("*", "Button", true, false):
+				if b.text == "Stats":
+					b.button_pressed = true
+					break
 		await get_tree().create_timer(wait).timeout
 		get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
 		get_tree().quit()
 		return
-	if what == "continue" or what == "warroom": # the War Room (its Operator line); "continue" opens a saved run's box (read only)
+	if what == "continue" or what == "warroom" or what == "warroom_name": # the War Room (its Operator line); "continue" opens a saved run's box (read only); warroom_name: the Operator asking for the base's name (never saved)
 		var wr: Node = load(SceneRouter.WAR_ROOM).instantiate()
 		get_tree().root.add_child.call_deferred(wr)
 		get_tree().set_deferred("current_scene", wr)
 		await get_tree().create_timer(1.5).timeout
-		if Tutorial.has_method("skip"):
+		if what == "warroom_name":
+			Tutorial.ask_base_name()
+			if args.size() > 3: # type a name and press Enter (this one does save the profile)
+				await get_tree().create_timer(1.0).timeout
+				Tutorial._name_edit.text = args[3]
+				Tutorial._name_edit.text_submitted.emit(args[3])
+		elif Tutorial.has_method("skip"):
 			Tutorial._root.visible = false
 		if what == "continue" and SaveGame.has_save():
 			wr.popup.open_continue(SaveGame.summary())
+		await get_tree().create_timer(wait).timeout
+		get_viewport().get_texture().get_image().save_png(out)
+		print("saved ", out)
+		get_tree().quit()
+		return
+	if what == "popup": # the War Table, zoomed in, with a location's pop-up open ([location id], default shipyard)
+		var wr2: Node = load(SceneRouter.WAR_ROOM).instantiate()
+		get_tree().root.add_child.call_deferred(wr2)
+		get_tree().set_deferred("current_scene", wr2)
+		await get_tree().create_timer(1.0).timeout
+		Tutorial._root.visible = false
+		wr2._zoom_in()
+		await get_tree().create_timer(2.5).timeout
+		wr2._on_location_chosen(GameData.sector(args[3] if args.size() > 3 else "shipyard"))
 		await get_tree().create_timer(wait).timeout
 		get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
@@ -115,10 +163,16 @@ func _ready() -> void:
 		get_tree().quit()
 		return
 	var mission := GameData.mission("assault").duplicate(true)
+	var location_id := "shipyard"
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--enemies="):
 			mission["encounter"] = a.trim_prefix("--enemies=").split(",")
-	var run := RunData.new(GameData.sector("shipyard"), GameData.player_mech("bastion"), 12345, mission)
+		elif a.begins_with("--location="):
+			location_id = a.trim_prefix("--location=")
+		elif a.begins_with("--background="): # keep only this background, so the fight uses it
+			var bg_id := a.trim_prefix("--background=")
+			GameData._backgrounds = GameData.backgrounds().filter(func(b): return b.get("id", "") == bg_id)
+	var run := RunData.new(GameData.sector(location_id), GameData.player_mech("bastion"), 12345, mission)
 	RunState.run = run
 	var scene := ""
 	match what:
@@ -134,7 +188,12 @@ func _ready() -> void:
 			if what != "reward":
 				run.choose_reward_category("hardpoint")
 			scene = RunState.PHASE_SCENES[RunData.PHASE_REWARD]
-		"refit":
+		"debrief": # an ejected run's debrief (never recorded in the profile)
+			run.eject()
+			RunState.last_run = run
+			RunState.run = null
+			scene = RunState.DEBRIEF
+		"refit", "refit_drag":
 			run.phase = RunData.PHASE_REFIT
 			run.cargo.add(run.new_part("autocannon"))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_REFIT]
@@ -145,7 +204,7 @@ func _ready() -> void:
 			if args.size() > 4: # a choice already taken (a multi-step event's next step)
 				run.resolve_event(int(args[4]))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_EVENT]
-		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map":
+		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map", "combat_retreat", "combat_feedback", "combat_hover", "combat_enemy_cards":
 			run.choose_node(run.available_nodes()[0])
 			scene = RunState.PHASE_SCENES[RunData.PHASE_FIGHT]
 		_:
@@ -189,8 +248,86 @@ func _ready() -> void:
 			CardResolver.add_status_to(e, e.non_destroyed_components()[0], "shock", 2, true)
 			CardResolver.add_status_to(e, e.non_destroyed_components()[-1], "acid", 1, true)
 			e.add_mech_status("deflect", 3)
+		if "--all-statuses" in OS.get_cmdline_user_args(): # every status glyph, one per part of yours, and the grid hovered
+			var sts: Array = ["shock", "acid", "burn", "deflect", "disabled", "freeze", "coolant", "jam", "offline", "absorb"]
+			var parts: Array = cs.combat.player_mech.non_destroyed_components()
+			for i in range(parts.size()):
+				CardResolver.add_status_to(cs.combat.player_mech, parts[i], sts[i % sts.size()], 1 + i % 3, true)
+				if i + 1 < parts.size() and i % 2 == 0:
+					CardResolver.add_status_to(cs.combat.player_mech, parts[i], sts[(i + 5) % sts.size()], 1, true)
+			cs._refresh_all_panels()
+			await _mouse_move(cs.player_panel.grid.get_global_rect().get_center())
 		cs._refresh_all_panels()
+		if "--explain" in OS.get_cmdline_user_args(): # the Operator's first-time note (this one saves the profile)
+			cs._explain_a_status()
 		await get_tree().create_timer(1.0).timeout
+	if what == "combat_feedback": # opens Send feedback, types a note and sends it (to user://feedback_webhook.txt's address)
+		var fcs := get_tree().current_scene
+		while UIState.input_locked:
+			await get_tree().create_timer(0.2).timeout
+		await FeedbackDialog.open(get_tree())
+		await get_tree().create_timer(0.5).timeout
+		var dlg: FeedbackDialog = FeedbackDialog._open
+		dlg._note.text = "Test note: the Warden's intent icon overlapped its health bar."
+		get_viewport().get_texture().get_image().save_png(out.get_basename() + "_form.png")
+		dlg._on_send()
+		for i in range(40):
+			await get_tree().create_timer(0.25, true, false, true).timeout
+			if not is_instance_valid(dlg) or dlg._status.text.begins_with("Sent") or dlg._status.text.begins_with("Couldn"):
+				break
+		print("combat_feedback: ", dlg._status.text if is_instance_valid(dlg) else "closed")
+	if what == "combat_enemy_cards": # the mouse on an enemy part with cards: its cards laid out under it
+		var ecs := get_tree().current_scene
+		while not ecs.combat.is_player_turn() or UIState.input_locked:
+			await get_tree().create_timer(0.2).timeout
+		var foe: MechData = ecs.combat.enemies[0]
+		var part: ComponentData = null
+		for c in foe.components:
+			if c.cards.size() > (part.cards.size() if part != null else 0):
+				part = c
+		var grid: ChassisGridUI = ecs._panel_for(foe).grid
+		await _mouse_move(grid.component_center_global(part))
+		await get_tree().create_timer(0.8).timeout
+	if what == "combat_hover": # hovers a card in the fan, then sweeps the mouse across it: which card holds the hover?
+		var hcs := get_tree().current_scene
+		while not hcs.combat.is_player_turn() or UIState.input_locked:
+			await get_tree().create_timer(0.2).timeout
+		var cards: Array = hcs.hand_tray.get_children().filter(func(c): return c is CardUI and c.visible)
+		var mid: CardUI = cards[1]
+		var start: Vector2 = mid.get_global_rect().get_center()
+		await _mouse_move(start)
+		await get_tree().create_timer(0.4).timeout
+		var r: Rect2 = mid.get_global_rect()
+		var line := []
+		for i in range(11):
+			var at := Vector2(r.position.x + r.size.x * (0.04 + 0.092 * i), r.position.y + r.size.y * 0.55)
+			await _mouse_move(at)
+			await get_tree().create_timer(0.15).timeout
+			var held: Array = cards.filter(func(c): return c._hovering)
+			var under: Control = get_viewport().gui_get_hovered_control()
+			var on_mid := under != null and (under == mid or mid.is_ancestor_of(under))
+			line.append("%d%%:%s%s" % [int(4 + 9.2 * i), "MID" if held.has(mid) else ("card%d" % cards.find(held[0]) if not held.is_empty() else "none"), "" if on_mid else "(input elsewhere)"])
+		print("combat_hover: ", " ".join(line))
+		# then off the raised card, down onto a neighbor's visible part
+		var other: CardUI = cards[0] if cards[0] != mid else cards[2]
+		var orect: Rect2 = other.get_global_rect()
+		var vh: float = get_viewport().get_visible_rect().size.y
+		var mr: Rect2 = mid.get_global_rect()
+		var to_x := mr.end.x + 16.0 if orect.get_center().x > mr.get_center().x else mr.position.x - 16.0
+		var to := Vector2(to_x, minf(orect.end.y, vh) - 20)
+		await _mouse_move(to)
+		await get_tree().create_timer(0.3).timeout
+		print("combat_hover: moved to a neighbor at %s (mid %s, neighbor %s) -> mid hovered %s, neighbor hovered %s, under %s" % [to, mid.get_global_rect(), orect, mid._hovering, other._hovering, get_viewport().gui_get_hovered_control()])
+	if what == "combat_retreat": # the first enemy's card parts go Offline, then End Turn: it retreats
+		var rcs := get_tree().current_scene
+		while not rcs.combat.is_player_turn() or UIState.input_locked:
+			await get_tree().create_timer(0.2).timeout
+		for c in rcs.combat.enemies[0].components:
+			if c.has_cards():
+				c.add_status("offline", 1)
+		rcs._on_end_turn_pressed()
+		await get_tree().create_timer(2.5).timeout
+		print("combat_retreat: %s retreated %s, defeated %s" % [rcs.combat.enemies[0].name, rcs.combat.enemies[0].retreated, rcs.combat.enemies[0].is_defeated()])
 	if what == "combat_end": # the win screen over the fight
 		var ecs := get_tree().current_scene
 		ecs.end_screen.show_result(CombatManager.Result.WIN, "Continue", ecs.combat.stats)
@@ -204,6 +341,8 @@ func _ready() -> void:
 		await _key_turns(2)
 	elif what == "combat_pad":
 		await _pad_test()
+	elif what == "refit_drag":
+		await _drag_test()
 	elif what == "combat_record":
 		GameSettings.speed = 3.0
 		await _play_turns(int(args[3]) if args.size() > 3 else 15)
@@ -321,12 +460,12 @@ func _profile() -> void:
 		print("profile, HoloTerrain frozen (not rendered): %s" % await _measure())
 		for t in terrains:
 			t._viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	var rains := _all(root, "Rain")
-	for r in rains:
+	var weather := _all(root, "Rain") + _all(root, "Snow") + _all(root, "Dust")
+	for r in weather:
 		r.visible = false
 		r.set_process(false)
-	if not rains.is_empty():
-		print("profile, no rain: %s" % await _measure())
+	if not weather.is_empty():
+		print("profile, no weather: %s" % await _measure())
 
 func _measure(seconds: float = 6.0) -> String:
 	await get_tree().create_timer(1.0).timeout # settle
@@ -405,6 +544,66 @@ func _key_turns(turns: int) -> void:
 	while not cm.is_game_over() and UIState.input_locked:
 		await get_tree().create_timer(0.2).timeout
 	print("combat_keys: turn %d, result %d, %d commands: %s" % [cm.turn_number, cm.result, cm.command_log.size(), JSON.stringify(cm.command_log)])
+
+## refit_drag: picks up a part on the mech, turns it with the rotate key,
+## and puts it down again with real (faked) mouse and key events; prints
+## what the screen did at each step.
+func _drag_test() -> void:
+	var ws := get_tree().current_scene
+	var grid: PackingGrid = null
+	for g in ws._grids.keys():
+		if ws._grids[g] == RunData.MECH:
+			grid = g
+	var part: ComponentData = grid.parts[0]
+	var at: Vector2 = grid.get_screen_transform() * (grid.cell_pos(part.placed_cells[0]) + Vector2.ONE * grid.cell_size / 2.0)
+	await _mouse(at, -1)
+	await _mouse(at, 1)
+	print("drag_test: pressed %s -> holding %s, steps %d" % [part.name, ws._drag.name if ws._drag else "nothing", ws._drag_steps])
+	await _key(GameSettings.key("rotate"))
+	print("drag_test: after rotate key -> steps %d" % ws._drag_steps)
+	await _mouse(at, 0)
+	print("drag_test: after release -> holding %s" % (ws._drag.name if ws._drag else "nothing"))
+	if ws._drag != null:
+		await _mouse(at, 1)
+		await _mouse(at, 0)
+		print("drag_test: after second click -> holding %s, part steps %d" % [ws._drag.name if ws._drag else "nothing", part.rotation_steps])
+	# a held drag still drops on release (here, into a free spot in Cargo)
+	var cargo: PackingGrid = null
+	for g in ws._grids.keys():
+		if ws._grids[g] == RunData.CARGO:
+			cargo = g
+	var rel: Vector2i = part.placed_cells[0] - part.offset
+	var spot := Vector2i(-99, -99)
+	for c in cargo.allowed.keys():
+		if spot.x == -99 and ws.run.can_move(part, RunData.CARGO, part.rotation_steps, c - rel):
+			spot = c
+	var into: Vector2 = cargo.get_screen_transform() * (cargo.cell_pos(spot) + Vector2.ONE * cargo.cell_size / 2.0)
+	var start: Vector2 = grid.get_screen_transform() * (grid.cell_pos(part.placed_cells[0]) + Vector2.ONE * grid.cell_size / 2.0)
+	await _mouse(start, -1)
+	await _mouse(start, 1)
+	await _mouse(into, -1)
+	await _mouse(into, 0)
+	print("drag_test: held drag to Cargo -> holding %s, %s in Cargo: %s (%s)" % [ws._drag.name if ws._drag else "nothing", part.name, ws.run.cargo.items.has(part), ws._message.text])
+
+## Moves the mouse to `at` (viewport pixels).
+func _mouse_move(at: Vector2) -> void:
+	await _mouse(at, -1)
+
+## Moves the mouse to `at` (button -1), or presses (1) / releases (0) the left button there.
+func _mouse(at: Vector2, button: int) -> void:
+	var e: InputEventMouse
+	if button < 0:
+		e = InputEventMouseMotion.new()
+	else:
+		e = InputEventMouseButton.new()
+		e.button_index = MOUSE_BUTTON_LEFT
+		e.pressed = button == 1
+	var win := get_tree().root.get_final_transform() * at # viewport -> window pixels
+	e.position = win
+	e.global_position = win
+	Input.warp_mouse(win)
+	Input.parse_input_event(e)
+	await get_tree().create_timer(0.15).timeout
 
 func _key(code: Key) -> void:
 	var e := InputEventKey.new()

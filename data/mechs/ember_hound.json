@@ -72,12 +72,12 @@
       "rotation": 0
     },
     {
-      "id": "reactive_plating",
+      "id": "autocannon",
       "offset": [
         2,
         0
       ],
-      "rotation": 1
+      "rotation": 0
     },
     {
       "id": "thermal_core",

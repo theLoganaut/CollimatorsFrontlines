@@ -1,0 +1,244 @@
+{
+ "alert_turns": 0,
+ "base_bounds": [
+  0,
+  0,
+  5,
+  7
+ ],
+ "bench": [],
+ "boss_intel": false,
+ "boss_intel_used": false,
+ "bosses_met": [],
+ "cargo": {
+  "cols": 3,
+  "items": [
+   {
+    "destroyed": false,
+    "hp": 45,
+    "id": "autocannon",
+    "library_id": "autocannon",
+    "max_hp": 45,
+    "offset": [
+     0,
+     0
+    ],
+    "rotation": 0
+   }
+  ],
+  "rows": 3
+ },
+ "cargo_upgrades": 0,
+ "cells_bought": 0,
+ "current_node_id": 0,
+ "encounter_history": [
+  "ember_hound,arc_sentry"
+ ],
+ "end_cause": "",
+ "event": {},
+ "events_seen": [],
+ "fight_log": [
+  {
+   "damage_taken": 0,
+   "enemies": [
+    "ember_hound",
+    "arc_sentry"
+   ],
+   "hp_left": 183,
+   "hp_max": 183,
+   "kind": "fight",
+   "turns": 0,
+   "won": true
+  }
+ ],
+ "fight_rolls": {
+  "0": [
+   "ember_hound",
+   "arc_sentry"
+  ]
+ },
+ "fights_won": 1,
+ "frame": [
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   1
+  ],
+  [
+   0,
+   2
+  ],
+  [
+   0,
+   4
+  ],
+  [
+   0,
+   5
+  ],
+  [
+   0,
+   6
+  ],
+  [
+   1,
+   1
+  ],
+  [
+   1,
+   3
+  ],
+  [
+   1,
+   5
+  ],
+  [
+   2,
+   1
+  ],
+  [
+   2,
+   2
+  ],
+  [
+   2,
+   3
+  ],
+  [
+   2,
+   4
+  ],
+  [
+   2,
+   5
+  ],
+  [
+   3,
+   2
+  ],
+  [
+   3,
+   3
+  ],
+  [
+   3,
+   4
+  ],
+  [
+   4,
+   3
+  ]
+ ],
+ "location_id": "mining_grounds",
+ "mech": [
+  {
+   "destroyed": false,
+   "hp": 65,
+   "id": "arc_whip",
+   "library_id": "arc_whip",
+   "max_hp": 65,
+   "offset": [
+    0,
+    1
+   ],
+   "rotation": 0
+  },
+  {
+   "destroyed": false,
+   "hp": 48,
+   "id": "fang_blade",
+   "library_id": "fang_blade",
+   "max_hp": 48,
+   "offset": [
+    3,
+    2
+   ],
+   "rotation": 0
+  },
+  {
+   "destroyed": false,
+   "hp": 35,
+   "id": "catalyst_injector",
+   "library_id": "catalyst_injector",
+   "max_hp": 35,
+   "offset": [
+    1,
+    3
+   ],
+   "rotation": 1
+  },
+  {
+   "destroyed": false,
+   "hp": 35,
+   "id": "reactive_plating",
+   "library_id": "reactive_plating",
+   "max_hp": 35,
+   "offset": [
+    0,
+    4
+   ],
+   "rotation": 1
+  }
+ ],
+ "mech_path": "res://data/mechs/jackal.json",
+ "mission": {
+  "boss": true,
+  "elite_escort_from_row": 8.0,
+  "id": "assault",
+  "max_shops": 3.0,
+  "name": "Assault",
+  "refit_after_rows": [
+   2.0,
+   5.0,
+   8.0,
+   11.0
+  ],
+  "repair_before_boss": true,
+  "rows": 12.0,
+  "summary": "A straight push to the target. Ends in a boss."
+ },
+ "mission_id": "assault",
+ "mods": {},
+ "next_fight": [],
+ "orders": {},
+ "path": [],
+ "phase": "reward",
+ "repair_pool": 0,
+ "result": 0,
+ "resumes": [],
+ "reward": {
+  "category": "hardpoint",
+  "note": "",
+  "options": {
+   "hardpoint": [
+    "hook_lance",
+    "flechette_launcher",
+    "cluster_rockets"
+   ],
+   "protocol": [
+    "coordinated_strike_suite",
+    "munitions_splitter",
+    "signal_interceptor"
+   ],
+   "reactor": [
+    "field_medic_unit",
+    "exhaust_fans",
+    "coolant_loop"
+   ]
+  },
+  "part_taken": false,
+  "scraps": 50,
+  "scraps_taken": true
+ },
+ "rng_state": "315165403889244013",
+ "scraps": 50,
+ "seed": 4242,
+ "shop": {},
+ "stats": {
+  "scraps_earned": 50
+ },
+ "v": 2
+}

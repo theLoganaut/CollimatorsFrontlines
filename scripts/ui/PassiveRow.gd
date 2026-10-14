@@ -184,7 +184,7 @@ class StatusBadge extends Control:
 			for d in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
 				draw_line(m + d * 4.0, m + d * 8.0, c, 1.5)
 			return
-		Palette.draw_status(self, m, 5.0, status)
+		Palette.draw_status(self, m, 7.5, status)
 		var font := get_theme_default_font()
 		var y := s.y + 12.0 if numbers_below else -3.0
 		var text := str(stacks)

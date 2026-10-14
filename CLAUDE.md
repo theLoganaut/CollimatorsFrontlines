@@ -42,14 +42,15 @@ use Refit Bay's numbers; rule tests that need a kit use `tests/fixtures/*_classi
 Surplus, about 50 damage a turn; the Hangar and saved loadouts are Surplus only).
 **Combat rules to know:** each card plays once per turn and is back next turn (`CombatManager.spent`; Logan: nothing
 more, nothing less). The Vent action (player before any card; enemies with nothing to play) vents a flat
-`heat.vent_action_share` at the next dispersal. One protocol waits at a time (no stacking): priming another replaces it, for the player and enemies alike. Pointing parts (Coolant Flush) give their status only at the start of
-combat. Event buttons are built from their outcome (`EventOutcome`: "Choice (gain, but cost)"); every gain needs a cost. A run's frame grows at most
+`heat.vent_action_share` at the next dispersal. An enemy that started with cards and can never play one again (all its card parts destroyed or Offline) retreats as its turn starts; that counts as a kill, bosses included. One protocol waits at a time (no stacking): priming another replaces it, for the player and enemies alike. Pointing parts (Coolant Flush) give their status only at the start of
+combat. Event buttons are built from their outcome (`EventOutcome`: the label, then one short sentence per effect, gains first: "+70 Scraps. Hardpoints Jam 1 next fight."); every gain needs a cost. A run's frame grows at most
 one ring past the chassis' original bounds (`RunData.base_bounds`). Run saves go through `SafeFile` (atomic, with a backup),
-are versioned (`RunData.SAVE_VERSION`, `SaveMigration`) and carry their mission, so retuning missions.json doesn't change a
+are versioned (`RunData.SAVE_VERSION`, `SaveMigration`; `SaveMigration.problems` refuses a save that names parts/enemies/events
+that no longer exist, and `tests/fixtures/saves/` holds saves from released builds that must keep loading) and carry their mission, so retuning missions.json doesn't change a
 run in progress.
 
 **Meta:** Scraps = in-run money; Chips = meta currency (`scripts/run/Meta.gd`, state in `Profile`). The War Room stations
-(Directives, Pilot Log, Memorial Wall, Info Bay, Livery Bay) are `scripts/hub/*Screen.gd` on `HubScreen`. The training run
+(Directives, Pilot Log, Memorial Wall, Info Bay, Livery Bay) are `scripts/hub/*Screen.gd` on `HubScreen`, each over its own dimmed room art (`assets/warroom/screens/<station>.png`, `backdrop_name()`). The training run
 is the `training` mission, coached by the `Tutorial` autoload (screens call `Tutorial.reached(point, targets)` /
 `Tutorial.event(name)`). Sound effects are synthesized by the `Sfx` autoload; call `Audio.play(key)`; music and ambience
 loops (`SoundLoops`, rendered on a worker thread) via `Audio.music(key)` / `Audio.ambience(key)`. Settings (`GameSettings`,
@@ -67,6 +68,9 @@ playtest report (`PlaytestReport`, `user://playtests/`; Settings → "Save playt
 flushed line by line to `user://session/`. A launch that finds the last session never quit writes `<stamp>_crash.txt` (verdict,
 last action, system/GPU, trail, the end of that session's Godot log) to `user://playtests/`; a run continued after it lists it in
 `RunData.resumes`, and the run's playtest report carries the text.
+**Feedback** (`Feedback`, `FeedbackDialog`): Settings → Send feedback (or F8) posts the pilot's note with a zip (screenshot, run so far,
+last week's crash report, session trail, Godot log, profile, settings) to a Discord webhook; the address is `FEEDBACK_WEBHOOK` in
+`tools/steam/config.sh`, stamped into the build by the release script (`BuildInfo`), or `user://feedback_webhook.txt` for a dev test.
 **Steam** (App ID 5441720, project setting `steam/initialization/app_data/app_id`): the GodotSteam GDExtension in
 `addons/godotsteam` (Steamworks SDK 1.65; the steam_api libraries are copied from Valve's SDK). The `SteamService` autoload
 starts it and `SteamService.available` / `api()` say whether Steam is up; without the extension or a running client the game plays on.
@@ -93,7 +97,7 @@ In a run the same look carries on: `LocationMapScreen` is a `HoloTerrain` of the
 with the stops on pins; `RefitScreen`, `ShopScreen` and `RepairBayScreen` extend `WorkshopScreen` (pixel-art bay in `assets/run/`, the mech as a hologram,
 glass panels, Cargo plus a 6×6 workbench `RunData.bench`; parts left on the bench are scrapped for scraps, `Economy.scrap_value`);
 combat's `CardUI`, `DescriptionBox`, `CombatLog`, `HeatBox`, name plates, End Turn and `PartCardUI` are glass with the part's art (`PartArt.draw_shape`).
-`RewardScreen` sits over the fight's own background (`RunScreen.backdrop()`), `DebriefScreen` over the dimmed War Room. Event screens are left for their own art.
+`RewardScreen` sits over the fight's own background (`RunScreen.backdrop()`), `DebriefScreen` over the dimmed War Room. `EventScreen` shows the event's own scene, dimmed (`assets/events/<event id>.png`, PixelLab Pixen 640×400).
 The Operator speaks from glass comm panels with his portrait (`OperatorPortrait`, `assets/operator/operator.png`, a handler in shadow): the War Room's line and the training coach (`Tutorial`), both typed in.
 The Hangar is the bay behind that door (`assets/warroom/hangar_bay.png`): the mech as a hologram (`MechArt.hologram_material`)
 on the pad, and `GlassPanel` holo screens: chassis + a 6×6 workbench (`Profile.hangar_bench`, never launched), `PartPreview`

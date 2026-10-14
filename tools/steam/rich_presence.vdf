@@ -1,0 +1,10 @@
+"lang"
+{
+	"Language"	"english"
+	"Tokens"
+	{
+		"#Base"		"In the War Room"
+		"#Mission"	"%mission% at %location%"
+		"#Fight"	"%fight% · %mission% at %location%"
+	}
+}

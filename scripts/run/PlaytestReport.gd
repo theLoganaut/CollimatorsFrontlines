@@ -51,7 +51,7 @@ static func game_info() -> Dictionary:
 	var text := ""
 	for path in DATA_FILES:
 		text += FileAccess.get_file_as_string(path)
-	return {"combat": _combat_section(), "data_hash": str(hash(text))}
+	return {"build": BuildInfo.label(), "combat": _combat_section(), "data_hash": str(hash(text))}
 
 static func _combat_section() -> Dictionary:
 	var out := {}

@@ -74,8 +74,8 @@
   "enemy_ai": {
     "reckless_overheat": 4,
     "boss_phase_at": 0.5,
-    "_self_cost_note": "How much an enemy's card choice counts what the card costs its own part (EnemyAI._self_cost): subtracted from its score. self_offline_penalty for taking the part Offline for the rest of the fight (Precision Throw), self_disable_penalty per turn of Disabled or Freeze (Wrap Up). 0 = ignored (the AI before 2026-09-30). Claude's proposal for Logan: 30 and 0 (Balance Targets; a Disable penalty made Cipher easier).",
-    "self_offline_penalty": 0,
+    "_self_cost_note": "How much an enemy's card choice counts what the card costs its own part (EnemyAI._self_cost): subtracted from its score. self_offline_penalty for taking the part Offline for the rest of the fight (Precision Throw), self_disable_penalty per turn of Disabled or Freeze (Wrap Up). 0 = ignored (the AI before 2026-09-30). Logan, 2026-10-13: 30 and 0 (Balance Targets; a Disable penalty made Cipher easier).",
+    "self_offline_penalty": 30,
     "self_disable_penalty": 0,
     "charge_mult": 1.5,
     "_why_charge_mult": "Phase 6 (2026-10-13): a charged attack fires free at the start of the enemy's next turn at this multiple, unless its part is Disabled, Frozen or destroyed first."
@@ -118,7 +118,8 @@
       "rows": 1
     },
     "field_repair": {
-      "repair_mult": 1.5
+      "repair_mult": 1.2,
+      "repair_pct": 20
     },
     "cold_start": {
       "fights": 4,
@@ -142,7 +143,8 @@
     },
     "overclocked_core": {
       "max_heat": 3,
-      "vent_at_max": 0.6
+      "vent_at_max": 0.8,
+      "vent_pct": 80
     },
     "hot_start": {
       "max_heat": 2,
@@ -199,14 +201,15 @@
     },
     "heavy_plating": {
       "part_hp": 12,
-      "vent_at_max": 0.7
+      "vent_at_max": 0.9,
+      "vent_pct": 90
     },
     "forced_march": {
       "scraps": 120,
       "repair_chance_mult": 0.5
     },
     "special_requisition": {
-      "start_heat": 2
+      "turn_heat": 2
     },
     "mystery_crate": {
       "parts": 2
@@ -223,6 +226,8 @@
   },
   "conditions": {
     "_note": "Location modifiers and mission variants (data/conditions.json), Proposed (Claude, 2026-09-30). variant_weights: how often each variant rolls. Sim (builder, 200 runs): with Rain 10% / Jam 1 / Smoke 2 clears fell ~8 points; at Rain 5% / Jam 1 / Smoke 1 about 2-4 (Jamming is most of it).",
+    "_enabled_note": "Logan, 2026-10-13: location rules and sector-rolled variants stay off until locations rotate and there are several places to run, so no one is forced into a bad run. The Daily Operation still rolls a variant.",
+    "enabled": false,
     "rain": {
       "vent_drop": 0.05,
       "vent_drop_pct": 5

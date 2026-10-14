@@ -1,0 +1,434 @@
+{
+  "canvas": [
+    1920.0,
+    1080.0
+  ],
+  "pieces": {
+    "robe": {
+      "file": "robe.png",
+      "size": [
+        700.0,
+        647.0
+      ],
+      "pivot_screen": [
+        960.0,
+        505.0
+      ],
+      "pivot_in_image": [
+        350.0,
+        430.0
+      ],
+      "note": "Static. Hood, shoulders and sleeves; the face opening is transparent."
+    },
+    "beard": {
+      "file": "beard.png",
+      "size": [
+        92.0,
+        260.0
+      ],
+      "pivot_screen": [
+        960.0,
+        361.0
+      ],
+      "pivot_in_image": [
+        46.0,
+        124.0
+      ],
+      "note": "Static. Sits inside the hood opening, over the robe."
+    },
+    "hand_left_thumb": {
+      "file": "hand_left_thumb.png",
+      "size": [
+        110.0,
+        65.0
+      ],
+      "pivot_screen": [
+        760.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        -46.0,
+        51.0
+      ],
+      "note": "Child of the hand pivot. Draw BEHIND the flask. Pivot = wrist."
+    },
+    "hand_left_front": {
+      "file": "hand_left_front.png",
+      "size": [
+        172.0,
+        111.0
+      ],
+      "pivot_screen": [
+        760.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        26.0,
+        46.0
+      ],
+      "note": "Child of the hand pivot. Draw IN FRONT of the flask. Pivot = wrist."
+    },
+    "vial_left": {
+      "file": "vial_left.png",
+      "size": [
+        65.0,
+        193.0
+      ],
+      "pivot_screen": [
+        878.3,
+        606.1
+      ],
+      "pivot_in_image": [
+        32.3,
+        57.1
+      ],
+      "note": "Child of the hand pivot, placed at the pinch point. Pivot = pinch point on the neck."
+    },
+    "cuff_left": {
+      "file": "cuff_left.png",
+      "size": [
+        150,
+        107
+      ],
+      "pivot_screen": [
+        760.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        85.0,
+        53.0
+      ],
+      "note": "Static, drawn above the hand so the wrist disappears into the sleeve."
+    },
+    "hand_right_thumb": {
+      "file": "hand_right_thumb.png",
+      "size": [
+        110.0,
+        65.0
+      ],
+      "pivot_screen": [
+        1160.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        156.0,
+        51.0
+      ],
+      "note": "Child of the hand pivot. Draw BEHIND the flask. Pivot = wrist."
+    },
+    "hand_right_front": {
+      "file": "hand_right_front.png",
+      "size": [
+        172.0,
+        111.0
+      ],
+      "pivot_screen": [
+        1160.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        146.0,
+        46.0
+      ],
+      "note": "Child of the hand pivot. Draw IN FRONT of the flask. Pivot = wrist."
+    },
+    "flask_right": {
+      "file": "flask_right.png",
+      "size": [
+        119.0,
+        206.0
+      ],
+      "pivot_screen": [
+        1041.7,
+        606.1
+      ],
+      "pivot_in_image": [
+        59.7,
+        78.1
+      ],
+      "note": "Child of the hand pivot, placed at the pinch point. Pivot = pinch point on the neck."
+    },
+    "cuff_right": {
+      "file": "cuff_right.png",
+      "size": [
+        150,
+        107
+      ],
+      "pivot_screen": [
+        1160.0,
+        593.0
+      ],
+      "pivot_in_image": [
+        65.0,
+        53.0
+      ],
+      "note": "Static, drawn above the hand so the wrist disappears into the sleeve."
+    },
+    "stone": {
+      "file": "stone.png",
+      "size": [
+        220.0,
+        115.0
+      ],
+      "pivot_screen": [
+        960.0,
+        781.4
+      ],
+      "pivot_in_image": [
+        111.0,
+        57.4
+      ],
+      "note": "Visible until the swap, then hidden."
+    },
+    "keyboard_mouse": {
+      "file": "keyboard_mouse.png",
+      "size": [
+        409.0,
+        83.0
+      ],
+      "pivot_screen": [
+        960.0,
+        800.2
+      ],
+      "pivot_in_image": [
+        205.0,
+        47.2
+      ],
+      "note": "Hidden until the swap (under the smoke)."
+    },
+    "drop": {
+      "file": "drop.png",
+      "size": [
+        20.0,
+        26.0
+      ],
+      "pivot_screen": [
+        960.0,
+        505.0
+      ],
+      "pivot_in_image": [
+        10.0,
+        16.0
+      ],
+      "note": "Pivot = centre of the round bottom of the drop."
+    },
+    "smoke_puff": {
+      "file": "smoke_puff.png",
+      "size": [
+        256.0,
+        256.0
+      ],
+      "note": "Particle texture for the smoke."
+    },
+    "spark": {
+      "file": "spark.png",
+      "size": [
+        24.0,
+        24.0
+      ],
+      "note": "Particle texture for the sparks."
+    },
+    "title_trismeg": {
+      "file": "title_trismeg.png",
+      "size": [
+        285.0,
+        79.0
+      ],
+      "pivot_screen": [
+        960.0,
+        930.0
+      ],
+      "pivot_in_image": [
+        142.5,
+        64.0
+      ],
+      "note": "Fades in. Pivot = centre of the baseline."
+    },
+    "title_studios": {
+      "file": "title_studios.png",
+      "size": [
+        93.0,
+        31.0
+      ],
+      "pivot_screen": [
+        960.0,
+        1000.0
+      ],
+      "pivot_in_image": [
+        46.5,
+        25.0
+      ],
+      "note": "Fades in after TRISMEG."
+    },
+    "title_line": {
+      "file": "title_line.png",
+      "size": [
+        388.0,
+        10.0
+      ],
+      "pivot_screen": [
+        960.0,
+        954.8
+      ],
+      "pivot_in_image": [
+        194.0,
+        4.8
+      ],
+      "note": "Grows from the centre (scale.x 0 -> 1)."
+    }
+  },
+  "timeline": {
+    "fps_reference": 60.0,
+    "total_seconds": 9.04,
+    "fade_in": [
+      0.0,
+      1.0
+    ],
+    "anticipation_tilt": {
+      "start": 1.25,
+      "peak": 1.55,
+      "end": 1.75,
+      "degrees": 6.0,
+      "direction": "away from centre"
+    },
+    "main_tilt": {
+      "start": 1.55,
+      "end": 2.45,
+      "degrees": 50.0,
+      "direction": "toward centre",
+      "easing": "ease in-out with slight overshoot"
+    },
+    "tilt_split": {
+      "hand_pivot_share": 0.45,
+      "flask_extra_share": 0.55
+    },
+    "release_flick": {
+      "degrees": 5.0,
+      "window": "drop_detaches_at +/- 0.14 s"
+    },
+    "drops": {
+      "left": {
+        "drop_forms_at": 2.608,
+        "drop_detaches_at": 3.008,
+        "drop_start_screen": [
+          905.2,
+          633.8
+        ],
+        "drop_lands_screen": [
+          905.2,
+          744.3
+        ],
+        "fall_seconds": 0.429
+      },
+      "right": {
+        "drop_forms_at": 2.6,
+        "drop_detaches_at": 3.0,
+        "drop_start_screen": [
+          997.5,
+          621.7
+        ],
+        "drop_lands_screen": [
+          997.5,
+          736.4
+        ],
+        "fall_seconds": 0.437
+      }
+    },
+    "impact": 3.437,
+    "screen_shake": {
+      "start": 3.437,
+      "amplitude_px": 7.2,
+      "decay_per_second": 8.0
+    },
+    "swap_stone_for_keyboard": 3.737,
+    "return_upright": {
+      "start": 3.687,
+      "end": 4.687,
+      "easing": "ease out with slight overshoot"
+    },
+    "title_trismeg_fade": [
+      3.9,
+      5.2
+    ],
+    "title_line_grow": [
+      4.35,
+      5.3
+    ],
+    "title_studios_fade": [
+      4.6,
+      5.5
+    ],
+    "fade_out": [
+      8.337,
+      9.037
+    ],
+    "background_color": "#0b0a12",
+    "smoke_origin_screen": [
+      960.0,
+      737.0
+    ],
+    "body_motion": {
+      "pivot": [
+        960,
+        722
+      ],
+      "note": "The figure moves as one about the foot of the robe: [seconds, rise px (negative is up), stretch y, stretch x], eased between keys.",
+      "keys": [
+        [
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          1.2,
+          0,
+          1,
+          1
+        ],
+        [
+          1.55,
+          -5,
+          1.018,
+          0.995
+        ],
+        [
+          2.45,
+          3,
+          0.99,
+          1.008
+        ],
+        [
+          2.95,
+          5,
+          0.985,
+          1.01
+        ],
+        [
+          3.437,
+          4,
+          0.987,
+          1.01
+        ],
+        [
+          3.56,
+          -8,
+          1.03,
+          0.985
+        ],
+        [
+          4.0,
+          2,
+          0.995,
+          1.004
+        ],
+        [
+          4.6,
+          0,
+          1,
+          1
+        ]
+      ]
+    }
+  }
+}

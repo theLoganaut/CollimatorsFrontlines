@@ -27,6 +27,7 @@ func _initialize() -> void:
 	TestCommands.run_all(t)
 	TestContent.run_all(t)
 	TestMeta.run_all(t)
+	TestSaves.run_all(t)
 
 	t.summary()
 	quit(1 if t.failed > 0 else 0)

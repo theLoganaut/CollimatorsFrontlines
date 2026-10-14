@@ -107,7 +107,7 @@ static func choose(run: RunData, id: String) -> String:
 			for i in range(int(n.call("rows", 1))):
 				run.cargo.grow_rows()
 		"field_repair":
-			run.mods["repair_mult"] = n.call("repair_mult", 1.5)
+			run.mods["repair_mult"] = n.call("repair_mult", 1.2)
 		"cold_start":
 			run.mods["cold_start_fights"] = int(n.call("fights", 2))
 			run.mods["cold_start_stacks"] = int(n.call("stacks", 2))
@@ -126,7 +126,7 @@ static func choose(run: RunData, id: String) -> String:
 			steps.append({"type": STEP_CELLS, "left": int(n.call("cells", 2))})
 		"overclocked_core":
 			run.mods["max_heat"] = int(n.call("max_heat", 3))
-			run.mods["vent_at_max"] = n.call("vent_at_max", 0.6)
+			run.mods["vent_at_max"] = n.call("vent_at_max", 0.8)
 		"hot_start":
 			run.mods["max_heat"] = int(n.call("max_heat", 2))
 			run.mods["start_heat"] = int(n.call("start_heat", 3))
@@ -182,13 +182,13 @@ static func choose(run: RunData, id: String) -> String:
 			for c in run.player_mech.components: # only the parts launched with, like Modular Chassis
 				c.max_hp += int(n.call("part_hp", 12))
 				c.current_hp += int(n.call("part_hp", 12))
-			run.mods["vent_at_max"] = n.call("vent_at_max", 0.7)
+			run.mods["vent_at_max"] = n.call("vent_at_max", 0.9)
 		"forced_march":
 			run.add_scraps(int(n.call("scraps")))
 			run.mods["map_odds"] = {"repair_chance": Balance.get_num("map", "repair_chance", 0.15) * n.call("repair_chance_mult", 0.5)}
 		"special_requisition":
 			steps.append(_pick_step("prototype"))
-			run.mods["start_heat"] = int(n.call("start_heat", 2))
+			run.mods["turn_heat"] = int(n.call("turn_heat", 2))
 		"mystery_crate":
 			for i in range(int(n.call("parts", 2))):
 				var pid := Economy.roll_part(Economy.CATEGORIES[run.rng.randi() % 3], run.rng, [], 1, run.player_mech.weight_class, "")

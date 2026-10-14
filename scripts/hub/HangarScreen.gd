@@ -49,6 +49,10 @@ var _drag: ComponentData = null
 var _drag_steps: int = 0
 var _drag_rel := Vector2i.ZERO
 var _drag_from: PackingGrid = null # null = picked from the armory
+## Where the press that grabbed a part was, and whether it's being carried
+## (grabbed with a click: the next click puts it down, like armory picks).
+var _press_at := Vector2.ZERO
+var _carrying: bool = false
 var _mouse := Vector2.ZERO # last mouse position, from input events
 
 func _ready() -> void:
@@ -131,7 +135,7 @@ func _build_left() -> void:
 	_bench.setup(bench_cells, Vector2i(BENCH_SIZE, BENCH_SIZE), CELL)
 	_bench.position = Vector2(((LEFT.size.x - _bench.size.x) / 2.0), 328)
 	panel.add_child(_bench)
-	_message = UIKit.label("Pick a part from the armory, or grab one on the chassis or workbench.  R / right-click rotates.", 11, Color("9fb9b6"), true)
+	_message = UIKit.label("Pick a part from the armory, or click one on the chassis or workbench to pick it up.  R / right-click rotates.", 11, Color("9fb9b6"), true)
 	_message.position = Vector2(12, 560)
 	_message.size = Vector2(LEFT.size.x - 24, 36)
 	panel.add_child(_message)
@@ -279,6 +283,8 @@ func _on_part_pressed(g: PackingGrid, part: ComponentData, cell: Vector2i) -> vo
 	_drag_steps = part.rotation_steps
 	_drag_rel = cell - part.offset
 	_drag_from = g
+	_press_at = _mouse
+	_carrying = false
 	g.dim_part = part
 	g.queue_redraw()
 	_update_hints()
@@ -345,10 +351,18 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		_update_ghost()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		# armory picks drop on click; grabbed parts drop on release
-		if (_drag_from == null and event.pressed) or (_drag_from != null and not event.pressed):
-			get_viewport().set_input_as_handled()
-			_drop()
+		# armory picks and carried parts drop on the next click; a grabbed
+		# part dragged away drops on release, one just clicked is carried
+		get_viewport().set_input_as_handled()
+		if event.pressed:
+			if _drag_from == null or _carrying:
+				_drop()
+		elif _drag_from != null and not _carrying:
+			if _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
+				_carrying = true
+				_message.text = "Holding %s: click where it goes, or off the grids to remove it (%s rotates, Esc puts it back)." % [_drag.name, GameSettings.key_label("rotate")]
+			else:
+				_drop()
 
 func _rotate() -> void:
 	get_viewport().set_input_as_handled()
@@ -363,8 +377,8 @@ func _drop() -> void:
 		var off := g.cell_at_global(_mouse) - _drag_rel
 		if not _fits(g, off):
 			_message.text = "It doesn't fit there."
-			if _drag_from == null:
-				return # keep holding the armory part
+			if _drag_from == null or _carrying:
+				return # keep holding it
 			_end_drag()
 			return
 		if _drag_from != null:
@@ -396,6 +410,7 @@ func _end_drag() -> void:
 	_bench.dim_part = null
 	_drag = null
 	_drag_from = null
+	_carrying = false
 	_grid.clear_ghost()
 	_bench.clear_ghost()
 	_grid.set_hints({})

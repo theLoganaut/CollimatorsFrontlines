@@ -13,6 +13,9 @@ var _message: Label
 func screen_title() -> String:
 	return "Livery Bay"
 
+func backdrop_name() -> String:
+	return "livery_bay"
+
 func _build() -> void:
 	_grid = GridContainer.new()
 	_grid.columns = 5
@@ -52,13 +55,13 @@ func _tile(l: Dictionary) -> Control:
 	var price := Meta.livery_price(l)
 	var btn: Button
 	if worn:
-		btn = UIKit.button("Wearing", Color.TRANSPARENT, Vector2(0, 32), 13)
+		btn = HubScreen.glass_button("Wearing", Color.TRANSPARENT, Vector2(0, 32), 13)
 		btn.disabled = true
 	elif owned:
-		btn = UIKit.button("Wear", Palette.REACTOR, Vector2(0, 32), 13)
+		btn = HubScreen.glass_button("Wear", Palette.REACTOR, Vector2(0, 32), 13)
 		btn.pressed.connect(func(): Profile.wear_livery(l["id"]); _message.text = "%s on. It shows in your next fight." % l["name"]; _fill())
 	else:
-		btn = UIKit.button("Buy · %s Chips" % HubScreen._thousands(price), Palette.SCRAPS if Profile.chips >= price else Color.TRANSPARENT, Vector2(0, 32), 13)
+		btn = HubScreen.glass_button("Buy · %s Chips" % HubScreen._thousands(price), Palette.SCRAPS if Profile.chips >= price else Color.TRANSPARENT, Vector2(0, 32), 13)
 		btn.disabled = Profile.chips < price
 		btn.pressed.connect(func():
 			if Profile.buy_livery(l["id"]):

@@ -25,7 +25,7 @@ extends Control
 
 signal restart_requested()
 
-const PANEL_SIZE := Vector2(660, 560)
+const PANEL_SIZE := Vector2(660, 610)
 const ROW_H := 40.0
 
 const TITLE_COLOR := Color("eefcfa")
@@ -90,7 +90,16 @@ func toggle() -> void:
 	else:
 		open()
 
+func _open_feedback() -> void:
+	Audio.play("ui")
+	close()
+	FeedbackDialog.open(get_tree())
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and GameSettings.is_key(event, "feedback"):
+		get_viewport().set_input_as_handled()
+		_open_feedback()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		if _controls != null and _controls.visible:
 			_show_controls(false)
@@ -262,6 +271,7 @@ func _build() -> void:
 	left.add_child(_choice_row("Speed", ["1×", "1.5×", "2×"], "speed", GameSettings.SPEEDS, GlassPanel.HOLO))
 	left.add_child(_toggle_row("Screen shake", "screen_shake"))
 	left.add_child(_toggle_row("Details only with Shift held", "describe_on_shift"))
+	left.add_child(_toggle_row("Operator tips", "operator_tips"))
 	left.add_child(_header("DISPLAY"))
 	left.add_child(_toggle_row("Fullscreen", "fullscreen"))
 	left.add_child(_toggle_row("VSync", "vsync"))
@@ -281,6 +291,10 @@ func _build() -> void:
 		_show_controls(true))
 	right.add_child(keys_btn)
 	right.add_child(_header("PLAYTESTING"))
+	var feedback_btn := _action_button("Send feedback")
+	feedback_btn.tooltip_text = "Tell us what happened (%s). A screenshot and your run go with it." % GameSettings.key_label("feedback")
+	feedback_btn.pressed.connect(_open_feedback)
+	right.add_child(feedback_btn)
 	_report_btn = _action_button("Save playtest report")
 	_report_btn.tooltip_text = "Writes this mission so far (every fight, replayable) to a file you can send in."
 	_report_btn.pressed.connect(_save_report)
@@ -303,6 +317,10 @@ func _build() -> void:
 	_quit_btn = _action_button("Quit game", false, Palette.DANGER)
 	_quit_btn.pressed.connect(_on_quit)
 	actions.add_child(_quit_btn)
+	actions.add_child(UIKit.spacer())
+	var build := UIKit.label(BuildInfo.label(), 10, Palette.TEXT_MUTED)
+	build.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	actions.add_child(build)
 
 ## A row of buttons, one per value of a setting (speed, UI scale).
 func _choice_row(text: String, labels: Array, key: String, values: Array, on_color: Color) -> HBoxContainer:

@@ -45,7 +45,7 @@ func _build_left() -> void:
 	_mech_info = UIKit.label("", 11, Color("9fb9b6"), true)
 	_mech_info.size = Vector2(LEFT.size.x - 24, 60)
 	_left.add_child(_mech_info)
-	var hint := UIKit.label("Drag parts between the chassis, Cargo and the workbench.\nR or right-click rotates while dragging.", 11, Color("7f9d9a"), true)
+	var hint := UIKit.label("Click a part to pick it up, then click where it goes (or drag it).\n%s or right-click rotates it while held." % GameSettings.key_label("rotate"), 11, Color("7f9d9a"), true)
 	hint.position = Vector2(12, LEFT.size.y - 52)
 	hint.size = Vector2(LEFT.size.x - 24, 40)
 	_left.add_child(hint)

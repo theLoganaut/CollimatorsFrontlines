@@ -144,7 +144,7 @@ static func run_all(t: TestContext) -> void:
 
 	var fr: RunData = _take("field_repair")[0]
 	_enter(fr, RunMap.KIND_REPAIR)
-	t.assert_eq(fr.repair_pool, Economy.repair_pool(fr.player_mech.max_hp(), 1.5), "Field Repair Kit: repair bays hand out 50% more")
+	t.assert_eq(fr.repair_pool, Economy.repair_pool(fr.player_mech.max_hp(), 1.2), "Field Repair Kit: repair bays hand out 20% more")
 
 	var cs: RunData = _take("cold_start")[0]
 	var coolant := []
@@ -215,13 +215,25 @@ static func run_all(t: TestContext) -> void:
 
 	var oc: RunData = _take("overclocked_core")[0]
 	t.assert_eq(oc.player_mech.max_heat, 17, "Overclocked Core: +3 max heat (Bastion 14 -> 17)")
-	t.assert_eq(HeatRules.amount_vented(17, 17, oc.player_mech.vent_at_max), 10, "vents 60% at max (17 -> 10 vented)")
-	t.assert_eq(HeatRules.amount_vented(17, 17), 13, "(80% without it)")
+	var was_reset := HeatRules.full_reset()
+	Balance.set_value("heat", "full_reset", true)
+	t.assert_eq(HeatRules.amount_vented(17, 17, oc.player_mech.vent_at_max), 13, "vents 80% of its heat, not all of it (17 -> 13 vented)")
+	t.assert_eq(HeatRules.amount_vented(17, 17), 17, "(all of it without it)")
+	t.assert_eq(HeatRules.amount_vented(10, 17, 0.9), 9, "Heavy Plating's 90%: 10 -> 9")
+	Balance.set_value("heat", "full_reset", was_reset)
 	t.assert_eq(_reload(oc).player_mech.max_heat, 17, "max heat survives a reload, added once")
 
 	var hs: RunData = _take("hot_start")[0]
 	hs.prepare_player_for_fight()
 	t.assert_eq([hs.player_mech.max_heat, hs.player_mech.current_heat], [16, 3], "Hot Start: +2 max heat, fights start at 3 heat")
+
+	var req: RunData = _take("special_requisition")[0]
+	t.assert_eq(req.player_mech.turn_heat, _o("special_requisition", "turn_heat"), "Special Requisition: extra heat every turn")
+	t.assert_eq(_reload(req).player_mech.turn_heat, req.player_mech.turn_heat, "…kept through a reload")
+	req.prepare_player_for_fight()
+	var req_cm := CombatManager.new(req.player_mech, [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")], 3)
+	req_cm.start_combat()
+	t.assert_eq(req.player_mech.current_heat, _o("special_requisition", "turn_heat"), "…the first turn starts with it")
 
 	var sr: RunData = _take("salvage_rights")[0]
 	t.assert_true(not sr.map.nodes.any(func(n): return n["kind"] == RunMap.KIND_REPAIR), "Salvage Rights: no repair bays on the map")

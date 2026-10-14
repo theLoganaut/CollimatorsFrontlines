@@ -8,6 +8,9 @@ var _grid: GridContainer
 func screen_title() -> String:
 	return "Memorial Wall"
 
+func backdrop_name() -> String:
+	return "memorial_wall"
+
 func _build() -> void:
 	_grid = GridContainer.new()
 	_grid.columns = 3

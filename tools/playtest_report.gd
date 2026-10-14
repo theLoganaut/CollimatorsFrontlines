@@ -62,7 +62,7 @@ func _read(path: String, today: Dictionary) -> void:
 		print("%s: not a playtest report" % path)
 		return
 	print("")
-	print("%s" % path.get_file())
+	print("%s · %s" % [path.get_file(), rep.get("game", {}).get("build", "build unknown")])
 	var same_data: bool = str(rep.get("game", {}).get("data_hash", "")) == str(today["data_hash"])
 	if rep.get("kind", "") == "run":
 		var r: Dictionary = rep.get("run", {})

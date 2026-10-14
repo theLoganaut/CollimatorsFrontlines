@@ -60,48 +60,67 @@ const STATUS_COLORS_SAFE := {
 	"disabled": Color("bbbbbb"), "offline": Color("d55e00"), "freeze": Color("ffffff"),
 	"coolant": Color("009e73"), "jam": Color("cc79a7"), "absorb": Color("7ad9a8"),
 }
-const STATUS_SHAPES := {
-	"shock": "triangle", "acid": "diamond", "burn": "square", "disabled": "bar",
-	"offline": "cross", "freeze": "ring", "coolant": "circle", "jam": "hexagon", "absorb": "circle",
-}
 
 static func status_color(status: String) -> Color:
 	return (STATUS_COLORS_SAFE if colorblind else STATUS_COLORS).get(status, Color.WHITE)
 
-## One status marker of radius `r` at `c`: a dot, or in colorblind mode the
-## status's own shape.
+## One status marker of radius `r` at `c` (Logan, 2026-10-13: code-drawn
+## glyphs): a dark chip edged in the status's color with its symbol on it.
+## Bolt Shock, drop Acid, flame Burn, bubble Absorb, shield Deflect,
+## circle-slash Disabled, power Offline, snowflake Freeze, down / up arrow
+## Coolant / Jam (cards cost less / more), cloud Smoke. Each shape is its
+## own, so colorblind mode only swaps the colors.
 static func draw_status(ci: CanvasItem, c: Vector2, r: float, status: String) -> void:
 	var col := status_color(status)
-	var edge := Color(0, 0, 0, 0.7)
-	if not colorblind:
-		ci.draw_circle(c, r, col)
-		ci.draw_arc(c, r, 0.0, TAU, 12, edge, 1.0, true)
-		return
-	match STATUS_SHAPES.get(status, "circle"):
-		"triangle": _poly(ci, c, r * 1.15, 3, -PI / 2.0, col, edge)
-		"diamond": _poly(ci, c, r * 1.15, 4, 0.0, col, edge)
-		"square": _poly(ci, c, r * 1.2, 4, PI / 4.0, col, edge)
-		"hexagon": _poly(ci, c, r * 1.05, 6, 0.0, col, edge)
-		"bar":
-			ci.draw_rect(Rect2(c - Vector2(r, r * 0.45), Vector2(r * 2.0, r * 0.9)), col, true)
-			ci.draw_rect(Rect2(c - Vector2(r, r * 0.45), Vector2(r * 2.0, r * 0.9)), edge, false, 1.0)
-		"cross":
-			ci.draw_line(c - Vector2(r, r), c + Vector2(r, r), edge, r * 0.9)
-			ci.draw_line(c + Vector2(-r, r), c + Vector2(r, -r), edge, r * 0.9)
-			ci.draw_line(c - Vector2(r, r), c + Vector2(r, r), col, r * 0.55)
-			ci.draw_line(c + Vector2(-r, r), c + Vector2(r, -r), col, r * 0.55)
-		"ring":
-			ci.draw_arc(c, r * 0.8, 0.0, TAU, 16, edge, r * 0.8, true)
-			ci.draw_arc(c, r * 0.8, 0.0, TAU, 16, col, r * 0.5, true)
-		_:
-			ci.draw_circle(c, r, col)
-			ci.draw_arc(c, r, 0.0, TAU, 12, edge, 1.0, true)
+	ci.draw_circle(c, r, Color(0.02, 0.03, 0.05, 0.92))
+	ci.draw_arc(c, r, 0.0, TAU, 20, col, maxf(1.0, r * 0.14), true)
+	draw_status_glyph(ci, c, r * 0.68, status, col.lightened(0.25))
 
-static func _poly(ci: CanvasItem, c: Vector2, r: float, sides: int, start: float, col: Color, edge: Color) -> void:
-	var pts := PackedVector2Array()
-	for i in range(sides):
-		var a := start + TAU * i / sides
-		pts.append(c + Vector2(cos(a), sin(a)) * r)
-	ci.draw_colored_polygon(pts, col)
-	pts.append(pts[0])
-	ci.draw_polyline(pts, edge, 1.0, true)
+## Just the symbol, `g` = its half-size.
+static func draw_status_glyph(ci: CanvasItem, c: Vector2, g: float, status: String, col: Color) -> void:
+	var w := maxf(1.2, g * 0.3)
+	match status:
+		"shock":
+			ci.draw_polyline(_pts(c, g, [[0.25, -1.0], [-0.35, 0.05], [0.3, 0.0], [-0.25, 1.0]]), col, w, true)
+		"acid":
+			ci.draw_circle(c + Vector2(0, g * 0.3), g * 0.6, col)
+			ci.draw_colored_polygon(_pts(c, g, [[0.0, -1.0], [0.52, 0.1], [-0.52, 0.1]]), col)
+		"burn":
+			ci.draw_colored_polygon(_pts(c, g, [[0.0, -1.0], [0.45, -0.25], [0.7, 0.35], [0.4, 0.9], [-0.4, 0.9], [-0.7, 0.35], [-0.35, -0.1], [-0.1, 0.15]]), col)
+		"absorb":
+			ci.draw_arc(c, g * 0.85, 0.0, TAU, 18, col, w, true)
+			ci.draw_circle(c + Vector2(-g * 0.3, -g * 0.3), g * 0.2, col)
+		"deflect":
+			var shield := _pts(c, g, [[-0.8, -0.85], [0.8, -0.85], [0.8, 0.1], [0.0, 1.0], [-0.8, 0.1], [-0.8, -0.85]])
+			ci.draw_polyline(shield, col, w, true)
+		"disabled":
+			ci.draw_arc(c, g * 0.85, 0.0, TAU, 18, col, w, true)
+			ci.draw_line(c + Vector2(-0.6, 0.6) * g, c + Vector2(0.6, -0.6) * g, col, w, true)
+		"offline":
+			ci.draw_arc(c, g * 0.8, -PI / 2.0 + 0.6, 1.5 * PI - 0.6, 16, col, w, true)
+			ci.draw_line(c + Vector2(0, -g), c + Vector2(0, -g * 0.1), col, w, true)
+		"freeze":
+			for i in range(3):
+				var d := Vector2.from_angle(PI / 2.0 + i * PI / 3.0) * g
+				ci.draw_line(c - d, c + d, col, w * 0.85, true)
+		"coolant":
+			ci.draw_line(c + Vector2(0, -g), c + Vector2(0, g * 0.6), col, w, true)
+			ci.draw_polyline(_pts(c, g, [[-0.6, 0.2], [0.0, 0.9], [0.6, 0.2]]), col, w, true)
+		"jam":
+			ci.draw_line(c + Vector2(0, g), c + Vector2(0, -g * 0.6), col, w, true)
+			ci.draw_polyline(_pts(c, g, [[-0.6, -0.2], [0.0, -0.9], [0.6, -0.2]]), col, w, true)
+		"smoke":
+			for p in [[-0.45, 0.2, 0.42], [0.1, -0.15, 0.52], [0.5, 0.25, 0.38]]:
+				ci.draw_circle(c + Vector2(p[0], p[1]) * g, g * p[2], col)
+		"destroyed":
+			ci.draw_line(c + Vector2(-0.7, -0.7) * g, c + Vector2(0.7, 0.7) * g, col, w, true)
+			ci.draw_line(c + Vector2(-0.7, 0.7) * g, c + Vector2(0.7, -0.7) * g, col, w, true)
+		_:
+			ci.draw_circle(c, g * 0.5, col)
+
+static func _pts(c: Vector2, g: float, xy: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in xy:
+		out.append(c + Vector2(p[0], p[1]) * g)
+	return out
+

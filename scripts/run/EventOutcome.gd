@@ -8,54 +8,53 @@ extends RefCounted
 ## Statuses that help whoever holds them.
 const GOOD := ["absorb", "deflect", "coolant"]
 
-## The button text: the choice's label plus its summary in brackets.
+## The button text: the choice's label, and on the line under it what it
+## does, one short sentence per effect (Logan, 2026-10-13: "+70 Scraps.
+## Hardpoints Jam 1 next fight.").
 static func button_text(choice: Dictionary, has_alert: bool) -> String:
 	var s := summary(choice.get("outcome", {}), has_alert)
 	if choice.get("outcome", {}).has("goto"):
-		s = "then another choice" if s == "nothing happens" else s + ", then another choice"
-	return choice.get("label", "") if s == "" else "%s  (%s)" % [choice.get("label", ""), s]
+		s = "Then another choice." if s == NOTHING else s + " Then another choice."
+	return "%s\n%s" % [choice.get("label", ""), s]
 
-## "gain, but cost", "gain", "cost", a gamble's "60%: gain · else: cost",
-## or "nothing happens".
+const NOTHING := "Nothing happens."
+
+## Gains, then costs, each its own sentence; a gamble reads
+## "60%: gain. Otherwise: cost."; NOTHING when it does nothing.
 static func summary(o: Dictionary, has_alert: bool) -> String:
 	if o.has("chance"):
 		var p := int(round(float(o["chance"]) * 100.0))
-		return "%d%%: %s  ·  else: %s" % [p, _plain(o.get("then", {}), has_alert), _plain(o.get("else", {}), has_alert)]
+		return "%d%%: %s Otherwise: %s" % [p, _plain(o.get("then", {}), has_alert), _plain(o.get("else", {}), has_alert)]
 	return _plain(o, has_alert)
 
 static func _plain(o: Dictionary, has_alert: bool) -> String:
 	var parts := split(o, has_alert)
-	var gains: Array = parts["gains"]
-	var costs: Array = parts["costs"]
-	if gains.is_empty() and costs.is_empty():
-		return "nothing happens"
-	if costs.is_empty():
-		return ", ".join(gains)
-	if gains.is_empty():
-		return ", ".join(costs)
-	return "%s, but %s" % [", ".join(gains), ", ".join(costs)]
+	var all: Array = parts["gains"] + parts["costs"]
+	if all.is_empty():
+		return NOTHING
+	return ". ".join(all) + "."
 
-## {"gains": [...], "costs": [...]} in plain words.
 static func split(o: Dictionary, has_alert: bool) -> Dictionary:
 	var gains: Array[String] = []
 	var costs: Array[String] = []
 	var scraps := int(o.get("scraps", 0))
 	if scraps > 0:
-		gains.append("+%d scraps" % scraps)
+		gains.append("+%d Scraps" % scraps)
 	elif scraps < 0:
-		costs.append("−%d scraps" % -scraps)
+		costs.append("−%d Scraps" % -scraps)
 	if int(o.get("repair", 0)) > 0:
-		gains.append("repair %d HP" % int(o["repair"]))
+		gains.append("Repair %d HP" % int(o["repair"]))
 	if o.has("gain_part"):
 		var g: Dictionary = o["gain_part"]
 		var rar := str(g.get("rarity", ""))
-		gains.append("a random %s%s" % ["" if rar == "" else rar.capitalize() + " ", str(g.get("category", "part"))])
+		var cat := str(g.get("category", "part"))
+		gains.append("Gain random %s%s" % ["" if rar == "" else rar.capitalize() + " ", cat if cat == "part" else cat.capitalize()])
 	if int(o.get("damage_random_part", 0)) > 0:
-		costs.append("a random part takes %d" % int(o["damage_random_part"]))
+		costs.append("Random part −%d HP" % int(o["damage_random_part"]))
 	for nf in o.get("next_fight", []):
 		var mine: bool = str(nf.get("side", "player")) == "player"
 		var st := str(nf.get("status", ""))
-		var text := "%s start the next fight with %s %d" % [_who(mine, str(nf.get("parts", "all"))), st.capitalize(), int(nf.get("stacks", 1))]
+		var text := ("%s %s %d next fight" % [_who(mine, str(nf.get("parts", "all"))), st.capitalize(), int(nf.get("stacks", 1))]).strip_edges()
 		if (st in GOOD) == mine:
 			gains.append(text)
 		else:
@@ -64,8 +63,9 @@ static func split(o: Dictionary, has_alert: bool) -> Dictionary:
 		costs.append("Alert rises")
 	return {"gains": gains, "costs": costs}
 
+## Who a next-fight status lands on ("" = your mech: "Deflect 5 next fight").
 static func _who(mine: bool, parts: String) -> String:
 	match parts:
-		"hardpoints": return "your hardpoints" if mine else "enemy hardpoints"
-		"mech": return "you" if mine else "enemies"
-	return "all your parts" if mine else "every enemy part"
+		"hardpoints": return "Hardpoints" if mine else "Enemy hardpoints"
+		"mech": return "" if mine else "Enemies"
+	return "All parts" if mine else "All enemy parts"

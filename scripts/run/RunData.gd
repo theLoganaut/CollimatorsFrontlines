@@ -195,6 +195,7 @@ func orders_pending() -> bool:
 func apply_mech_mods() -> void:
 	player_mech.max_heat += int(mod("max_heat"))
 	player_mech.vent_at_max = float(mod("vent_at_max", -1.0))
+	player_mech.turn_heat = int(mod("turn_heat"))
 
 func encounter_count() -> int:
 	return map.row_count
@@ -375,7 +376,7 @@ func apply_fight_start_effects(player: MechData, enemies: Array[MechData]) -> Ar
 		effects.append(e)
 	var drop := Conditions.vent_drop(location, mission)
 	if drop > 0.0: # Rain: every mech vents less at max heat
-		var base := Balance.get_num("heat", "vent_at_max", 0.8)
+		var base := 1.0 if HeatRules.full_reset() else Balance.get_num("heat", "vent_at_max", 0.8)
 		player.vent_at_max = (float(mod("vent_at_max", -1.0)) if float(mod("vent_at_max", -1.0)) >= 0.0 else base) - drop
 		for e in enemies:
 			e.vent_at_max = (e.vent_at_max if e.vent_at_max >= 0.0 else base) - drop
@@ -459,7 +460,8 @@ func fight_lost(fight_stats: RunStats = null) -> void:
 	for m in encounter_enemies():
 		if not names.has(m.name):
 			names.append(m.name)
-	end_cause = "Lost to %s at encounter %d" % [", ".join(names), path.size()]
+	var turns := fight_stats.get_stat("turns_taken") if fight_stats != null else 0
+	end_cause = "Lost to %s at encounter %d%s" % [", ".join(names), path.size(), ", turn %d" % turns if turns > 0 else ""]
 
 # ---------- events ----------
 

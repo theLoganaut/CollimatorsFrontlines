@@ -59,7 +59,7 @@ BATCH1 = {
         card("Swipe", 1, 1, "5-8", effect="Double damage vs a part attacking this turn.", rule={"vs_attacking": {"mult": 2}}),
         card("Thrust Through", 6, 1, "12-16", effect="Deals double damage to hard points at half or lower.",
              rule={"mult_if_target_below": {"fraction": 0.5, "mult": 2, "hardpoint_only": True}}),
-        card("Foresight", 3, 0, "", effect="Until your next turn: the next hit on your mech is cancelled, and its attacker takes 8.",
+        card("Foresight", 3, 0, "", effect="Until your next turn: the next hit on your mech is canceled, and its attacker takes 8.",
              rule={**SELF, "guard": {"type": "parry", "damage": 8}}),
     ],
     "Laser Drive": [
@@ -318,7 +318,7 @@ ADDED = {
                               rule={"arc_adjacent": True, "vs_attacking": {"status": "shock", "stacks": 1}})],
     "Tesla Coil Tower": [card("Overcharge Field", 3, 0, "", effect="Until your next turn: every enemy part that hits you gets Shock 2.",
                               rule={**SELF, "guard": {"type": "static_field", "status": "shock", "stacks": 2}})],
-    "Plasma Rapier": [card("Riposte", 2, 0, "", effect="Until your next turn: the next hit on your mech is cancelled, and its attacker takes 14.",
+    "Plasma Rapier": [card("Riposte", 2, 0, "", effect="Until your next turn: the next hit on your mech is canceled, and its attacker takes 14.",
                            rule={**SELF, "guard": {"type": "parry", "damage": 14}})],
     "Swarm Hive": [card("Infest", 2, 1, "4-6", effect="Vs a part with Acid: Disabled 1.",
                         rule={"status_if_target_status": {"if": "acid", "status": "disabled", "stacks": 1}})],

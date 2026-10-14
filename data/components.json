@@ -189,7 +189,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Until your next turn: the next hit on your mech is cancelled, and its attacker takes 8."
+     "effect_text": "Until your next turn: the next hit on your mech is canceled, and its attacker takes 8."
     }
    ]
   },
@@ -5356,7 +5356,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Until your next turn: the next hit on your mech is cancelled, and its attacker takes 14."
+     "effect_text": "Until your next turn: the next hit on your mech is canceled, and its attacker takes 14."
     }
    ]
   },

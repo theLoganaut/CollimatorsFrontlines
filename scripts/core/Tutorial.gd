@@ -14,31 +14,40 @@ const TRAINING_MISSION := "training"
 
 ## [point, target name ("" = none), text, wait ("next" or an event)]
 const STEPS := [
-	["war_room", "table", "Welcome aboard, pilot. This is the War Room, and every sortie starts at the War Table. Click it.", "table_opened"],
-	["sector_map", "map", "The sector: three locations, each running a mission. Pick any of them. For training they all take the same short route.", "location_opened"],
-	["popup", "launch", "Launch drops you in. Your mech's HP and any parts you lose carry through the whole mission, so every fight counts.", "launched"],
-	["location_map", "starts", "The route: one encounter per row, bottom to top. Fights, repair bays, autonomous bays and events, with a boss waiting at the top of a real mission. Pick where to start.", "node_chosen"],
-	["combat", "player", "Your mech. Each coloured block is a component with its own HP. Red ones are hardpoints (your weapons): lose all of them and you're out. Hover any part for its details; hover a card and its part lights up.", "next"],
-	["combat", "hand", "Your hand. Every component still standing gives you its cards. Lose a part, lose its cards. Each card plays once per turn, and they all come back when your next turn starts.", "next"],
-	["combat", "heat", "Heat. Cards cost heat. Go over your max and you overheat: the backlash deals 15% of your max HP across random parts, and your turn ends. Ending your turn vents it.", "next"],
-	["combat", "intents", "Enemy intent: what it'll do on its turn. Hover an icon to see the card, and which of your parts it's aiming at.", "next"],
-	["combat", "enemy", "Drag an attack card onto one of its parts to hit that part: its health bar shows what it'll take off, and a part about to be destroyed flashes red. Knock out its hardpoints, or wear its HP down into the dark red on its bar.", "card_played"],
-	["combat", "end_turn", "Play what you can afford, then End Turn. The enemy acts, then your heat vents for your next turn. Number keys play cards too, the Log button keeps a record, and every key is in Settings.", "turn_ended"],
+	["war_room", "table", "Welcome aboard, pilot. Every mission starts at the War Table. Click it.", "table_opened"],
+	["sector_map", "map", "Three locations, each with a mission. Pick any one. In training they all lead to the same place.", "location_opened"],
+	["popup", "launch", "Launch to drop in. Your HP and any parts you lose carry through the whole mission.", "launched"],
+	["location_map", "starts", "Your route, one stop per row, bottom to top: fights, repair bays, shops and events. Pick where to start.", "node_chosen"],
+	["combat", "player", "Your mech. Each colored block is a part with its own HP. Red parts are your weapons: lose them all and you're out.", "next"],
+	["combat", "hand", "Your hand. Each part gives you its cards. A card plays once a turn and comes back next turn.", "next"],
+	["combat", "heat", "Heat. Cards cost heat. Go over your max and you overheat: it damages your parts and ends your turn.", "next"],
+	["combat", "intents", "What the enemy plans to do. Hover an icon to see the card and which of your parts it's aiming at.", "next"],
+	["combat", "enemy", "Drag an attack card onto an enemy part to hit it. Destroy all its weapons, or bring its HP down into the dark red.", "card_played"],
+	["combat", "end_turn", "Done? Press End Turn. The enemy acts, then your heat vents for your next turn.", "turn_ended"],
 	["combat", "", "That's the loop. Finish it off.", "next"],
-	["reward", "reward", "Salvage. Your Scraps are banked automatically (spend them at autonomous bays). Choose one category and take one part: new parts go into your Cargo. Or skip it for a few scraps.", "reward_done"],
-	["refit", "mech", "A refit. Drag parts between your mech and your Cargo; R or right-click rotates. Lit squares show where a part fits, and Undo puts a move back.", "next"],
-	["refit", "cargo", "Where a part sits matters. Yellow arrows are links: some parts affect whatever they point at. Finish the refit when you're happy.", "refit_done"],
-	["combat", "", "One more fight with your new setup. Then you're cleared.", "next"],
-	["debrief", "", "Training complete. The War Table's yours now: pick a sector for a real mission. Directives pay Chips every day, and the Hangar lets you change mechs and loadouts.", "next"],
+	["reward", "reward", "Salvage. Your scraps are already banked. Pick a category, then one part for your Cargo. Or skip it for a few scraps.", "reward_done"],
+	["refit", "mech", "A refit. Click a part to pick it up, then click where it goes. R or right-click rotates it. Lit squares show where it fits.", "next"],
+	["refit", "cargo", "Yellow arrows are links: those parts affect whatever they point at. Finish the refit when you're ready.", "refit_done"],
+	["combat", "", "One more fight with your new setup.", "next"],
+	["debrief", "", "Training complete. Pick a location on the War Table for a real mission. The Hangar lets you change mechs and loadouts.", "next"],
 ]
 
 signal finished()
+## The War Room got (or changed) its name.
+signal base_named()
 
 var active: bool = false
 var step: int = 0
 var _point: String = ""
 var _targets: Dictionary = {}
 var _offer: bool = false
+## Asking for the War Room's name (the box shows a text field instead of Next).
+var _naming: bool = false
+## Showing a one-time hint (hint_once): its button just closes it.
+var _hinting: bool = false
+var _name_row: HBoxContainer
+var _name_edit: LineEdit
+var _name_btn: Button
 
 var _root: Control
 var _dim: Control
@@ -84,6 +93,23 @@ func _ready() -> void:
 	_text = UIKit.label("", 15, Color("eefcfa"), true)
 	_text.custom_minimum_size = Vector2(380, 0)
 	v.add_child(_text)
+	_name_row = HBoxContainer.new()
+	_name_row.add_theme_constant_override("separation", 8)
+	_name_row.visible = false
+	v.add_child(_name_row)
+	_name_edit = LineEdit.new()
+	_name_edit.max_length = Profile.BASE_NAME_MAX
+	_name_edit.placeholder_text = "Name the base"
+	_name_edit.custom_minimum_size = Vector2(240, 34)
+	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_name_edit.add_theme_font_size_override("font_size", 15)
+	_name_edit.text_changed.connect(func(t: String): _name_btn.disabled = t.strip_edges() == "")
+	_name_edit.text_submitted.connect(func(_t: String): _confirm_name())
+	_name_row.add_child(_name_edit)
+	_name_btn = GlassPanel.button("Name it", 13, true, Palette.LINK)
+	_name_btn.custom_minimum_size = Vector2(100, 34)
+	_name_btn.pressed.connect(_confirm_name)
+	_name_row.add_child(_name_btn)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)
@@ -98,10 +124,58 @@ func _ready() -> void:
 	row.add_child(_start_btn)
 	_next_btn = GlassPanel.button("Next", 13, true, Palette.LINK)
 	_next_btn.custom_minimum_size = Vector2(100, 32)
-	_next_btn.pressed.connect(func(): event("next"))
+	_next_btn.pressed.connect(_on_next)
 	row.add_child(_next_btn)
 
 # ---------- control ----------
+
+## A one-time note from the Operator the first time a pilot meets
+## something training doesn't cover (the first shop; later, statuses and
+## keywords). Shown once per profile, never during training.
+func hint_once(key: String, text: String) -> void:
+	if active or _naming or _hinting or not GameSettings.operator_tips or Profile.seen_hints.has(key):
+		return
+	Profile.seen_hints.append(key)
+	Profile.save()
+	_hinting = true
+	_targets = {}
+	_head.text = "OPERATOR  ·  SECURE CHANNEL"
+	_show(text, "", true)
+
+func _on_next() -> void:
+	if _hinting:
+		_hinting = false
+		_root.visible = false
+		_head.text = "OPERATOR  ·  TRAINING"
+		return
+	event("next")
+
+## The Operator asks what to call the War Room (the first time the game
+## opens, or again when its name in the top bar is clicked). Training is
+## offered once it has a name.
+func ask_base_name() -> void:
+	_naming = true
+	_targets = {}
+	_name_edit.text = Profile.base_name
+	_name_btn.disabled = Profile.base_name.strip_edges() == ""
+	_head.text = "OPERATOR  ·  SECURE CHANNEL"
+	_show("First things first, pilot: this place needs a name. What are we calling it?" if Profile.base_name == "" \
+		else "Renaming the place? Fine by me. Logistics will grumble.", "", false)
+	_name_edit.grab_focus.call_deferred()
+
+func _confirm_name() -> void:
+	var n := _name_edit.text.strip_edges()
+	if n == "":
+		return
+	_naming = false
+	Profile.base_name = n
+	Profile.save()
+	Audio.play("ui")
+	_root.visible = false
+	_head.text = "OPERATOR  ·  TRAINING"
+	base_named.emit()
+	if not Profile.tutorial_done and not active:
+		offer()
 
 ## The War Room asks a pilot who hasn't trained yet.
 func offer() -> void:
@@ -138,7 +212,7 @@ func reached(point: String, targets: Dictionary) -> void:
 	_point = point
 	_targets = targets
 	if not active:
-		if not _offer:
+		if not _offer and not _naming and not _hinting:
 			_root.visible = false
 		return
 	if STEPS[step][0] != point:
@@ -175,12 +249,14 @@ func _show(text: String, target: String, wait_next: bool) -> void:
 	_root.visible = true
 	_text.text = text
 	_text.visible_ratio = 0.0
-	_start_btn.visible = _offer
-	_next_btn.visible = not _offer and wait_next
-	_next_btn.text = "Got it" if step >= STEPS.size() - 1 or text.ends_with("off.") else "Next"
+	_name_row.visible = _naming
+	_start_btn.visible = _offer and not _naming
+	_next_btn.visible = not _offer and not _naming and wait_next
+	_next_btn.text = "Got it" if _hinting or step >= STEPS.size() - 1 or text.ends_with("off.") else "Next"
 	_skip_btn.text = "Not now" if _offer else "Skip training"
+	_skip_btn.visible = not _naming and not _hinting
 	# "Next" steps hold the screen; action steps let clicks through.
-	_dim.mouse_filter = Control.MOUSE_FILTER_STOP if (wait_next or _offer) else Control.MOUSE_FILTER_IGNORE
+	_dim.mouse_filter = Control.MOUSE_FILTER_STOP if (wait_next or _offer or _naming) else Control.MOUSE_FILTER_IGNORE
 	_current_target = target
 	_t = 0.0
 	_place_box()

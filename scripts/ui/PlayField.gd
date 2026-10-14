@@ -6,12 +6,12 @@ extends Control
 ## With a background from data/backgrounds.json it draws that image
 ## (covering the screen, enlarged by its zoom from the bottom edge) and knows
 ## where enemies' feet stand on its floor; without one it's the plain field.
-## A background with `weather` "rain" gets a Rain layer over the image (under
-## everything else on the screen).
+## A background with `weather` ("rain", "snow" or "dust") gets that layer
+## (Rain, Snow, Dust) over the image (under everything else on the screen).
 
 var background: Dictionary = {}
 var _texture: Texture2D = null
-var _rain: Rain = null
+var _weather: Control = null # Rain, Snow or Dust
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -22,23 +22,27 @@ func set_background(bg: Dictionary) -> void:
 	background = bg
 	var path: String = bg.get("image", "")
 	_texture = load(path) if path != "" and ResourceLoader.exists(path) else null
-	if _rain != null:
-		_rain.queue_free()
-		_rain = null
-	if _texture != null and bg.get("weather", "") == "rain":
-		_rain = Rain.new()
-		add_child(_rain)
+	if _weather != null:
+		_weather.queue_free()
+		_weather = null
+	if _texture != null:
+		match bg.get("weather", ""):
+			"rain": _weather = Rain.new()
+			"snow": _weather = Snow.new()
+			"dust": _weather = Dust.new()
+	if _weather != null:
+		add_child(_weather)
 		_fit_weather()
 	queue_redraw()
 
-## The rain covers the field, lands on the background's ground and falls in
-## its pixel size.
+## The weather covers the field, lands on the background's ground and moves
+## in its pixel size.
 func _fit_weather() -> void:
-	if _rain == null:
+	if _weather == null:
 		return
 	var rect := image_rect()
-	_rain.size = size
-	_rain.setup(rect.position.y + float(background.get("ground", 0.5)) * rect.size.y, rect.size.x / _texture.get_width())
+	_weather.size = size
+	_weather.call("setup", rect.position.y + float(background.get("ground", 0.5)) * rect.size.y, rect.size.x / _texture.get_width())
 
 ## Where the background image sits on the screen.
 func image_rect() -> Rect2:

@@ -14,6 +14,7 @@ var _text: Label
 var _choices: VBoxContainer
 var _result: Label
 var _continue: Button
+var _backdrop: Texture2D = null
 
 func screen_phase() -> String:
 	return RunData.PHASE_EVENT
@@ -21,7 +22,13 @@ func screen_phase() -> String:
 func screen_title() -> String:
 	return "Event"
 
+## The event's own scene (assets/events/<event id>.png), dimmed under the text.
+func backdrop() -> Texture2D:
+	return _backdrop
+
 func _build() -> void:
+	var path := "res://assets/events/%s.png" % run.event.get("id", "")
+	_backdrop = load(path) if ResourceLoader.exists(path) else null
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override("separation", 16)
 	add_child(_content)

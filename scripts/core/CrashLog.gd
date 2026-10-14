@@ -141,6 +141,7 @@ static func system_info() -> Dictionary:
 	var driver := OS.get_video_adapter_driver_info()
 	var screen := DisplayServer.window_get_current_screen()
 	return {
+		"build": BuildInfo.label(),
 		"godot": Engine.get_version_info().get("string", ""),
 		"os": "%s %s" % [OS.get_name(), OS.get_version()],
 		"cpu": "%s (%d threads)" % [OS.get_processor_name(), OS.get_processor_count()],

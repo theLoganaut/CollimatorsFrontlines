@@ -18,6 +18,10 @@ signal cell_pressed(grid: PackingGrid, cell: Vector2i)
 signal part_hovered(grid: PackingGrid, part: ComponentData)
 
 const GAP := 3.0
+## A press and release closer than this (pixels) is a click: it picks the
+## part up to carry, and the next click puts it down (Logan, 2026-10-13).
+## A release farther away is a drag and drops there.
+const CLICK_SLOP := 6.0
 
 var title: String = ""
 var cell_size: float = 40.0

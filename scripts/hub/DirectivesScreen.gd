@@ -10,6 +10,9 @@ var _col: VBoxContainer
 func screen_title() -> String:
 	return "Directives"
 
+func backdrop_name() -> String:
+	return "directives"
+
 func _build() -> void:
 	_col = VBoxContainer.new()
 	_col.add_theme_constant_override("separation", 12)
@@ -53,7 +56,7 @@ func _directive_card(d: Dictionary, progress: int, done: bool) -> Control:
 	bar.custom_minimum_size = Vector2(0, 10)
 	var fill := UIKit.style(Palette.OK if done else Palette.SCRAPS, Color.TRANSPARENT, 0, 3)
 	bar.add_theme_stylebox_override("fill", fill)
-	bar.add_theme_stylebox_override("background", UIKit.style(Palette.PANEL_2, Palette.BORDER, 1, 3))
+	bar.add_theme_stylebox_override("background", GlassPanel.control_style(GlassPanel.HOLO))
 	v.add_child(bar)
 	var note := "%d / %d" % [mini(progress, goal), goal] if str(d.get("kind", "sum")) == "sum" else ("Done in one mission" if done else "In a single mission")
 	if d.has("mech"):

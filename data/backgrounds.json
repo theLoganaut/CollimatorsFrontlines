@@ -1,5 +1,5 @@
 {
-  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` \"rain\" draws falling rain over the background, splashing on the ground from `ground` (the y fraction of the image where the ground starts) down.",
+  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` draws weather over the background (PlayField): \"rain\" falls and splashes, \"snow\" floats down and settles, \"dust\" blows in gusts and lifts off the ground, all on the ground from `ground` (the y fraction of the image where the ground starts) down.",
   "backgrounds": [
     {
       "id": "shipyard_regular",
@@ -80,6 +80,166 @@
       },
       "weather": "rain",
       "ground": 0.38
+    },
+    {
+      "id": "data_archives_regular",
+      "location": "data_archives",
+      "tier": "regular",
+      "image": "res://assets/backgrounds/data_archives_regular.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.3,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "data_archives_regular_alt",
+      "location": "data_archives",
+      "tier": "regular",
+      "image": "res://assets/backgrounds/data_archives_regular_alt.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.4,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "data_archives_elite",
+      "location": "data_archives",
+      "tier": "elite",
+      "image": "res://assets/backgrounds/data_archives_elite.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.35,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "data_archives_elite_alt",
+      "location": "data_archives",
+      "tier": "elite",
+      "image": "res://assets/backgrounds/data_archives_elite_alt.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.3,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "data_archives_boss",
+      "location": "data_archives",
+      "tier": "boss",
+      "image": "res://assets/backgrounds/data_archives_boss.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.4,
+      "slots": {
+        "1": [[0.5, 0.44]]
+      }
+    },
+    {
+      "id": "data_archives_boss_alt",
+      "location": "data_archives",
+      "tier": "boss",
+      "image": "res://assets/backgrounds/data_archives_boss_alt.png",
+      "zoom": 1.0,
+      "weather": "snow",
+      "ground": 0.4,
+      "slots": {
+        "1": [[0.5, 0.44]]
+      }
+    },
+    {
+      "id": "mining_grounds_regular",
+      "location": "mining_grounds",
+      "tier": "regular",
+      "image": "res://assets/backgrounds/mining_grounds_regular.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.3,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "mining_grounds_regular_alt",
+      "location": "mining_grounds",
+      "tier": "regular",
+      "image": "res://assets/backgrounds/mining_grounds_regular_alt.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.38,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.4, 0.44], [0.6, 0.44]],
+        "3": [[0.32, 0.448], [0.5, 0.44], [0.68, 0.448]]
+      }
+    },
+    {
+      "id": "mining_grounds_elite",
+      "location": "mining_grounds",
+      "tier": "elite",
+      "image": "res://assets/backgrounds/mining_grounds_elite.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.38,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.4, 0.44], [0.6, 0.44]],
+        "3": [[0.32, 0.448], [0.5, 0.44], [0.68, 0.448]]
+      }
+    },
+    {
+      "id": "mining_grounds_elite_alt",
+      "location": "mining_grounds",
+      "tier": "elite",
+      "image": "res://assets/backgrounds/mining_grounds_elite_alt.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.35,
+      "slots": {
+        "1": [[0.5, 0.44]],
+        "2": [[0.388, 0.44], [0.612, 0.44]],
+        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
+      }
+    },
+    {
+      "id": "mining_grounds_boss",
+      "location": "mining_grounds",
+      "tier": "boss",
+      "image": "res://assets/backgrounds/mining_grounds_boss.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.42,
+      "slots": {
+        "1": [[0.5, 0.44]]
+      }
+    },
+    {
+      "id": "mining_grounds_boss_alt",
+      "location": "mining_grounds",
+      "tier": "boss",
+      "image": "res://assets/backgrounds/mining_grounds_boss_alt.png",
+      "zoom": 1.0,
+      "weather": "dust",
+      "ground": 0.45,
+      "slots": {
+        "1": [[0.5, 0.44]]
+      }
     }
   ]
 }

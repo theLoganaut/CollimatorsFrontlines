@@ -5,61 +5,74 @@ extends RefCounted
 ## component"). Mirrors Statuses & Links / Refit Bay's Statuses tab, with
 ## the Combat Slice's clarifications where the base rule had a gap.
 
+## "tip": the Operator's one-time plain-words note the first time a pilot
+## meets the status in a fight (CombatScene._explain_a_status).
 const ENTRIES := {
 	"shock": {
 		"label": "Shock",
 		"rule": "Deals 2/3 damage (rounded down) on every hit while it holds any Shock.",
 		"decay": "Loses 1 stack at the end of its own side's turn.",
+		"tip": "Shock. A shocked part hits for a third less while it's on. It wears off a stack each turn.",
 	},
 	"acid": {
 		"label": "Acid",
 		"rule": "Component takes 1/3 more damage.",
 		"decay": "Lose 1 at end of turn.",
+		"tip": "Acid. A part with Acid takes a third more damage. It drops a stack each turn.",
 	},
 	"absorb": {
 		"label": "Absorb",
 		"rule": "The next hit on this mech is reduced by the stacks, and the hit component heals that much (can't revive a destroyed one).",
 		"decay": "All stacks are lost the instant a hit triggers it, or at the start of this mech's own turn.",
+		"tip": "Absorb soaks up the next hit on that mech and patches the part it lands on. It's spent after one hit, or when that mech's turn starts.",
 	},
 	"deflect": {
 		"label": "Deflect",
 		"rule": "Incoming damage is reduced by the stacks (a flat amount) on every hit.",
 		"decay": "Each hit it reduces removes ceil(stacks/2) — a single stack is used up on the very next hit.",
+		"tip": "Deflect knocks a flat amount off every hit, and wears down as it blocks. Lots of small hits strip it fast.",
 	},
 	"burn": {
 		"label": "Burn",
 		"rule": "+1 Heat per stack at turn start.",
 		"decay": "Lose 1 at end of turn.",
+		"tip": "Burn adds heat at the start of that mech's turn, one per stack. Watch your max.",
 	},
 	"disabled": {
 		"label": "Disabled",
 		"rule": "Component can't be used.",
 		"decay": "Lose 1 at the end of its owner's turn: on your part, the end of your turn; on an enemy's, the end of theirs.",
+		"tip": "Disabled parts can't be used until it wears off at the end of their owner's turn.",
 	},
 	"offline": {
 		"label": "Offline",
 		"rule": "Component can't be used for the rest of this fight.",
 		"decay": "Clears when the fight ends.",
+		"tip": "Offline means that part is out for the rest of the fight. It's back for the next one.",
 	},
 	"freeze": {
 		"label": "Freeze",
 		"rule": "If the component is used, Freeze is removed and the component goes Offline.",
 		"decay": "Lose 1 at end of turn.",
+		"tip": "Freeze: use that part and it goes Offline for the fight. Wait it out; it drops a stack each turn.",
 	},
 	"coolant": {
 		"label": "Coolant",
 		"rule": "Component costs 1 less Heat.",
 		"decay": "Lose 1 each time the component is used.",
+		"tip": "Coolant makes that part's cards cost 1 less heat. Each use spends a stack.",
 	},
 	"jam": {
 		"label": "Jam",
 		"rule": "Component costs 1 more Heat.",
 		"decay": "Lose 1 each time the component is used.",
+		"tip": "Jam makes that part's cards cost 1 more heat. Each use clears a stack.",
 	},
 	"smoke": {
 		"label": "Smoke",
 		"rule": "Venting is reduced by the stacks, and each point vented removes 1 stack first.",
 		"decay": "Consumed by venting, and lose 1 at end of turn.",
+		"tip": "Smoke holds back that mech's venting, a point per stack. It burns off as the heat vents.",
 	},
 	"destroyed": {
 		"label": "Destroyed",

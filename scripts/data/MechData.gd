@@ -27,6 +27,11 @@ var max_heat: int
 ## Share of heat vented at max heat; < 0 = balance.json heat.vent_at_max
 ## (Overclocked Core lowers it for a run).
 var vent_at_max: float = -1.0
+## Heat added at the start of each of this mech's turns (Special
+## Requisition, a run mod).
+var turn_heat: int = 0
+## Left the fight with nothing left to play (Logan, 2026-10-13); defeated.
+var retreated: bool = false
 var heat_check_timing: String
 var components: Array[ComponentData] = []
 
@@ -73,8 +78,15 @@ var defeat_hp_fraction: float = 0.0
 ## - every one of its hardpoints is destroyed (it can't fight back), or
 ## - its total HP falls to defeat_hp_threshold() — so damage to reactors and
 ##   protocols still counts toward the kill.
+## - it retreated: nothing left it could ever play (CombatManager; counts
+##   as a kill).
 func is_defeated() -> bool:
-	return all_hardpoints_destroyed() or current_hp() <= defeat_hp_threshold()
+	return retreated or all_hardpoints_destroyed() or current_hp() <= defeat_hp_threshold()
+
+## Whether any part could still give it a card this fight: standing, with
+## cards, and not Offline (Offline lasts the fight; Disabled wears off).
+func has_cards_left() -> bool:
+	return components.any(func(c): return not c.destroyed and c.has_cards() and c.status_stacks("offline") <= 0)
 
 func defeat_hp_threshold() -> int:
 	if defeat_hp_fraction <= 0.0:
@@ -228,9 +240,11 @@ func clone() -> MechData:
 	m.ai = ai.duplicate(true)
 	m.lines = lines.duplicate()
 	m.phase2_reached = phase2_reached
+	m.retreated = retreated
 	m.cells = cells.duplicate()
 	m.max_heat = max_heat
 	m.vent_at_max = vent_at_max
+	m.turn_heat = turn_heat
 	m.defeat_hp_fraction = defeat_hp_fraction
 	m.heat_check_timing = heat_check_timing
 	m.components = []

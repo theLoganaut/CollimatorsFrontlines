@@ -31,10 +31,21 @@ const DEFS := [
 	["autonomous_bays", "Autonomous bays visited"],
 	["refits", "Refits"],
 ]
+## What the debrief shows, in order (Logan, 2026-10-13); the rest are
+## still tracked for the Pilot Log and directives.
+const DEBRIEF := ["damage_dealt", "damage_taken", "biggest_hit", "best_turn_damage", "cards_played", "heat_generated",
+	"enemies_destroyed", "fights_won", "fastest_fight", "turns_taken", "scraps_earned", "scraps_spent"]
 const MAX_KEYS := ["biggest_hit", "best_turn_damage"]
 const MIN_KEYS := ["fastest_fight"]
 
 var values: Dictionary = {}
+
+## A stat's name ("Damage dealt").
+static func label(key: String) -> String:
+	for d in DEFS:
+		if d[0] == key:
+			return d[1]
+	return key.capitalize()
 
 func get_stat(key: String) -> int:
 	return int(values.get(key, 0))

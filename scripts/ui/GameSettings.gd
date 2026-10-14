@@ -10,7 +10,7 @@ extends Node
 ## (made here at startup, so no bus layout file is needed); each slider is
 ## 0 (off) to 1. Colorblind
 ## mode swaps the status colors for a colorblind-safe set and draws each
-## status as its own shape (Palette.status_color / status_shape). Reduce
+## status keeps its own glyph (Palette.draw_status). Reduce
 ## motion stops screen shake, rain, the holograms' flicker and sway, and
 ## the crosshair's spin (read where each one moves).
 
@@ -28,6 +28,7 @@ const KEY_ACTIONS := [
 	["fire", "Fire at the target", KEY_ENTER],
 	["rotate", "Rotate a held part", KEY_R],
 	["undo", "Undo a move (with Ctrl / Cmd)", KEY_Z],
+	["feedback", "Send feedback", KEY_F8],
 ]
 ## Keys that can't be bound (they already mean something fixed).
 const RESERVED_KEYS := [KEY_ESCAPE, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9,
@@ -43,6 +44,8 @@ var screen_shake: bool = true
 var log_open: bool = false
 ## The description box shows while hovering; with this on, only while Shift is held too.
 var describe_on_shift: bool = false
+## One-time Operator notes (the first shop, the first time a status shows up).
+var operator_tips: bool = true
 var master_volume: float = 1.0
 var sfx_volume: float = 0.7
 var music_volume: float = 0.5
@@ -149,6 +152,7 @@ func _load() -> void:
 	screen_shake = bool(cfg.get_value("game", "screen_shake", screen_shake))
 	log_open = bool(cfg.get_value("game", "log_open", log_open))
 	describe_on_shift = bool(cfg.get_value("game", "describe_on_shift", describe_on_shift))
+	operator_tips = bool(cfg.get_value("game", "operator_tips", operator_tips))
 	master_volume = clampf(float(cfg.get_value("audio", "master_volume", master_volume)), 0.0, 1.0)
 	sfx_volume = clampf(float(cfg.get_value("audio", "sfx_volume", sfx_volume)), 0.0, 1.0)
 	music_volume = clampf(float(cfg.get_value("audio", "music_volume", music_volume)), 0.0, 1.0)
@@ -171,6 +175,7 @@ func _save() -> void:
 	cfg.set_value("game", "screen_shake", screen_shake)
 	cfg.set_value("game", "log_open", log_open)
 	cfg.set_value("game", "describe_on_shift", describe_on_shift)
+	cfg.set_value("game", "operator_tips", operator_tips)
 	cfg.set_value("audio", "master_volume", master_volume)
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
 	cfg.set_value("audio", "music_volume", music_volume)

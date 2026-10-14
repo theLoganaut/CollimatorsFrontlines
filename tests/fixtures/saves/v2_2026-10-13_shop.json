@@ -1,0 +1,218 @@
+{
+ "alert_turns": 0,
+ "base_bounds": [
+  0,
+  0,
+  5,
+  5
+ ],
+ "bench": [
+  {
+   "destroyed": false,
+   "hp": 45,
+   "id": "autocannon",
+   "library_id": "autocannon",
+   "max_hp": 45,
+   "offset": [
+    0,
+    0
+   ],
+   "rotation": 0
+  }
+ ],
+ "boss_intel": false,
+ "boss_intel_used": false,
+ "bosses_met": [],
+ "cargo": {
+  "cols": 3,
+  "items": [],
+  "rows": 3
+ },
+ "cargo_upgrades": 0,
+ "cells_bought": 0,
+ "current_node_id": -1,
+ "encounter_history": [],
+ "end_cause": "",
+ "event": {},
+ "events_seen": [],
+ "fight_log": [],
+ "fight_rolls": {},
+ "fights_won": 0,
+ "frame": [
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   1
+  ],
+  [
+   0,
+   3
+  ],
+  [
+   0,
+   4
+  ],
+  [
+   1,
+   0
+  ],
+  [
+   1,
+   1
+  ],
+  [
+   1,
+   2
+  ],
+  [
+   1,
+   3
+  ],
+  [
+   1,
+   4
+  ],
+  [
+   2,
+   1
+  ],
+  [
+   2,
+   3
+  ],
+  [
+   3,
+   0
+  ],
+  [
+   3,
+   1
+  ],
+  [
+   3,
+   2
+  ],
+  [
+   3,
+   3
+  ],
+  [
+   3,
+   4
+  ],
+  [
+   4,
+   1
+  ],
+  [
+   4,
+   3
+  ]
+ ],
+ "location_id": "data_archives",
+ "mech": [
+  {
+   "destroyed": false,
+   "hp": 63,
+   "id": "heat_lance",
+   "library_id": "heat_lance",
+   "max_hp": 63,
+   "offset": [
+    0,
+    1
+   ],
+   "rotation": 0
+  },
+  {
+   "destroyed": false,
+   "hp": 60,
+   "id": "thermal_lance",
+   "library_id": "thermal_lance",
+   "max_hp": 60,
+   "offset": [
+    0,
+    3
+   ],
+   "rotation": 1
+  },
+  {
+   "destroyed": false,
+   "hp": 28,
+   "id": "queue_processor",
+   "library_id": "queue_processor",
+   "max_hp": 28,
+   "offset": [
+    3,
+    1
+   ],
+   "rotation": 2
+  },
+  {
+   "destroyed": false,
+   "hp": 28,
+   "id": "recycling_loops",
+   "library_id": "recycling_loops",
+   "max_hp": 28,
+   "offset": [
+    3,
+    3
+   ],
+   "rotation": 1
+  }
+ ],
+ "mech_path": "res://data/mechs/redline.json",
+ "mission": {
+  "alert": {
+   "deflect_per_tier": 2.0,
+   "extra_enemy_from_tier": 3.0,
+   "max_tier": 4.0,
+   "turns_per_tier": 12.0
+  },
+  "boss": true,
+  "elite_escort_from_row": 8.0,
+  "id": "rescue",
+  "max_shops": 3.0,
+  "name": "Rescue",
+  "refit_after_rows": [
+   2.0,
+   5.0,
+   8.0,
+   11.0
+  ],
+  "repair_before_boss": true,
+  "rows": 12.0,
+  "summary": "Get in and out fast: the Alert level rises with every turn spent fighting, and higher Alert makes every fight harder. Ends in a boss."
+ },
+ "mission_id": "rescue",
+ "mods": {},
+ "next_fight": [],
+ "orders": {},
+ "path": [],
+ "phase": "shop",
+ "repair_pool": 0,
+ "result": 0,
+ "resumes": [],
+ "reward": {},
+ "rng_state": "-5771667877337721144",
+ "scraps": 150,
+ "seed": 777,
+ "shop": {
+  "parts": [
+   "twin_linked_autocannon",
+   "vent_cannon",
+   "mirror_plating",
+   "overclock_shunt",
+   "catalyst_injector",
+   "munitions_splitter"
+  ],
+  "refined": false,
+  "upgrade_bought": false
+ },
+ "stats": {
+  "scraps_earned": 150
+ },
+ "v": 2
+}

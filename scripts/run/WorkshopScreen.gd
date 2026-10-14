@@ -54,6 +54,10 @@ var _drag_from: PackingGrid = null
 var _drag_steps: int = 0
 var _drag_rel := Vector2i.ZERO
 var _mouse := Vector2.ZERO
+## Where the press that picked the part up was, and whether it's being
+## carried (picked up with a click; the next click puts it down).
+var _press_at := Vector2.ZERO
+var _carrying: bool = false
 
 ## The bay's pixel art (res:// path).
 func bay_art() -> String:
@@ -369,6 +373,8 @@ func _on_part_pressed(g: PackingGrid, part: ComponentData, cell: Vector2i) -> vo
 	_drag_from = g
 	_drag_steps = part.rotation_steps
 	_drag_rel = cell - part.offset
+	_press_at = _mouse
+	_carrying = false
 	g.dim_part = part
 	g.queue_redraw()
 	_preview.show_part(part)
@@ -407,9 +413,16 @@ func _input(event: InputEvent) -> void:
 		_end_drag()
 	elif event is InputEventMouseMotion:
 		_update_ghost()
-	elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		get_viewport().set_input_as_handled()
-		_drop()
+		if event.pressed:
+			if _carrying:
+				_drop()
+		elif not _carrying and _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
+			_carrying = true
+			_say("Holding %s: click where it goes. %s or right-click rotates, Esc puts it back." % [_drag.name, GameSettings.key_label("rotate")])
+		elif not _carrying:
+			_drop()
 
 ## {grid, offset} under the mouse, or {}.
 func _target() -> Dictionary:
@@ -439,13 +452,16 @@ func _drop() -> void:
 				RunData.MECH: _say("%s installed." % _drag.name)
 				RunData.CARGO: _say("%s stowed in Cargo." % _drag.name)
 				RunData.BENCH: _say("%s set on the workbench (worth %d scraps if left there)." % [_drag.name, Economy.scrap_value(_drag)])
-		elif where == RunData.MECH and not run.can_rearrange(RunData.MECH):
-			_say("The chassis can only be changed at a refit.", Palette.WARNING)
-		elif where == RunData.MECH and not run.fits_class(_drag):
-			var wc := ComponentLibrary.weight_class_of(_drag.library_id).capitalize()
-			_say("%s is a %s part: it only fits a %s chassis." % [_drag.name, wc, wc], Palette.WARNING)
 		else:
-			_say("It doesn't fit there.", Palette.WARNING)
+			if where == RunData.MECH and not run.can_rearrange(RunData.MECH):
+				_say("The chassis can only be changed at a refit.", Palette.WARNING)
+			elif where == RunData.MECH and not run.fits_class(_drag):
+				var wc := ComponentLibrary.weight_class_of(_drag.library_id).capitalize()
+				_say("%s is a %s part: it only fits a %s chassis." % [_drag.name, wc, wc], Palette.WARNING)
+			else:
+				_say("It doesn't fit there.", Palette.WARNING)
+			if _carrying:
+				return # still in hand: click somewhere else
 	_end_drag()
 
 ## Where a part is now: RunData.MECH / CARGO / BENCH, or "" if it's gone.
@@ -488,4 +504,5 @@ func _end_drag() -> void:
 		g.set_hints({})
 	_drag = null
 	_drag_from = null
+	_carrying = false
 	_refresh()

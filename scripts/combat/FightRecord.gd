@@ -56,7 +56,7 @@ static func mech_to_dict(m: MechData) -> Dictionary:
 		parts[i]["statuses"] = _statuses_to_list(m.components[i].statuses)
 	return {
 		"id": m.id, "name": m.name, "cells": m.cells.map(func(c): return [c.x, c.y]),
-		"max_heat": m.max_heat, "vent_at_max": m.vent_at_max, "heat": m.current_heat,
+		"max_heat": m.max_heat, "vent_at_max": m.vent_at_max, "turn_heat": m.turn_heat, "heat": m.current_heat,
 		"phase2": m.phase2_reached, "statuses": _statuses_to_list(m.mech_statuses), "parts": parts,
 	}
 
@@ -80,6 +80,7 @@ static func mech_from_dict(d: Dictionary) -> MechData:
 		m.cells.append(Vector2i(int(c[0]), int(c[1])))
 	m.max_heat = int(d.get("max_heat", m.max_heat))
 	m.vent_at_max = float(d.get("vent_at_max", -1.0))
+	m.turn_heat = int(d.get("turn_heat", 0))
 	m.current_heat = int(d.get("heat", 0))
 	m.phase2_reached = bool(d.get("phase2", false))
 	m.mech_statuses = _statuses_from_list(d.get("statuses", []))

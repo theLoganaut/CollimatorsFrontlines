@@ -70,9 +70,15 @@ static func variant(run_mission: Dictionary) -> Dictionary:
 
 # ---------- what they do ----------
 
-## Every modifier on a run: its location's, then its variant's.
+## Whether location rules and sector-rolled variants are on (balance.json
+## conditions.enabled). Off (Logan, 2026-10-13) until locations rotate and
+## a pilot always has another place to go; the Daily still rolls a variant.
+static func enabled() -> bool:
+	return bool(Balance.section("conditions").get("enabled", true))
+
+## Every modifier on a run: its location's (while enabled), then its variant's.
 static func modifiers(location: Dictionary, mission: Dictionary) -> Array:
-	var out: Array = location.get("modifiers", []).duplicate()
+	var out: Array = location.get("modifiers", []).duplicate() if enabled() else []
 	for m in variant(mission).get("modifiers", []):
 		if not out.has(m):
 			out.append(m)

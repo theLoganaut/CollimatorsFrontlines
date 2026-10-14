@@ -132,16 +132,19 @@ static func _prices(t: TestContext) -> void:
 
 static func _conditions(t: TestContext) -> void:
 	t.group("content: location modifiers and mission variants")
+	var was_on := Conditions.enabled()
+	Balance.set_value("conditions", "enabled", true) # off in the game for now; the rules still work
 	var ship := _run("shipyard", "assault", 11)
 	var p := ship.player_mech
 	var ws: Array[MechData] = [DataLoader.load_mech_from_file("res://tests/fixtures/scrap_warden_classic.json")]
 	ship.current_node_id = ship.available_nodes()[0]
 	ship.prepare_player_for_fight()
 	var log := ship.apply_fight_start_effects(p, ws)
-	t.assert_true(is_equal_approx(p.vent_at_max, 0.75) and is_equal_approx(ws[0].vent_at_max, 0.75), "Rain at the Shipyard: every mech vents 75% at max, not 80%")
+	var rained := (1.0 if HeatRules.full_reset() else 0.8) - 0.05
+	t.assert_true(is_equal_approx(p.vent_at_max, rained) and is_equal_approx(ws[0].vent_at_max, rained), "Rain at the Shipyard: every mech vents 5% less")
 	t.assert_true(log.any(func(l): return l.begins_with("Rain")), "…and the combat log says so")
 	ship.apply_fight_start_effects(p, ws)
-	t.assert_true(is_equal_approx(p.vent_at_max, 0.75), "…without stacking fight after fight")
+	t.assert_true(is_equal_approx(p.vent_at_max, rained), "…without stacking fight after fight")
 	var arch := _run("data_archives", "assault", 11)
 	arch.current_node_id = arch.available_nodes()[0]
 	arch.prepare_player_for_fight()
@@ -166,6 +169,10 @@ static func _conditions(t: TestContext) -> void:
 		var v := Conditions.roll_variant(rng)
 		counts[v] = int(counts.get(v, 0)) + 1
 	t.assert_true(int(counts.get("standard", 0)) > 300 and counts.size() == 5, "variants roll by their weights (Standard about half the time)")
+	Balance.set_value("conditions", "enabled", false)
+	t.assert_true(Conditions.modifiers(_sector("shipyard"), _mission("assault")).is_empty(), "switched off: no location rules")
+	t.assert_eq(Conditions.modifiers(_sector("shipyard"), Conditions.with_variant(_mission("assault"), "hardened")), ["braced"], "…but a variant (the Daily's) still applies")
+	Balance.set_value("conditions", "enabled", was_on)
 
 static func _daily(t: TestContext) -> void:
 	t.group("content: the Daily Operation")

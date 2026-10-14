@@ -61,6 +61,12 @@ var lifetime: Dictionary = {}
 var achievements: Dictionary = {}
 ## The training run (or its skip) is behind this pilot.
 var tutorial_done: bool = false
+## The War Room's name, chosen the first time the game opens (Logan,
+## 2026-10-13); "" until then.
+var base_name: String = ""
+## One-time Operator hints already shown (Tutorial.hint_once keys).
+var seen_hints: Array = []
+const BASE_NAME_MAX := 24
 ## What came out of the last run, for the Operator: {result, location,
 ## mission, stops, new_bosses: [names], intel, alert}.
 var last_report: Dictionary = {}
@@ -101,6 +107,8 @@ func load_profile() -> void:
 			var st: Dictionary = h.get("stats", {})
 			memorial_points += Meta.memorial_points_for(int(st.get("elites_beaten", 0)), int(st.get("bosses_beaten", 0)))
 	tutorial_done = bool(d.get("tutorial_done", false))
+	base_name = str(d.get("base_name", ""))
+	seen_hints = d.get("seen_hints", [])
 	daily = d.get("daily", {})
 	enemy_record = d.get("enemy_record", {})
 	achievements = d.get("achievements", {})
@@ -130,7 +138,7 @@ func save() -> void:
 		"runs": runs, "clears": clears, "loadouts": loadouts, "hangar_bench": hangar_bench, "mech": mech, "last_report": last_report,
 		"chips": chips, "chips_earned": chips_earned, "liveries": liveries, "livery": livery,
 		"directives": directives, "directives_done_total": directives_done_total, "weekly": weekly, "streak": streak,
-		"history": history, "boss_record": boss_record, "tutorial_done": tutorial_done,
+		"history": history, "boss_record": boss_record, "tutorial_done": tutorial_done, "base_name": base_name, "seen_hints": seen_hints,
 		"memorial_points": memorial_points, "daily": daily, "mech_record": mech_record, "enemy_record": enemy_record,
 		"seen_enemies": seen_enemies, "seen_orders": seen_orders, "lifetime": lifetime, "achievements": achievements,
 	})
@@ -158,7 +166,8 @@ func sector_variants() -> Dictionary:
 	rng.seed = sector_seed * 7717 + 3
 	var out := {}
 	for loc in GameData.sectors():
-		out[loc["id"]] = Conditions.roll_variant(rng)
+		var v := Conditions.roll_variant(rng)
+		out[loc["id"]] = v if Conditions.enabled() else "standard"
 	return out
 
 ## A location's mission for this sector roll, with its variant attached.
@@ -260,6 +269,10 @@ func _earn_achievements(run: RunData) -> Array:
 		achievements[d["id"]] = Meta.today()
 		add_chips(int(d.get("chips", 0)))
 		out.append({"id": d["id"], "name": d["name"], "text": d["text"], "chips": int(d.get("chips", 0))})
+	# by path, not name: tests load this script without the autoloads
+	var steam := get_node_or_null("/root/SteamService") if is_inside_tree() else null
+	if steam != null:
+		steam.unlock_achievements(out.map(func(a): return a["id"]))
 	return out
 
 ## Whether today's Daily Operation has been launched already.

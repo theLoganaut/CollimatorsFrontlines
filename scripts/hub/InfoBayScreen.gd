@@ -21,15 +21,18 @@ var _class: String = ""
 func screen_title() -> String:
 	return "Info Bay"
 
+func backdrop_name() -> String:
+	return "info_bay"
+
 func _build() -> void:
 	_tabs = HBoxContainer.new()
 	_tabs.add_theme_constant_override("separation", 8)
 	add_child(_tabs)
 	for t in TABS:
-		var b := UIKit.button(t[1], Color.TRANSPARENT, Vector2(150, 36), 14)
+		var b := HubScreen.glass_button(t[1], Color.TRANSPARENT, Vector2(150, 36), 14)
 		b.pressed.connect(func(): _tab = t[0]; _rebuild())
 		_tabs.add_child(b)
-	var train := UIKit.button("Replay training", Palette.LINK, Vector2(160, 36), 13)
+	var train := HubScreen.glass_button("Replay training", Palette.LINK, Vector2(160, 36), 13)
 	train.disabled = SaveGame.has_save()
 	train.tooltip_text = "Finish or abandon your mission in progress first." if train.disabled else "Two short fights that walk you through the basics."
 	train.pressed.connect(func():
@@ -45,7 +48,7 @@ func _rebuild() -> void:
 		c.queue_free()
 	for i in range(TABS.size()):
 		var on: bool = TABS[i][0] == _tab
-		(_tabs.get_child(i) as Button).add_theme_stylebox_override("normal", UIKit.style(Palette.PANEL_2, Palette.HARDPOINT if on else Palette.BORDER, 2 if on else 1))
+		GlassPanel.style_button(_tabs.get_child(i) as Button, on)
 	match _tab:
 		"components": _build_components()
 		"statuses": _build_statuses()
@@ -160,7 +163,7 @@ func _build_components() -> void:
 		if (_cat != "" and d["category"] != _cat) or (_rarity != "" and d["rarity"] != _rarity) or (_class != "" and d.get("weight_class", "general") != _class):
 			continue
 		shown += 1
-		var b := UIKit.button("%s   ·   %s · %s · %d HP" % [d["name"], str(d["rarity"]).capitalize(), str(d.get("weight_class", "general")).capitalize(), int(d["hp"])], Color.TRANSPARENT, Vector2(0, 30), 12)
+		var b := HubScreen.glass_button("%s   ·   %s · %s · %d HP" % [d["name"], str(d["rarity"]).capitalize(), str(d.get("weight_class", "general")).capitalize(), int(d["hp"])], Color.TRANSPARENT, Vector2(0, 30), 12)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.add_theme_color_override("font_color", Palette.category_color(d["category"]))
 		b.mouse_entered.connect(_show.bind(id))
@@ -176,6 +179,7 @@ func _filter_group(_label: String, opts: Array, field: String) -> void:
 		sel.add_item(opts[i][1], i)
 		if opts[i][0] == current:
 			sel.select(i)
+	HubScreen.glass_option(sel)
 	sel.item_selected.connect(func(i): set(field, opts[i][0]); _rebuild())
 	_filters.add_child(sel)
 

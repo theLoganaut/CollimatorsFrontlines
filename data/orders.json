@@ -29,7 +29,7 @@
       "id": "field_repair",
       "kind": "boost",
       "name": "Field Repair Kit",
-      "text": "Repair bays restore 50% more HP this mission."
+      "text": "Repair bays restore {repair_pct}% more HP this mission."
     },
     {
       "id": "cold_start",
@@ -65,7 +65,7 @@
       "id": "overclocked_core",
       "kind": "tradeoff",
       "name": "Overclocked Core",
-      "text": "+{max_heat} max heat. Venting drops from 80% to 60% at max heat."
+      "text": "+{max_heat} max heat. Venting drops from 100% to {vent_pct}%."
     },
     {
       "id": "hot_start",
@@ -95,13 +95,13 @@
       "id": "blind_drop",
       "kind": "tradeoff",
       "name": "Blind Drop",
-      "text": "+{scraps} scraps and take 1 of 3 Prototype parts. You only see {sight_rows} rows ahead on the map."
+      "text": "+{scraps} scraps and take 1 of 3 Prototype parts. You only see {sight_rows} rows ahead on the map. You refit before you drop."
     },
     {
       "id": "hot_insertion",
       "kind": "tradeoff",
       "name": "Hot Insertion",
-      "text": "Take 1 of 3 Salvaged parts, twice. Your first {strong_fights} fights are the tough ones."
+      "text": "Take 1 of 3 Salvaged parts, twice. Your first {strong_fights} fights are the tough ones. You refit before you drop."
     },
     {
       "id": "heavy_hauler",
@@ -155,7 +155,7 @@
       "id": "heavy_plating",
       "kind": "tradeoff",
       "name": "Heavy Plating",
-      "text": "The components you launch with get +{part_hp} max HP. Venting drops from 80% to 70% at max heat."
+      "text": "The components you launch with get +{part_hp} max HP. Venting drops from 100% to {vent_pct}%."
     },
     {
       "id": "forced_march",
@@ -167,7 +167,7 @@
       "id": "special_requisition",
       "kind": "tradeoff",
       "name": "Special Requisition",
-      "text": "Choose a category, then take 1 of 3 Prototype parts from it. Every fight starts with {start_heat} heat."
+      "text": "Choose a category, then take 1 of 3 Prototype parts from it. Every turn starts with {turn_heat} extra heat. You refit before you drop."
     },
     {
       "id": "mystery_crate",

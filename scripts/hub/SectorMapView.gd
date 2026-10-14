@@ -290,7 +290,7 @@ func _draw_hq(font: Font) -> void:
 	_overlay.draw_rect(r, Color("9fc6f0"), false, 1.5)
 	_overlay.draw_string(font, r.position + Vector2(0, 15), "HQ", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, Color("dcecff"))
 	_overlay.draw_line(r.position + Vector2(0, r.size.y), r.position + Vector2(0, r.size.y + 9), Color("9fc6f0"), 1.5)
-	_overlay.draw_string(font, Vector2(r.end.x + 6, p.y + 4), "HOME BASE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("9fc6f0"))
+	_overlay.draw_string(font, Vector2(r.end.x + 6, p.y + 4), Profile.base_name.to_upper() if Profile.base_name != "" else "HOME BASE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("9fc6f0"))
 
 func _draw_location(i: int, font: Font) -> void:
 	var loc: Dictionary = _markers[i]["location"]

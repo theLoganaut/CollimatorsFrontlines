@@ -237,6 +237,7 @@ func _start_new_combat() -> void:
 	combat.enemy_set_aside.connect(_on_enemy_set_aside)
 	combat.mech_vented.connect(_on_mech_vented)
 	combat.chance_failed.connect(_on_chance_failed)
+	combat.enemy_retreated.connect(_on_enemy_retreated)
 	combat.game_over.connect(_on_game_over)
 	_trail_fight()
 
@@ -1341,6 +1342,9 @@ func _set_acting_panel(panel: EnemyPanel) -> void:
 ## Status stacks last seen, per part and per mech (for the mech-wide ones):
 ## Object -> {status: stacks}. Rises float up where they land.
 var _status_seen: Dictionary = {}
+## Statuses seen this fight that the Operator hasn't explained to this
+## pilot yet (Tutorial.hint_once); one is explained per player turn.
+var _pending_hints: Array[String] = []
 
 func _status_map(list: Array) -> Dictionary:
 	var out := {}
@@ -1367,6 +1371,9 @@ func _float_new_statuses() -> void:
 				spots.append([c, c.statuses])
 		for spot in spots:
 			var now := _status_map(spot[1])
+			for st in now: # a status this pilot hasn't had explained yet
+				if not _replaying and not Profile.seen_hints.has("status:" + st) and not _pending_hints.has(st) and StatusGlossary.ENTRIES.has(st):
+					_pending_hints.append(st)
 			var before: Dictionary = _status_seen.get(spot[0], {})
 			_status_seen[spot[0]] = now
 			if first:
@@ -1376,6 +1383,8 @@ func _float_new_statuses() -> void:
 				var gain := int(now[st]) - int(before.get(st, 0))
 				if gain <= 0:
 					continue
+				if spot[0] is ComponentData:
+					grid.pop_status(spot[0])
 				var at: Vector2
 				if spot[0] is MechData:
 					at = player_panel.image_global_rect().get_center() if m == player_mech else _panel_for(m).image_global_rect().get_center()
@@ -1455,6 +1464,61 @@ func _on_card_hover(card: CardData) -> void:
 func _on_part_hover(component: ComponentData, mech: MechData) -> void:
 	if hand_tray != null and is_instance_valid(hand_tray):
 		hand_tray.set_linked_part(component if mech == player_mech and not UIState.hovered_passive else null)
+	_show_enemy_cards(component if mech != null and mech != player_mech and not UIState.hovered_passive else null, mech)
+
+const ENEMY_CARD_SCALE := 0.8
+var _enemy_cards: Control = null
+
+## Hovering an enemy part lays its cards out under that enemy, as cards
+## (Logan, 2026-10-13): marked THIS TURN when they're in its plan (the
+## intents), CHARGING when charged up, SPENT once played this turn, greyed
+## when the part can't act. Display only: the mouse passes through.
+func _show_enemy_cards(component: ComponentData, mech: MechData) -> void:
+	if _enemy_cards != null and is_instance_valid(_enemy_cards):
+		_enemy_cards.queue_free()
+	_enemy_cards = null
+	if component == null or component.destroyed or component.cards.is_empty() or combat == null or UIState.dragging_card != null:
+		return
+	var panel := _panel_for(mech)
+	if panel == null:
+		return
+	var planned := {}
+	for a in combat.upcoming_enemy_actions(mech):
+		if not a.get("cancelled", false):
+			planned[a["card"]] = "CHARGING" if a.get("charged", false) or a.get("charge", false) else "THIS TURN"
+	var strip := Control.new()
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.z_index = 40
+	add_child(strip)
+	_enemy_cards = strip
+	var w := CardUI.BASE_SIZE.x * ENEMY_CARD_SCALE
+	var gap := 8.0
+	var total := component.cards.size() * w + (component.cards.size() - 1) * gap
+	var screen := get_viewport_rect().size
+	var x := clampf(panel.image_global_rect().get_center().x - total / 2.0, 8.0, screen.x - total - 8.0)
+	var y := panel.intents_global_bottom() + 22.0
+	for i in range(component.cards.size()):
+		var card: CardData = component.cards[i]
+		var ui := CardUI.new()
+		strip.add_child(ui)
+		ui.setup(card, component.category, null, component)
+		ui.make_display()
+		ui.set_state(card.heat_cost, false, not component.is_usable(), combat.is_spent(card))
+		ui.scale = Vector2(ENEMY_CARD_SCALE, ENEMY_CARD_SCALE)
+		ui.pivot_offset = Vector2.ZERO
+		ui.position = Vector2(x + i * (w + gap), y)
+		var tag: String = planned.get(card, "")
+		if tag != "":
+			var l := UIKit.label(tag, 11, Palette.WARNING if tag == "THIS TURN" else Palette.LINK)
+			l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			l.position = ui.position + Vector2(0, -18)
+			strip.add_child(l)
+			var edge := ColorRect.new() # a yellow edge on the planned card
+			edge.color = Color(Palette.WARNING if tag == "THIS TURN" else Palette.LINK, 0.9)
+			edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			edge.position = ui.position + Vector2(0, -3)
+			edge.size = Vector2(w, 3)
+			strip.add_child(edge)
 
 ## Hovering an enemy intent outlines the part of your mech it's aimed at.
 func _on_intent_hover(intent: Dictionary) -> void:
@@ -1494,8 +1558,11 @@ func _refresh_all_panels() -> void:
 		panel.refresh()
 		# Either defeat route (all hardpoints, or the HP threshold) plays this once.
 		if panel.mech.is_defeated() and not panel.defeat_played:
-			panel.play_defeated()
-			_enemy_blows_up(panel)
+			if panel.mech.retreated:
+				panel.play_retreated()
+			else:
+				panel.play_defeated()
+				_enemy_blows_up(panel)
 	if hand_tray != null:
 		hand_tray.prune_destroyed()
 		hand_tray.refresh_heat()
@@ -1540,6 +1607,17 @@ func _on_overheated(mech: MechData, backlash: int) -> void:
 		hit_fx.float_text(player_panel.image_global_rect().get_center(), "OVERHEAT −%d" % backlash, Palette.DANGER, 30)
 	combat_log.log_line("%s overheated! %d dmg spread across its components. Turn forced to end." % [_label_for(mech), backlash], CombatLog.CAT_DAMAGE)
 
+## The first time a pilot meets a status, the Operator explains it once,
+## at the start of a player turn (one a turn, so it never piles up).
+func _explain_a_status() -> void:
+	while not _pending_hints.is_empty():
+		var st: String = _pending_hints.pop_front()
+		if Profile.seen_hints.has("status:" + st):
+			continue
+		var e := StatusGlossary.get_entry(st)
+		Tutorial.hint_once("status:" + st, str(e.get("tip", "%s: %s" % [e["label"], e["rule"]])))
+		return
+
 func _on_turn_changed(phase, turn_number: int) -> void:
 	if turn_panel == null:
 		return
@@ -1548,6 +1626,7 @@ func _on_turn_changed(phase, turn_number: int) -> void:
 		if not combat.is_game_over():
 			Audio.play("turn", 0.0)
 			_turn_flash("YOUR TURN · %d" % turn_number, Palette.TEXT)
+			_explain_a_status.call_deferred()
 	elif phase == CombatManager.Phase.ENEMY_TURN and not combat.is_game_over():
 		_turn_flash("ENEMY TURN", Palette.HARDPOINT)
 		combat_log.log_line("— Turn %d: your move —" % turn_number)
@@ -1602,6 +1681,10 @@ func _on_mech_vented(mech: MechData, amount: int) -> void:
 	if hit_fx != null and grid != null:
 		var at := player_panel.image_global_rect().get_center() if mech == player_mech else grid.get_global_rect().get_center()
 		hit_fx.float_text(at, "VENT −%d" % amount, Palette.LINK, 20)
+	_refresh_all_panels()
+
+func _on_enemy_retreated(mech: MechData) -> void:
+	combat_log.log_line("%s retreats: nothing left to fight with." % _label_for(mech), CombatLog.CAT_ENEMY)
 	_refresh_all_panels()
 
 func _on_enemy_set_aside(mech: MechData, card: CardData) -> void:

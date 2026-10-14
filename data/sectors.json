@@ -1,10 +1,10 @@
 {
-  "_note": "Sector map locations (names: Logan, 2026-09-27; descriptions are placeholders for Logan to write). Enemy pools use the roster in data/mechs (Claude's drafts to vet). Regular fights draw from `encounters` (Slay-the-Spire style, Logan 2026-09-28): the run's first few fights from `weak`, the rest from `strong`, weighted; three-enemy fights only come from `strong`. Compositions and weights are Proposed. Each visit to the sector map rolls a mission type per location (data/missions.json). On the War Table's theater map (WarMap, regenerated with each sector roll) `map_zone` places a location: coast (on the shore), flank (mountain foothills, an open-pit mine), backline (a mesa deep behind the enemy front); `map_icon` is its map glyph (anchor, pick, data). `modifiers` (Claude's drafts, 2026-09-30): rules always on at that location (data/conditions.json): rain at the Shipyard, jamming at the Data Archives, dust at the Mining Grounds.",
+  "_note": "Sector map locations (names: Logan, 2026-09-27; descriptions: Claude's drafts, approved by Logan 2026-10-13). Enemy pools use the roster in data/mechs (Claude's drafts to vet). Regular fights draw from `encounters` (Slay-the-Spire style, Logan 2026-09-28): the run's first few fights from `weak`, the rest from `strong`, weighted; three-enemy fights only come from `strong`. Compositions and weights are Proposed. Each visit to the sector map rolls a mission type per location (data/missions.json). On the War Table's theater map (WarMap, regenerated with each sector roll) `map_zone` places a location: coast (on the shore), flank (mountain foothills, an open-pit mine), backline (a mesa deep behind the enemy front); `map_icon` is its map glyph (anchor, pick, data). `modifiers` (Claude's drafts, 2026-09-30): rules always on at that location (data/conditions.json): rain at the Shipyard, jamming at the Data Archives, dust at the Mining Grounds.",
   "locations": [
     {
       "id": "shipyard",
       "name": "Shipyard",
-      "description": "[LOCATION DESCRIPTION]",
+      "description": "A flooded naval yard on the coast, its cranes still swinging containers on autopilot. Vasquez led a breach team in through the dock gates. Only Vasquez came back out, and not as one of ours.",
       "map_zone": "coast",
       "map_icon": "anchor",
       "regulars": [
@@ -93,7 +93,7 @@
     {
       "id": "data_archives",
       "name": "Data Archives",
-      "description": "[LOCATION DESCRIPTION]",
+      "description": "Their data vaults behind the line: server halls kept near freezing, every channel jammed. Chen was sent in to pull their intel off these servers. The servers pulled Chen instead.",
       "map_zone": "backline",
       "map_icon": "data",
       "regulars": [
@@ -182,7 +182,7 @@
     {
       "id": "mining_grounds",
       "name": "Mining Grounds",
-      "description": "[LOCATION DESCRIPTION]",
+      "description": "Open-pit mines cut into the mountain flank, ore haulers still running the switchbacks. Hammond was tunneling a supply route under the ridge when the AI caught up underground. The digging hasn't stopped.",
       "map_zone": "flank",
       "map_icon": "pick",
       "regulars": [

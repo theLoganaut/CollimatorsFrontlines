@@ -36,6 +36,14 @@ var rest_rotation: float = 0.0
 var rest_z: int = 0
 
 var _hovering: bool = false
+## The card raised by hover. While the mouse is anywhere on it (its grown,
+## raised rect), it keeps the hover and the cards under it ignore the mouse,
+## so its keywords can be hovered right to its edges (Logan, 2026-10-13: the
+## card behind kept taking over). Godot routes the mouse by node order, not
+## z_index, so without this a neighbor underneath wins.
+static var _lifted: CardUI = null
+## Ignoring the mouse because the raised card covers this one.
+var _blocked: bool = false
 ## 1–9: the number key that plays it (HandTray numbers the fan); 0 = none.
 var hotkey: int = 0
 ## Played this turn: out of the fan (hidden) until the next turn.
@@ -149,6 +157,13 @@ func _refresh() -> void:
 	_effect_label.text = StatusGlossary.annotate("\n".join(lines))
 	queue_redraw()
 
+## Display-only: shown, never hovered, dragged or part of the hand (an
+## enemy part's cards, CombatScene._show_enemy_cards).
+func make_display() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _effect_label != null:
+		_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 ## Display-only face for a component's passive (the opening reveal): no
 ## cost or damage, "PASSIVE" in the cost corner, the passive's text as the
 ## effect. Not draggable, not hoverable, never part of the hand.
@@ -246,17 +261,80 @@ func _draw() -> void:
 # ---------- hover ----------
 
 func _on_mouse_entered() -> void:
+	var other := _lifted if _lifted != null and is_instance_valid(_lifted) and _lifted != self and _lifted._hovering else null
+	if other != null:
+		if other._holds_mouse():
+			return # under the raised card: it keeps the hover
+		other._unhover()
 	_hovering = true
+	_lifted = self
 	_apply_hover_visual()
 	if card != null:
 		UIState.set_hovered_card(card)
+	set_process(true)
 
 func _on_mouse_exited() -> void:
+	if self == _lifted and _hovering and not _dragging and _holds_mouse():
+		return # still on the raised card; _process lets go once the mouse really leaves
+	var was_lifted := self == _lifted
+	_unhover()
+	if was_lifted:
+		_hand_off()
+
+func _unhover() -> void:
 	_hovering = false
 	_apply_hover_visual()
 	if card != null:
 		UIState.clear_hovered_card(card)
 	HoloHint.close(self)
+	if _lifted == self:
+		_lifted = null
+		_block_siblings(false)
+
+func _exit_tree() -> void:
+	if _lifted == self: # removed while raised (its part destroyed): free the others
+		_block_siblings(false)
+		_lifted = null
+
+## The mouse is on this card as it's drawn now (raised and grown).
+func _holds_mouse() -> bool:
+	return visible and get_global_rect().grow(2.0).has_point(get_global_mouse_position())
+
+func _block_siblings(on: bool) -> void:
+	if get_parent() == null:
+		return
+	for c in get_parent().get_children():
+		if c is CardUI and c != self and c._blocked != on:
+			c._blocked = on
+			c._sync_filter()
+
+func _sync_filter() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE if (_dragging or _blocked) else Control.MOUSE_FILTER_STOP
+
+## While raised: keep the cards under it out of the way, and once the mouse
+## leaves it, hand the hover to whichever card it's on now.
+func _hold_hover() -> void:
+	if self != _lifted or not _hovering:
+		set_process(false)
+		return
+	var inside := _holds_mouse()
+	_block_siblings(inside)
+	if inside:
+		return
+	_unhover()
+	set_process(false)
+	_hand_off()
+
+## The cards under it were ignoring the mouse, so Godot never told the one
+## the mouse is on now: give it the hover.
+func _hand_off() -> void:
+	var mouse := get_global_mouse_position()
+	var siblings := get_parent().get_children() if get_parent() != null else []
+	for i in range(siblings.size() - 1, -1, -1): # last child first: Godot's own input order
+		var c = siblings[i]
+		if c is CardUI and c != self and c.visible and not c.gone and c.get_global_rect().has_point(mouse):
+			c._on_mouse_entered()
+			break
 
 func _apply_hover_visual() -> void:
 	if _dragging:
@@ -296,7 +374,7 @@ func set_gone(on: bool) -> void:
 		_gone_tween.kill()
 	if on:
 		if _hovering:
-			_on_mouse_exited()
+			_unhover()
 		if _dragging or not visible:
 			return # _finish_drag_visual hides it where it was dropped
 		_gone_tween = create_tween().set_parallel(true)
@@ -343,7 +421,8 @@ func _start_drag() -> void:
 	rotation_degrees = 0.0
 	top_level = true
 	z_index = 100
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sync_filter()
+	_block_siblings(false)
 	# Hold the card by its center so it shrinks toward the cursor.
 	pivot_offset = BASE_SIZE / 2.0
 	_grab_offset = BASE_SIZE / 2.0
@@ -355,7 +434,7 @@ func _start_drag() -> void:
 
 func _process(_delta: float) -> void:
 	if not _dragging:
-		set_process(false)
+		_hold_hover()
 		return
 	var mouse := get_global_mouse_position()
 	global_position = mouse - _grab_offset
@@ -409,8 +488,10 @@ func _finish_drag_visual() -> void:
 	top_level = false
 	modulate.a = 1.0
 	pivot_offset = Vector2(BASE_SIZE.x / 2.0, BASE_SIZE.y)
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	_sync_filter()
 	set_process(false)
+	if _lifted == self:
+		_lifted = null
 	set_process_input(false)
 	queue_redraw()
 	if gone: # played: gone from where it was dropped

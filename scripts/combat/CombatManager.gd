@@ -49,6 +49,12 @@ signal enemy_set_aside(mech: MechData, card: CardData)
 signal chance_failed(mech: MechData, component: ComponentData)
 ## A mech used the Vent action: its heat just dispersed at the flat share.
 signal mech_vented(mech: MechData, amount: int)
+## An enemy left the fight: no part could give it a card again (a kill).
+signal enemy_retreated(mech: MechData)
+
+## Enemies that started the fight with cards: only they can run out and
+## retreat (a part with no cards at all, like a test dummy, stays).
+var _armed: Array = []
 ## A line about what an enemy is up to (its opener, a charge fizzling, a lost part), for the combat log.
 signal ai_note(mech: MechData, text: String)
 
@@ -161,6 +167,7 @@ func _init(p_player: MechData, p_enemies: Array[MechData], seed_value: int = -1)
 
 func start_combat() -> void:
 	_player_parts_at_start = player_mech.non_destroyed_components().size()
+	_armed = enemies.filter(func(w): return w.has_cards_left())
 	spent.clear()
 	venting.clear()
 	for m in [player_mech] + enemies:
@@ -657,6 +664,12 @@ func end_player_turn() -> void:
 		if not w.is_defeated():
 			CardResolver.apply_burn(w)
 			_apply_turn_start_passives(w) # e.g. Capacitor Bank
+	# An enemy that can never play a card again retreats as its turn starts
+	# (Logan, 2026-10-13: it counts as a kill, bosses included).
+	for w in enemies:
+		if _armed.has(w) and not w.is_defeated() and not w.has_cards_left():
+			w.retreated = true
+			enemy_retreated.emit(w)
 	_run_repeats(false)
 	CombatEnemyTurn.run_standby(self)
 	CombatEnemyTurn.run_charged(self)
@@ -740,6 +753,7 @@ func _start_player_turn() -> void:
 	var burn := CardResolver.apply_burn(player_mech)
 	player_mech.current_heat += deferred_heat # Batch
 	deferred_heat = 0
+	player_mech.current_heat += player_mech.turn_heat # Special Requisition
 	_apply_turn_start_passives(player_mech)
 	# Enemies choose next turn's cards now (after venting), so the player
 	# sees what's coming for the whole of their turn.
@@ -753,7 +767,7 @@ func _start_player_turn() -> void:
 	CombatProtocols.run_standby(self)
 	if _check_game_over():
 		return
-	if burn > 0:
+	if burn > 0 or player_mech.turn_heat > 0:
 		CombatHeat.check_player_overheat(self)
 
 func _apply_turn_start_passives(mech: MechData) -> void:

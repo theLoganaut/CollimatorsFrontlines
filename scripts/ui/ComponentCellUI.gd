@@ -19,6 +19,8 @@ var is_first_cell: bool = false
 
 var _hp_label: Label
 var _flash: float = 0.0
+## A status just landed on this part: its markers pop (1 → 0).
+var _status_pop: float = 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -54,10 +56,18 @@ func flash() -> void:
 	_flash = 1.0
 	set_process(true)
 
+## A status landed on this part (Logan, 2026-10-13): its markers pop.
+func pop_status() -> void:
+	if GameSettings.reduce_motion:
+		return
+	_status_pop = 1.0
+	set_process(true)
+
 func _process(delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta * 4.0)
+	_status_pop = maxf(0.0, _status_pop - delta * 3.0)
 	queue_redraw()
-	if _flash <= 0.0:
+	if _flash <= 0.0 and _status_pop <= 0.0:
 		set_process(false)
 
 func _shown_hp() -> int:
@@ -92,8 +102,10 @@ func _draw() -> void:
 			draw_rect(rect, Palette.WARNING, false, 2.0)
 		if not component.is_usable():
 			draw_rect(rect, Color(0, 0, 0, 0.45), true) # Disabled / Offline: can't act
-		if is_first_cell and not component.statuses.is_empty():
-			_draw_status_dots(rect)
+		if not component.statuses.is_empty():
+			_draw_status_edge(rect)
+			if is_first_cell:
+				_draw_status_dots(rect)
 	if grid != null and grid.status_lit(component):
 		var sc := Palette.status_color(grid.lit_status())
 		draw_rect(rect, Color(sc, 0.28), true)
@@ -107,17 +119,41 @@ func _draw() -> void:
 	if _flash > 0.0:
 		draw_rect(rect, Color(1, 1, 1, _flash * 0.85), true)
 
-## One marker per status the part holds (bottom-right of its first cell);
-## the Description Box names them. Dots, or shapes in colorblind mode
-## (Palette.draw_status). Placeholder until the pinned status icons.
+## One marker per status the part holds (bottom-right of its first cell):
+## its glyph on a chip (Palette.draw_status); the Description Box names
+## them. They pop when a status lands (pop_status).
 func _draw_status_dots(rect: Rect2) -> void:
-	var r := maxf(2.5, size.x * 0.09)
-	if Palette.colorblind:
-		r = maxf(r, 4.0) # shapes need a little more room to read
+	var r := maxf(4.5, size.x * 0.15)
+	var k := 1.0 + 0.7 * ease(_status_pop, 2.0)
 	var x := rect.end.x - r - 2.0
 	for s in component.statuses:
-		Palette.draw_status(self, Vector2(x, rect.end.y - r - 2.0), r, s.status)
+		var c := Vector2(x, rect.end.y - r - 2.0)
+		Palette.draw_status(self, c, r * k, s.status)
+		if _status_pop > 0.0:
+			draw_arc(c, r * (1.2 + (1.0 - _status_pop) * 1.4), 0.0, TAU, 20, Color(1, 1, 1, _status_pop * 0.8), 1.5, true)
 		x -= r * 2.0 + 1.5
+
+## The part's outline in its strongest status's color (most stacks), on
+## the outer edges only, so a part with a status stands out at a glance.
+func _draw_status_edge(rect: Rect2) -> void:
+	var top := component.statuses[0]
+	for s in component.statuses:
+		if s.stacks > top.stacks:
+			top = s
+	var col := Color(Palette.status_color(top.status).lightened(0.15), 1.0)
+	draw_rect(rect, Color(col, 0.13), true) # a wash of the color, so it reads even on a part of the same color
+	var cells := component.placed_cells
+	var r := rect.grow(-1.5)
+	var w := 3.0
+	# cells are (row, column)
+	if not cells.has(cell_coord + Vector2i(0, -1)): # left
+		draw_line(r.position, Vector2(r.position.x, r.end.y), col, w)
+	if not cells.has(cell_coord + Vector2i(0, 1)): # right
+		draw_line(Vector2(r.end.x, r.position.y), r.end, col, w)
+	if not cells.has(cell_coord + Vector2i(-1, 0)): # above
+		draw_line(r.position, Vector2(r.end.x, r.position.y), col, w)
+	if not cells.has(cell_coord + Vector2i(1, 0)): # below
+		draw_line(Vector2(r.position.x, r.end.y), r.end, col, w)
 
 func _draw_hatch(rect: Rect2) -> void:
 	var step := 6.0

@@ -17,6 +17,9 @@ var _tab: String = "runs"
 func screen_title() -> String:
 	return "Pilot Log"
 
+func backdrop_name() -> String:
+	return "pilot_log"
+
 func _build() -> void:
 	_col = VBoxContainer.new()
 	_col.add_theme_constant_override("separation", 12)
@@ -35,16 +38,15 @@ func _build() -> void:
 	tabs.add_theme_constant_override("separation", 8)
 	_col.add_child(tabs)
 	for t in [["runs", "Recent missions"], ["mechs", "By mech"], ["enemies", "Enemies"], ["achievements", "Achievements"]]:
-		var b := UIKit.button(t[1], Color.TRANSPARENT, Vector2(140, 32), 13)
+		var b := HubScreen.glass_button(t[1], Color.TRANSPARENT, Vector2(140, 32), 13)
 		b.toggle_mode = true
-		b.add_theme_stylebox_override("pressed", UIKit.style(Palette.PANEL_2, Palette.HARDPOINT, 2))
 		b.pressed.connect(func():
 			_tab = t[0]
 			_fill())
 		tabs.add_child(b)
 		_tab_buttons[t[0]] = b
 	tabs.add_child(UIKit.spacer())
-	var folder := UIKit.button("Playtest reports", Color.TRANSPARENT, Vector2(150, 32), 12)
+	var folder := HubScreen.glass_button("Playtest reports", Color.TRANSPARENT, Vector2(150, 32), 12)
 	folder.tooltip_text = "Opens the folder of playtest reports: every finished mission, written out to send in, and a crash report for any time the game closed without quitting."
 	folder.pressed.connect(func(): OS.shell_open(PlaytestReport.folder()))
 	tabs.add_child(folder)
@@ -184,8 +186,21 @@ func _run_row(h: Dictionary) -> Control:
 	if detail != "":
 		lines.add_child(UIKit.label(detail, 11, Color("9fb9b6")))
 	var watch := _watch_row(h)
+	var tools := HBoxContainer.new()
+	tools.add_theme_constant_override("separation", 12)
 	if watch != null:
-		lines.add_child(watch)
+		tools.add_child(watch)
+	var all_stats := UIKit.label(_all_stats(h.get("stats", {})), 11, Color("b9d8d4"), true)
+	all_stats.visible = false
+	if not (h.get("stats", {}) as Dictionary).is_empty():
+		var more := HubScreen.glass_button("Stats", Color.TRANSPARENT, Vector2(64, 22), 11)
+		more.toggle_mode = true
+		more.tooltip_text = "Every stat this mission tracked."
+		more.toggled.connect(func(on: bool): all_stats.visible = on)
+		tools.add_child(more)
+	if tools.get_child_count() > 0:
+		lines.add_child(tools)
+	lines.add_child(all_stats)
 	row.add_child(UIKit.label("CLEARED" if cleared else "EJECTED", 13, Palette.OK if cleared else Palette.DANGER))
 	row.add_child(UIKit.label("%s · %s" % [h.get("location", ""), h.get("mission", "")], 14, Palette.TEXT))
 	if str(h.get("cause", "")) != "":
@@ -211,7 +226,7 @@ func _watch_row(h: Dictionary) -> Control:
 			continue
 		if row.get_child_count() == 0:
 			row.add_child(UIKit.label("Watch:", 11, Palette.TEXT_MUTED))
-		var b := UIKit.button("%d%s" % [n, "" if f.get("won", false) else " ✕"], Color.TRANSPARENT, Vector2(34, 22), 11)
+		var b := HubScreen.glass_button("%d%s" % [n, "" if f.get("won", false) else " ✕"], Color.TRANSPARENT, Vector2(34, 22), 11)
 		b.tooltip_text = "Fight %d: %s (%s, %d turns)" % [n, ", ".join(f.get("enemies", []).map(_enemy_name)), "won" if f.get("won", false) else "lost", int(f.get("turns", 0))]
 		b.pressed.connect(_watch.bind(str(f["replay"])))
 		row.add_child(b)
@@ -233,6 +248,17 @@ func _watch(file: String) -> void:
 static func _enemy_name(id) -> String:
 	var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/mechs/%s.json" % str(id)))
 	return d.get("name", str(id)) if typeof(d) == TYPE_DICTIONARY else str(id)
+
+## Every stat a run tracked (RunStats.DEFS), "Name 123" in rows.
+static func _all_stats(s: Dictionary) -> String:
+	var cells: Array[String] = []
+	for d in RunStats.DEFS:
+		var v := int(s.get(d[0], 0))
+		cells.append("%s %s" % [d[1], "—" if v == 0 and d[0] in RunStats.MIN_KEYS else HubScreen._thousands(v)])
+	var rows: Array[String] = []
+	for i in range(0, cells.size(), 4):
+		rows.append("   ·   ".join(cells.slice(i, i + 4)))
+	return "\n".join(rows)
 
 ## The second line of a run: its order, variant, elites and bosses, fights.
 static func _run_detail(h: Dictionary) -> String:

@@ -159,6 +159,7 @@ func open(location: Dictionary, mission: Dictionary, anchor: Rect2 = Rect2(), gr
 	_primary.text = "Launch"
 	_secondary.text = "Cancel"
 	_show(anchor)
+	_refit()
 
 var _daily_mode: bool = false
 
@@ -220,14 +221,18 @@ func _set_compact(on: bool) -> void:
 	if on:
 		_refit() # the wrapped lines know their height once laid out at this width
 
+## The glass fits what's on it once the wrapped lines are laid out: a saved
+## run's box exactly, a location's panel at least PANEL_SIZE tall (a long
+## description or several rules make it taller).
 func _refit() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if not _continue_mode:
-		return
 	var h := _vbox.get_combined_minimum_size().y
-	_panel.size = Vector2(CONTINUE_W, h + PAD * 2.0 - 8.0)
-	_vbox.size = Vector2(CONTINUE_W - PAD * 2.0, h)
+	var panel_h := h + PAD * 2.0 - 8.0
+	if not _continue_mode:
+		panel_h = maxf(PANEL_SIZE.y, panel_h)
+	_panel.size = Vector2(_panel.size.x, panel_h)
+	_vbox.size = Vector2(_panel.size.x - PAD * 2.0, panel_h - (PAD * 2.0 - 8.0))
 	_place()
 	_panel.queue_redraw()
 
@@ -254,12 +259,12 @@ func _place() -> void:
 		_panel.position = ((size - _panel.size) / 2.0).floor()
 		_panel.pivot_offset = _panel.size / 2.0
 		return
-	var right := _from.end.x + BEAM_GAP + PANEL_SIZE.x <= size.x - 12.0
+	var right := _from.end.x + BEAM_GAP + _panel.size.x <= size.x - 12.0
 	_anchor = Vector2(_from.end.x if right else _from.position.x, _from.get_center().y)
-	var x := _anchor.x + BEAM_GAP if right else _anchor.x - BEAM_GAP - PANEL_SIZE.x
-	var y := clampf(_anchor.y - PANEL_SIZE.y * 0.35, TOP_MARGIN, size.y - PANEL_SIZE.y - 12.0)
+	var x := _anchor.x + BEAM_GAP if right else _anchor.x - BEAM_GAP - _panel.size.x
+	var y := clampf(_anchor.y - _panel.size.y * 0.35, TOP_MARGIN, size.y - _panel.size.y - 12.0)
 	_panel.position = Vector2(x, y).floor()
-	_attach = Vector2(x if right else x + PANEL_SIZE.x, clampf(_anchor.y, y + 14.0, y + PANEL_SIZE.y - 14.0))
+	_attach = Vector2(x if right else x + _panel.size.x, clampf(_anchor.y, y + 14.0, y + _panel.size.y - 14.0))
 	_panel.pivot_offset = _attach - _panel.position
 
 func close() -> void:

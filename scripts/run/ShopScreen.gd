@@ -99,11 +99,13 @@ func _after_build() -> void:
 	if int(run.mod("free_parts")) > 0:
 		_say("Friendly Merchant: one part here is free. Take your pick.", Palette.OK)
 	elif run.shop.get("from_event", false):
-		_say("The signal led to an abandoned autonomous bay, still stocked. Buy a part, then drag it into Cargo to keep it.", Palette.OK)
+		_say("The signal led to an abandoned autonomous bay, still stocked. Buy a part, then move it into Cargo to keep it.", Palette.OK)
 	elif run.can_rearrange(RunData.MECH):
-		_say("Buy a part, then drag it into Cargo or onto your frame to keep it.")
+		_say("Buy a part, then move it into Cargo or onto your frame to keep it.")
 	else:
-		_say("Buy a part, then drag it into Cargo to keep it.")
+		_say("Buy a part, then move it into Cargo to keep it.")
+	if not Tutorial.is_training_run(run):
+		Tutorial.hint_once("shop", "An autonomous bay. Spend scraps on parts: what you buy lands on the workbench, so move it into Cargo to keep it. You can also sell parts you don't need. Anything left on the bench when you leave is scrapped.")
 
 func _refresh_extra() -> void:
 	_refresh_sale()
@@ -224,7 +226,7 @@ func _refresh_frame() -> void:
 	_frame_grid.position = Vector2(floorf((LEFT.size.x - _frame_grid.size.x) / 2.0), FRAME_TOP)
 	var price := run.cell_price()
 	_frame_grid.set_offers(run.cell_options(), run.scraps >= price)
-	_frame_label.text = ("YOUR FRAME  ·  drag parts on  ·  + buys a square (%d)" if run.can_rearrange(RunData.MECH) \
+	_frame_label.text = ("YOUR FRAME  ·  place parts on  ·  + buys a square (%d)" if run.can_rearrange(RunData.MECH) \
 		else "FRAME SQUARE  ·  %d scraps  ·  click a + beside the frame") % price
 
 func _buy_cell(_grid: PackingGrid, cell: Vector2i) -> void:
@@ -250,7 +252,7 @@ func _buy(slot: int) -> void:
 	Audio.play("shop_buy", 0.03)
 	_preview.show_part(comp)
 	if run.bench.items.has(comp):
-		_say("%s is on the workbench. Drag it into Cargo to keep it." % comp.name, Palette.OK)
+		_say("%s is on the workbench. Move it into Cargo to keep it." % comp.name, Palette.OK)
 	else:
 		_say("%s stowed in Cargo (the workbench was full)." % comp.name, Palette.OK)
 	_refresh()

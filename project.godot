@@ -11,9 +11,10 @@ config_version=5
 [application]
 
 config/name="Collimators: Frontlines"
-run/main_scene="res://scenes/WarRoom.tscn"
+run/main_scene="res://scenes/TrismegIntro.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://assets/branding/collimators-frontline-icon.png"
+boot_splash/bg_color=Color(0.043137256, 0.039215688, 0.07058824, 1)
 run/flush_stdout_on_print=true
 
 [autoload]

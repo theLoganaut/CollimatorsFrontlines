@@ -257,6 +257,10 @@ func _draw_intent_chevrons() -> void:
 func preview_damage(lo: int, hi: int) -> void:
 	_health_bar.set_preview_loss(lo, hi)
 
+## The bottom of its intent row on screen (what sits lowest on the panel).
+func intents_global_bottom() -> float:
+	return _intent_row.get_global_rect().end.y
+
 func image_global_rect() -> Rect2:
 	return _image_rect.get_global_rect()
 
@@ -275,6 +279,22 @@ func play_defeated() -> void:
 	tw.tween_property(_image_rect, "modulate", Color(1, 1, 1, 0.45), 0.7).set_delay(0.25)
 	tw.tween_property(_image_rect, "position:y", _image_rect.position.y + 10.0, 0.7).set_delay(0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tw.tween_property(grid, "self_modulate:a", 0.45, 0.4)
+
+## Retreated (nothing left to play): no blasts, it backs off and fades
+## under RETREATED.
+func play_retreated() -> void:
+	defeat_played = true
+	_defeated_label.text = "RETREATED"
+	_defeated_label.add_theme_color_override("font_color", Palette.TEXT_MUTED)
+	_defeated_label.visible = true
+	_defeated_label.modulate.a = 0.0
+	_image_rect.pivot_offset = Vector2(_image_rect.size.x / 2.0, _image_rect.size.y) # shrinks toward its feet
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_defeated_label, "modulate:a", 1.0, 0.3)
+	tw.tween_property(_image_rect, "modulate", Color(1, 1, 1, 0.3), 0.9)
+	tw.tween_property(_image_rect, "scale", Vector2(0.85, 0.85), 0.9).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(_image_rect, "position:y", _image_rect.position.y - 14.0, 0.9).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(grid, "self_modulate:a", 0.3, 0.6)
 
 ## Highlights the name bar while this enemy is taking its turn.
 func set_acting(acting: bool) -> void:

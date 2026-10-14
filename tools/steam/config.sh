@@ -10,6 +10,12 @@ APP_ID=5441720
 DEPOT_WINDOWS=5441721
 DEPOT_MACOS=""
 
+# Steam Playtest (a separate app with its own App ID and depot: Steamworks -> the game's
+# "Associated Packages & DLC" -> its Playtest -> SteamPipe -> Depots). When both are set,
+# every release uploads the same Windows build to the Playtest too.
+PLAYTEST_APP_ID=""
+PLAYTEST_DEPOT=""
+
 # The branch a new build goes live on. "" = upload only: one branch (default), and you set
 # each build live in Steamworks (SteamPipe -> Builds), since SteamCMD can't set the default
 # branch live; Valve only allows that on the website. A beta branch name here (e.g.
@@ -19,3 +25,8 @@ BRANCH=""
 # Tools: SteamCMD from the Steamworks SDK, and the Godot editor.
 STEAMCMD="$HOME/Downloads/sdk/tools/ContentBuilder/builder_osx/steamcmd.sh"
 GODOT="/Applications/Godot.app/Contents/MacOS/Godot"
+
+# In-game "Send feedback" (Feedback.gd): a Discord webhook for a private channel
+# (Discord: Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy URL).
+# Stamped into each build; "" = the button says feedback isn't set up.
+FEEDBACK_WEBHOOK=""
