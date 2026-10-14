@@ -22,9 +22,14 @@ static func info() -> Dictionary:
 				_info = parsed
 	return _info
 
-## "Build 2026-10-13 14:02 (dc7f97b)", or "Dev build".
+## The game's version (project.godot application/config/version), "0.2.0".
+static func version() -> String:
+	return str(ProjectSettings.get_setting("application/config/version", ""))
+
+## "v0.2.0 · Build 2026-10-13 14:02 (dc7f97b)", or "v0.2.0 · Dev build".
 static func label() -> String:
 	var i := info()
+	var v := "v%s · " % version() if version() != "" else ""
 	if i.is_empty():
-		return "Dev build"
-	return "Build %s (%s)" % [i.get("stamp", "?"), i.get("commit", "?")]
+		return v + "Dev build"
+	return v + "Build %s (%s)" % [i.get("stamp", "?"), i.get("commit", "?")]

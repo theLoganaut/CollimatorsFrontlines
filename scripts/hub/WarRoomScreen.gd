@@ -71,7 +71,7 @@ var _floors: Array[Texture2D] = []
 var _top_bar: TopBar
 var _settings_button: SettingsButton
 var _build_label: Label # which build this is (BuildInfo), bottom right
-var _base_name_btn: Button
+var _whats_new_btn: Button
 ## Said instead of the usual line (a saved run closed after an update).
 var _operator_override: String = ""
 var _back_button: Button
@@ -447,29 +447,34 @@ func _dismiss_operator() -> void:
 	_operator.visible = false
 
 func _build_top_bar() -> void:
+	# the title is the base's name (Profile.base_name); click it to rename
 	_top_bar = TopBar.make(self, "Home Base")
+	_top_bar.clickable_title(func(): if not Tutorial.active: Tutorial.ask_base_name(), "Rename the base")
 	var row := _top_bar.row
-	# the base's name (Profile.base_name); click it to rename
-	_base_name_btn = Button.new()
-	_base_name_btn.flat = true
-	_base_name_btn.focus_mode = Control.FOCUS_NONE
-	_base_name_btn.add_theme_font_size_override("font_size", 12)
-	_base_name_btn.add_theme_color_override("font_color", Color("7f9d9a"))
-	_base_name_btn.add_theme_color_override("font_hover_color", Color("eefcfa"))
-	_base_name_btn.tooltip_text = "Rename the base"
-	_base_name_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_base_name_btn.pressed.connect(func(): if not Tutorial.active: Tutorial.ask_base_name())
-	row.add_child(_base_name_btn)
 	_on_base_named()
 	row.add_child(UIKit.spacer())
+	# the update notes (WhatsNewDialog): lit until opened for this version
+	_whats_new_btn = GlassPanel.button("What's New?!", 12)
+	_whats_new_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_whats_new_btn.tooltip_text = "What changed in this update, and what's coming next"
+	_whats_new_btn.pressed.connect(func():
+		if Tutorial.active:
+			return
+		WhatsNewDialog.open(get_tree())
+		_style_whats_new())
+	row.add_child(_whats_new_btn)
+	_style_whats_new()
 	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
 	# (the co-op lobby button comes back once co-op exists; Logan, 2026-10-13)
 	_settings_button = SettingsButton.new()
 	_settings_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_settings_button)
 
+func _style_whats_new() -> void:
+	GlassPanel.style_button(_whats_new_btn, WhatsNewDialog.unread(), Palette.LINK)
+
 func _on_base_named() -> void:
-	_base_name_btn.text = Profile.base_name.to_upper()
+	_top_bar.set_title(Profile.base_name if Profile.base_name.strip_edges() != "" else "Home Base")
 	if _operator != null and not _operator.visible and not _operator_dismissed and not _zoomed:
 		_operator.visible = true # held back while the base was being named
 		_operator_talk()

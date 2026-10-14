@@ -38,6 +38,18 @@ func _init() -> void:
 func set_title(text: String) -> void:
 	_title.text = text.to_upper()
 
+## Makes the title a button (the War Room's: click its name to rename it):
+## it lights on hover and calls `on_click`.
+func clickable_title(on_click: Callable, tooltip: String) -> void:
+	_title.mouse_filter = Control.MOUSE_FILTER_STOP
+	_title.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_title.tooltip_text = tooltip
+	_title.mouse_entered.connect(func(): _title.add_theme_color_override("font_color", Palette.LINK))
+	_title.mouse_exited.connect(func(): _title.add_theme_color_override("font_color", Color("dffcf8")))
+	_title.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			on_click.call())
+
 ## A read-out on glass (scraps, HP, chips): `label` inside a small framed
 ## chip edged in `accent`. Returns the chip; keep the label to update it.
 static func chip(label: Label, accent: Color = GlassPanel.HOLO) -> PanelContainer:

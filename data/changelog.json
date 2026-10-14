@@ -1,0 +1,46 @@
+{
+  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. `next` is the What's Next?! view. Text: Logan, 2026-10-14.",
+  "current": "0.2.0",
+  "releases": [
+    {
+      "version": "0.2.0",
+      "title": "",
+      "items": [
+        {"label": "New Art!", "items": [
+          "Data Archives and Mining Grounds combat backgrounds",
+          "Every event scene",
+          "12 new component portraits",
+          "War Room stations: Directives, Pilot Log, Memorial Wall, Info Bay and Livery Bay",
+          "Snow and dust weather in combat",
+          "Game icon",
+          "Trismeg Studio intro screen"
+        ]},
+        {"label": "Balance:", "text": "tuned some deployment orders and enemy loadouts, and enemies no longer waste their own parts."},
+        {"label": "Combat:", "text": "hover an enemy part to see its cards. Enemies with nothing left to play retreat, and status effects have their own icons."},
+        {"label": "New:", "text": "name your War Room, a new run summary, and this What's New?! board."}
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "title": "First Release",
+      "items": [
+        "Added another card to every hardpoint and protocol.",
+        "Balanced every card to give each one more trade-offs and you more options.",
+        "Enemies now have their own strategies and play more varied turns."
+      ]
+    }
+  ],
+  "next": {
+    "items": [
+      "Steam Deck compatibility",
+      "Send feedback from in-game, and a Discord server",
+      "A Steam store page with wishlists",
+      "Steam Cloud saves, so your progress follows you between PCs",
+      "Better icons for enemy intents and statuses",
+      "New mission types: Research Runs to unlock new mechs, and Backline Blitz with only elites and bosses for bigger Chip rewards",
+      "More parts to unlock as you play",
+      "Bigger boss fights",
+      "And much more, including your feedback!"
+    ]
+  }
+}

@@ -30,12 +30,27 @@ func _initialize() -> void:
 	_enemy_ai()
 	_balance()
 	_classes()
+	_changelog()
 	for w in warnings:
 		print("WARN  ", w)
 	for e in errors:
 		print("ERROR ", e)
 	print("validate_data: %d errors, %d warnings" % [errors.size(), warnings.size()])
 	quit(1 if not errors.is_empty() else 0)
+
+## The What's New?! board: its current version is this build's, and every
+## release has a version and items.
+func _changelog() -> void:
+	var d = _json("res://data/changelog.json")
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	if str(d.get("current", "")) != version:
+		errors.append("changelog.json: current is \"%s\" but project.godot's version is \"%s\"" % [d.get("current", ""), version])
+	var releases: Array = d.get("releases", [])
+	if releases.is_empty() or str(releases[0].get("version", "")) != str(d.get("current", "")):
+		errors.append("changelog.json: the newest release isn't the current version")
+	for r in releases:
+		if str(r.get("version", "")) == "" or (r.get("items", []) as Array).is_empty():
+			errors.append("changelog.json: a release without a version or items")
 
 func _json(path: String):
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
