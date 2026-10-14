@@ -1,6 +1,7 @@
 # Every push to main: check the data, run a quick crash check, export the
-# Windows build and upload it to Steam (app 5441720, depot 5441721) with
-# SteamCMD, the same build tools/steam_release.sh makes by hand.
+# Windows build (on Linux) and upload it to Steam (app 5441720, depot
+# 5441721) with SteamCMD on a Mac, the same build tools/steam_release.sh
+# makes by hand.
 #
 # Setup and secrets: tools/steam/STEAMWORKS.md -> "Automatic builds".
 #   secrets.STEAM_USERNAME    the Steam account with build rights
@@ -32,6 +33,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      desc: ${{ steps.export.outputs.desc }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,6 +70,7 @@ jobs:
           echo "ok ($(grep -c clear sim.log) mission x bot lines)"
 
       - name: Export Windows
+        id: export
         env:
           FEEDBACK_WEBHOOK: ${{ secrets.FEEDBACK_WEBHOOK }}
         run: |
@@ -79,34 +83,62 @@ jobs:
           test -f build/steam/windows/CollimatorsFrontlines.exe || (tail -50 export.log; echo "no .exe"; exit 1)
           test -f build/steam/windows/steam_api64.dll || (echo "steam_api64.dll is missing from the build"; exit 1)
           ls -la build/steam/windows
-          echo "DESC=v$(grep -m1 '^config/version=' project.godot | cut -d'"' -f2) $stamp ($commit) $(git log -1 --format=%s | cut -c1-60)" >> "$GITHUB_ENV"
+          desc="v$(grep -m1 '^config/version=' project.godot | cut -d'"' -f2) $stamp ($commit) $(git log -1 --format=%s | cut -c1-60)"
+          echo "desc=${desc//\"/\'}" >> "$GITHUB_OUTPUT"
 
-      # SteamCMD straight from Valve, as tools/steam_release.sh runs it on the
-      # Mac. (game-ci/steam-deploy put the saved login where its SteamCMD
-      # didn't look, so it asked for a password; 2026-10-14.) The login goes
-      # everywhere SteamCMD looks for it; no stdin, so a bad login fails
-      # rather than waiting for a password.
+      - name: Hand the build to the upload job
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/steam/windows
+          retention-days: 7
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: |
+            import.log
+            sim.log
+            export.log
+          if-no-files-found: ignore
+
+  # The upload runs on a Mac, with Mac SteamCMD: Steam's saved login
+  # (STEAM_CONFIG_VDF, made on Logan's Mac) wasn't accepted by Linux SteamCMD
+  # ("Cached credentials not found", 2026-10-14). No stdin, so a bad login
+  # fails rather than waiting for a password.
+  upload:
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: build/steam/windows
+
       - name: Upload to Steam
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
           STEAM_BRANCH: ${{ vars.STEAM_BRANCH }}
+          DESC: ${{ needs.build.outputs.desc }}
         run: |
-          sudo apt-get install -y -qq lib32gcc-s1 > /dev/null
           SC="$HOME/steamcmd"
           mkdir -p "$SC"
-          curl -sSfL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar xz -C "$SC"
+          curl -sSfL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_osx.tar.gz | tar xz -C "$SC"
           "$SC/steamcmd.sh" +quit < /dev/null > steamcmd_update.log 2>&1 || true
-          for d in "$SC/config" "$HOME/Steam/config" "$HOME/.steam/steam/config" "$HOME/.local/share/Steam/config"; do
-            mkdir -p "$d"
-            printf '%s' "$STEAM_CONFIG_VDF" | base64 -d > "$d/config.vdf"
-          done
+          CFG="$HOME/Library/Application Support/Steam/config"
+          mkdir -p "$CFG"
+          printf '%s' "$STEAM_CONFIG_VDF" | base64 -D > "$CFG/config.vdf"
           OUT="$GITHUB_WORKSPACE/build/steam"
+          test -f "$OUT/windows/CollimatorsFrontlines.exe"
           cat > "$OUT/app_build.vdf" <<VDF
           "AppBuild"
           {
           	"AppID" "5441720"
-          	"Desc" "${DESC//\"/\'}"
+          	"Desc" "$DESC"
           	"SetLive" "$STEAM_BRANCH"
           	"ContentRoot" "$OUT"
           	"BuildOutput" "$OUT/output"
@@ -117,7 +149,7 @@ jobs:
           }
           VDF
           set +e
-          timeout 1200 "$SC/steamcmd.sh" +login "$STEAM_USERNAME" +run_app_build "$OUT/app_build.vdf" +quit < /dev/null 2>&1 | tee upload.log
+          "$SC/steamcmd.sh" +login "$STEAM_USERNAME" +run_app_build "$OUT/app_build.vdf" +quit < /dev/null 2>&1 | tee upload.log
           set -e
           if grep -q "Successfully finished AppID 5441720 build" upload.log; then
             grep -oE "BuildID [0-9]+" upload.log | tail -1
@@ -129,15 +161,12 @@ jobs:
             exit 1
           fi
 
-      - name: Keep the logs
+      - name: Keep the upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: upload-logs
           path: |
-            import.log
-            sim.log
-            export.log
             upload.log
             steamcmd_update.log
           if-no-files-found: ignore
