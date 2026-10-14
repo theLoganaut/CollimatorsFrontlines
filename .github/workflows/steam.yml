@@ -1,6 +1,6 @@
 # Every push to main: check the data, run a quick crash check, export the
-# Windows build and upload it to Steam (app 5441720, depot 5441721), the
-# same build tools/steam_release.sh makes by hand.
+# Windows build and upload it to Steam (app 5441720, depot 5441721) with
+# SteamCMD, the same build tools/steam_release.sh makes by hand.
 #
 # Setup and secrets: tools/steam/STEAMWORKS.md -> "Automatic builds".
 #   secrets.STEAM_USERNAME    the Steam account with build rights
@@ -81,17 +81,53 @@ jobs:
           ls -la build/steam/windows
           echo "DESC=v$(grep -m1 '^config/version=' project.godot | cut -d'"' -f2) $stamp ($commit) $(git log -1 --format=%s | cut -c1-60)" >> "$GITHUB_ENV"
 
+      # SteamCMD straight from Valve, as tools/steam_release.sh runs it on the
+      # Mac. (game-ci/steam-deploy put the saved login where its SteamCMD
+      # didn't look, so it asked for a password; 2026-10-14.) The login goes
+      # everywhere SteamCMD looks for it; no stdin, so a bad login fails
+      # rather than waiting for a password.
       - name: Upload to Steam
-        uses: game-ci/steam-deploy@v3
-        with:
-          username: ${{ secrets.STEAM_USERNAME }}
-          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
-          appId: 5441720
-          firstDepotIdOverride: 5441721
-          buildDescription: ${{ env.DESC }}
-          rootPath: build/steam
-          depot1Path: windows
-          releaseBranch: ${{ vars.STEAM_BRANCH }}
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+          STEAM_BRANCH: ${{ vars.STEAM_BRANCH }}
+        run: |
+          sudo apt-get install -y -qq lib32gcc-s1 > /dev/null
+          SC="$HOME/steamcmd"
+          mkdir -p "$SC"
+          curl -sSfL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar xz -C "$SC"
+          "$SC/steamcmd.sh" +quit < /dev/null > steamcmd_update.log 2>&1 || true
+          for d in "$SC/config" "$HOME/Steam/config" "$HOME/.steam/steam/config" "$HOME/.local/share/Steam/config"; do
+            mkdir -p "$d"
+            printf '%s' "$STEAM_CONFIG_VDF" | base64 -d > "$d/config.vdf"
+          done
+          OUT="$GITHUB_WORKSPACE/build/steam"
+          cat > "$OUT/app_build.vdf" <<VDF
+          "AppBuild"
+          {
+          	"AppID" "5441720"
+          	"Desc" "${DESC//\"/\'}"
+          	"SetLive" "$STEAM_BRANCH"
+          	"ContentRoot" "$OUT"
+          	"BuildOutput" "$OUT/output"
+          	"Depots"
+          	{
+          		"5441721" { "FileMapping" { "LocalPath" "windows/*" "DepotPath" "." "Recursive" "1" } }
+          	}
+          }
+          VDF
+          set +e
+          timeout 1200 "$SC/steamcmd.sh" +login "$STEAM_USERNAME" +run_app_build "$OUT/app_build.vdf" +quit < /dev/null 2>&1 | tee upload.log
+          set -e
+          if grep -q "Successfully finished AppID 5441720 build" upload.log; then
+            grep -oE "BuildID [0-9]+" upload.log | tail -1
+            if [ -n "$STEAM_BRANCH" ]; then echo "Live on '$STEAM_BRANCH'."; else echo "Uploaded. Set it live: https://partner.steamgames.com/apps/builds/5441720"; fi
+          else
+            if grep -qiE "Cached credentials not found|Invalid Password|Two-factor|Steam Guard" upload.log; then
+              echo "::error::Steam login failed: refresh STEAM_CONFIG_VDF (tools/steam_release.sh --login, then tools/steam/ci_login_secret.sh)."
+            fi
+            exit 1
+          fi
 
       - name: Keep the logs
         if: always()
@@ -102,4 +138,6 @@ jobs:
             import.log
             sim.log
             export.log
+            upload.log
+            steamcmd_update.log
           if-no-files-found: ignore
