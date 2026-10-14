@@ -77,7 +77,7 @@ starts it and `SteamService.available` / `api()` say whether Steam is up; withou
 **Releases to testers** ("build it" / "push a build"): `tools/steam_release.sh [--desc "..."]` exports Windows (macOS too if
 `DEPOT_MACOS` is set) and uploads it with SteamCMD (one branch, default: Logan sets each build live on the Steamworks Builds page; settings: `tools/steam/config.sh`; logs:
 `build/steam/logs/`). If it says SteamCMD needs a login, Logan runs `tools/steam_release.sh --login` himself (password + Steam Guard).
-Every push to `main` also builds and uploads automatically (`.github/workflows/steam.yml`, GitHub secrets; setup in `tools/steam/STEAMWORKS.md`): it stops only on validate_data errors, a script error in a short sim, or a failed export, not on the combat rule tests.
+`tools/ship.sh` = push `main`, then `steam_release.sh` (Logan's one command). Every push to `main` runs a build check on GitHub (`.github/workflows/build_check.yml`: validate_data, a short sim for script errors, the Windows export; not the combat rule tests). It can't upload: Steam Guard binds SteamCMD's login to the Mac.
 **Achievements** (`data/achievements.json`, `Achievements`, earned in `Profile.record_run`, Pilot Log tab).
 **Gamepad** (`Gamepad` autoload): the stick drives the mouse cursor and A clicks, so screens need nothing of their own;
 buttons press the bound keys; a screen can take buttons first (`Gamepad.handler.pad_button`, combat does). Code that

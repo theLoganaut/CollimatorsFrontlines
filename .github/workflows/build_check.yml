@@ -1,0 +1,91 @@
+# Every push to main: check the data, run a quick crash check and export the
+# Windows build, so a commit that breaks the game shows up right away. The
+# combat rule tests don't gate it (Logan, 2026-10-14).
+#
+# Uploading to Steam happens from Logan's Mac (tools/ship.sh: push, then
+# tools/steam_release.sh): Steam Guard ties SteamCMD's login to the machine,
+# so a GitHub runner can't reuse it (tried 2026-10-14, Linux and macOS).
+#
+#   secrets.FEEDBACK_WEBHOOK  optional: the Discord webhook stamped into the build
+#
+# Skip a push with [skip ci] in the commit message. Run one by hand from the
+# Actions tab (Build check -> Run workflow).
+name: Build check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# a newer push cancels a check still running for an older one
+concurrency:
+  group: build-check
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7"
+  GODOT_TEMPLATES_DIR: "4.7.stable"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot ${{ env.GODOT_VERSION }} and its export templates
+        run: |
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          curl -sSfL -o godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSfL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q godot.zip -d "$HOME/godot"
+          mv "$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" "$HOME/godot/godot"
+          dest="$HOME/.local/share/godot/export_templates/$GODOT_TEMPLATES_DIR"
+          mkdir -p "$dest"
+          unzip -q templates.tpz -d "$HOME/tpl"
+          mv "$HOME"/tpl/templates/* "$dest/"
+          echo "GODOT=$HOME/godot/godot" >> "$GITHUB_ENV"
+
+      - name: Import the project
+        run: $GODOT --headless --path . --import > import.log 2>&1 || (tail -50 import.log; exit 1)
+
+      - name: Check the data (every reference resolves)
+        run: $GODOT --headless --path . -s tools/validate_data.gd
+
+      # The combat rule tests aren't run here on purpose (Logan, 2026-10-14):
+      # only real breakage stops a build. A few simulated runs catch script
+      # errors that would crash a fight.
+      - name: Crash check (a few simulated runs)
+        run: |
+          $GODOT --headless --path . -s tools/balance_sim.gd -- 3 > sim.log 2>&1 || true
+          if grep -q "SCRIPT ERROR\|Parse Error" sim.log; then
+            grep -A3 "SCRIPT ERROR\|Parse Error" sim.log | head -40
+            exit 1
+          fi
+          echo "ok ($(grep -c clear sim.log) mission x bot lines)"
+
+      - name: Export Windows
+        env:
+          FEEDBACK_WEBHOOK: ${{ secrets.FEEDBACK_WEBHOOK }}
+        run: |
+          stamp="$(date -u '+%Y-%m-%d %H:%M') UTC"
+          commit="$(git rev-parse --short HEAD)"
+          printf '{"stamp": "%s", "commit": "%s", "feedback_webhook": "%s"}\n' "$stamp" "$commit" "${FEEDBACK_WEBHOOK:-}" > build_info.json
+          mkdir -p build/steam/windows
+          $GODOT --headless --path . --export-release "Windows" build/steam/windows/CollimatorsFrontlines.exe > export.log 2>&1 || (tail -50 export.log; exit 1)
+          rm -f build_info.json
+          test -f build/steam/windows/CollimatorsFrontlines.exe || (tail -50 export.log; echo "no .exe"; exit 1)
+          test -f build/steam/windows/steam_api64.dll || (echo "steam_api64.dll is missing from the build"; exit 1)
+          ls -la build/steam/windows
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: |
+            import.log
+            sim.log
+            export.log
+          if-no-files-found: ignore
+

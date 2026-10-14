@@ -56,28 +56,17 @@ Upload `tools/steam/rich_presence.vdf`. The game sets `steam_display` to
 (a fight), with `%location%`, `%mission%` and `%fight%` filled in
 (`SteamService.update_presence`).
 
-## Automatic builds (GitHub Actions)
+## Shipping a build
 
-Every push to `main` runs `.github/workflows/steam.yml`: it checks the data
-(`validate_data`), runs a few simulated runs to catch script errors, exports
-Windows and uploads it to app 5441720 / depot 5441721. The combat rule tests
-don't gate it (Logan, 2026-10-14). `[skip ci]` in a commit message skips a
-push; Actions → Steam build → Run workflow runs one by hand.
+`tools/ship.sh` does both steps from the Mac: pushes `main` to GitHub, then
+exports and uploads with `tools/steam_release.sh` (options pass through, e.g.
+`--desc "..."`). It stops first if you're not on `main`, have uncommitted
+changes, or GitHub's `main` has commits you haven't pulled. Then set the
+build live on the Builds page as before.
 
-The build goes up on the default branch but isn't set live: Steam won't let
-SteamCMD do that for the default branch, so set it live on the Builds page as
-before. To make uploads go live by themselves, create a beta branch (e.g.
-`testers`) and put its name in the repo variable `STEAM_BRANCH`.
-
-Secrets (GitHub → the repo → Settings → Secrets and variables → Actions):
-
-| Secret | Value |
-|---|---|
-| `STEAM_USERNAME` | the Steam account with build rights (`STEAM_USER` in config.sh) |
-| `STEAM_CONFIG_VDF` | SteamCMD's saved login: run `tools/steam/ci_login_secret.sh` (copies it to the clipboard, trimmed to fit a secret's 48 KB), then paste |
-| `FEEDBACK_WEBHOOK` | optional: the Discord webhook stamped into the build |
-
-`STEAM_CONFIG_VDF` is a login to that Steam account: anyone who can edit
-workflows in this repo could use it. If an upload fails at login (the saved
-login expired), run `tools/steam_release.sh --login` on the Mac, then
-`tools/steam/ci_login_secret.sh`, and paste it into the secret again.
+Every push to `main` also runs `.github/workflows/build_check.yml` on GitHub:
+the data check, a few simulated runs to catch script errors, and the Windows
+export (the combat rule tests don't gate it). It doesn't upload: Steam Guard
+ties SteamCMD's saved login to the machine that made it, so a GitHub runner
+can't reuse the Mac's login (tried 2026-10-14 on Linux and macOS runners).
+Optional secret: `FEEDBACK_WEBHOOK`, stamped into the checked build.
