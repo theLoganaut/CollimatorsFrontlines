@@ -327,6 +327,12 @@ func _build() -> void:
 		Audio.play("ui")
 		OS.shell_open(PlaytestReport.folder()))
 	right.add_child(folder_btn)
+	var shots_btn := _action_button("Open screenshots folder")
+	shots_btn.tooltip_text = "Screenshots you've taken (%s)." % GameSettings.key_label("screenshot")
+	shots_btn.pressed.connect(func():
+		Audio.play("ui")
+		OS.shell_open(Capture.folder()))
+	right.add_child(shots_btn)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)

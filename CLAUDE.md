@@ -63,6 +63,10 @@ statuses, commands; saved by `Replays` in `user://replays/`, named in the run's 
 buttons play one back in `CombatScene`'s replay mode (`CombatScene.replay_record`). Every finished run also writes a
 playtest report (`PlaytestReport`, `user://playtests/`; Settings → "Save playtest report" mid-run);
 `tools/playtest_report.gd [file|folder] [--turns]` prints each fight and checks it still replays the same.
+**Media capture** (`Capture` autoload): the screenshot key (F9) saves to `user://screenshots/` and the Steam library; Steam Game
+Recording gets timeline markers (`Capture.watch_fight`, a phase per fight, a marker per highlight). `tools/render_replay.sh <file|latest>
+[--res=WxH] [--clean]` renders a recorded fight to mp4 under Movie Maker (it sizes the window through a temporary `override.cfg`;
+`GameSettings.apply` leaves the window alone while a movie is being written).
 **Crash reports** (`CrashLog`, autoload `CrashWatch`, first): a session file touched every 2 s and a trail of what the player did
 (screens, hovered parts/cards/intents, cards played, turns; `CrashLog.crumb`) plus every engine/script error with its backtrace,
 flushed line by line to `user://session/`. A launch that finds the last session never quit writes `<stamp>_crash.txt` (verdict,

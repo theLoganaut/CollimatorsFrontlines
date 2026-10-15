@@ -29,6 +29,7 @@ const KEY_ACTIONS := [
 	["rotate", "Rotate a held part", KEY_R],
 	["undo", "Undo a move (with Ctrl / Cmd)", KEY_Z],
 	["feedback", "Send feedback", KEY_F8],
+	["screenshot", "Take a screenshot", KEY_F9],
 ]
 ## Keys that can't be bound (they already mean something fixed).
 const RESERVED_KEYS := [KEY_ESCAPE, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9,
@@ -132,7 +133,9 @@ func apply() -> void:
 			var v := volume(bus)
 			AudioServer.set_bus_mute(i, v <= 0.0)
 			AudioServer.set_bus_volume_db(i, linear_to_db(maxf(v, 0.0001)))
-	if DisplayServer.get_name() == "headless":
+	# headless has no window; under Movie Maker the window is the movie's frame
+	# (tools/render_replay.sh sizes it), so the saved fullscreen never applies
+	if DisplayServer.get_name() == "headless" or Engine.get_write_movie_path() != "":
 		return
 	var win := get_window()
 	if fullscreen and win.mode != Window.MODE_FULLSCREEN:

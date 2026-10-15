@@ -31,6 +31,7 @@ Sfx="*res://scripts/core/Sfx.gd"
 Tutorial="*res://scripts/core/Tutorial.gd"
 Gamepad="*res://scripts/core/Gamepad.gd"
 SteamService="*res://scripts/core/SteamService.gd"
+Capture="*res://scripts/core/Capture.gd"
 
 [debug]
 
@@ -44,6 +45,10 @@ window/size/viewport_height=720
 window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor]
+
+movie_writer/mjpeg_quality=0.95
 
 [physics]
 

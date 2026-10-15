@@ -632,6 +632,8 @@ func _end_passive_reveal() -> void:
 		_record = FightRecord.begin(player_mech, enemy_mechs, _seed, labels, _background)
 		_record["location"] = RunState.run.location.get("name", "")
 		_record["kind"] = RunState.run.current_node().get("kind", "")
+	var kind: String = replay_record.get("kind", "") if _replaying else (RunState.run.current_node().get("kind", "") if _in_run() else "")
+	Capture.watch_fight(combat, player_mech, kind, _replaying) # Steam Game Recording markers
 	combat.start_combat() # -> turn_changed: Turn 1, End Turn enabled
 	if _replaying:
 		FightRecord.apply_opening(replay_record, player_mech, enemy_mechs)

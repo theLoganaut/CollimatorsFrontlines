@@ -5,3 +5,4 @@
 /build_info.json
 # the Discord feedback webhook and other local-only release settings
 /tools/steam/config.local.sh
+/override.cfg
