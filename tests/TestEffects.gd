@@ -151,16 +151,16 @@ static func _cards(t: TestContext) -> void:
 	var avg := float(fired) / runs
 	t.assert_true(absf(avg - 3.2) < 0.15, "about 3.2 of 5 hits fire on average (%.2f)" % avg)
 
-	t.group("Shock Round: its Shock applies 25% of the time")
+	t.group("Shock Round: its Shock applies every time")
 	var shocked := 0
-	for s in range(400):
+	for s in range(20):
 		var p := _mech([["hv_rifle", Vector2i(0, 0)]])
 		var e := _dummy()
 		var cm := _cm(p, [e] as Array[MechData], s + 7)
 		cm.play_attack_card(_card(p, "hv_rifle", "shock_round"), e, e.components[0])
 		if e.components[0].status_stacks("shock") > 0:
 			shocked += 1
-	t.assert_true(absf(shocked / 400.0 - 0.25) < 0.06, "≈25%% (%d / 400)" % shocked)
+	t.assert_eq(shocked, 20, "20 of 20 shocked")
 
 	t.group("EMP Round: triple damage to a shocked hardpoint")
 	var dmg_plain := 0
@@ -232,18 +232,16 @@ static func _cards(t: TestContext) -> void:
 # ---------- reactors ----------
 
 static func _reactors(t: TestContext) -> void:
-	t.group("Thermal Core / Overpressure Valve / Coolant Loop: heat capacity and venting")
+	t.group("Thermal Core / Overpressure Valve / Coolant Loop: heat capacity, backlash and Coolant")
 	var hp := _mech([["thermal_core", Vector2i(0, 0)], ["overpressure_valve", Vector2i(0, 2)]], 10)
 	t.assert_eq(hp.heat_capacity(), 14, "10 + 2 + 2 (Logan: Overpressure +2)")
-	t.assert_eq(hp.decay_bonus(), -1, "Overpressure vents 1 less")
+	t.assert_eq(hp.backlash_mult(), 1.25, "Overpressure: overheat backlash +25%")
 	hp.get_component("thermal_core").apply_damage(999)
 	t.assert_eq(hp.heat_capacity(), 12, "a destroyed Thermal Core stops giving its +2")
 	var cl := _mech([["coolant_loop", Vector2i(0, 0)]], 10)
 	cl.components.append(_gun("g", 1))
-	var clcm := _cm(cl, [_dummy()] as Array[MechData])
-	cl.current_heat = 5 # floor(25/10) = 2 vented, +1 = 3
-	clcm.end_player_turn()
-	t.assert_eq(cl.current_heat, 2, "Coolant Loop vents 1 extra (5 → 2)")
+	_cm(cl, [_dummy()] as Array[MechData])
+	t.assert_eq(cl.get_component("g").status_stacks("coolant"), 1, "Coolant Loop: Coolant 1 on a hardpoint at turn start")
 
 	t.group("Nano Bots: heals 5 to the lowest-HP part at turn start (Logan)")
 	var np := _mech([["nano_bots", Vector2i(0, 0)], ["impact_hammer", Vector2i(2, 0)]])

@@ -176,8 +176,8 @@ static func run_all(t: TestContext) -> void:
 	icm.auto_resolve_enemy_turn = false
 	icm.start_combat()
 	var planned: Array = icm.enemy_plans[iw[0]]
-	t.assert_eq(planned.size(), 1, "a fresh Warden plans one card for its one armed component (Scatter Shot)")
-	t.assert_eq(icm.upcoming_enemy_actions(iw[0]).size(), 1, "it shows as upcoming intent during the player's turn")
+	t.assert_eq(planned.map(func(s): return s["card"].id), ["blast_em", "pick_off"], "a fresh Warden plans every Scatter Shot card it can afford (Blast 'Em 2 + Pick Off 1 of 6 Heat)")
+	t.assert_eq(icm.upcoming_enemy_actions(iw[0]).size(), 2, "they show as upcoming intents during the player's turn")
 	var planned_ids := planned.map(func(s): return s["card"].id)
 	icm.end_player_turn()
 	var played_ids := []
@@ -291,11 +291,11 @@ static func run_all(t: TestContext) -> void:
 	kcm.start_combat()
 	var frail_t := kw[0].get_component("redirect_spike")
 	frail_t.current_hp = 1
-	kcm.begin_attack(kp.get_component("neon_axe").cards[0], kw[0], frail_t)
+	kcm.begin_attack(TestEffects._card(kp, "neon_axe", "cross_chop"), kw[0], frail_t) # 2 hits
 	var ksteps := 0
 	while not kcm.next_hit().is_empty():
 		ksteps += 1
-	t.assert_eq(ksteps, 1, "a 1 HP target dies on the first of 3 hits; the other 2 aren't played out")
+	t.assert_eq(ksteps, 1, "a 1 HP target dies on the first of 2 hits; the second isn't played out")
 	kcm.finish_attack()
 
 	t.group("Redirect Spike: damage aimed at any other part lands on it while it stands")
@@ -323,9 +323,9 @@ static func run_all(t: TestContext) -> void:
 	bw[0].get_component("redirect_spike").current_hp = 1
 	var hit_parts := []
 	bcm.hit_landed.connect(func(_m, c, _d): hit_parts.append(c.id))
-	bcm.play_attack_card(bp.get_component("neon_axe").cards[0], bw[0], bw[0].get_component("scatter_shot")) # 3 hits
+	bcm.play_attack_card(TestEffects._card(bp, "neon_axe", "cross_chop"), bw[0], bw[0].get_component("scatter_shot")) # 2 hits
 	t.assert_eq(hit_parts[0], "redirect_spike", "hit 1 lands on (and breaks) the 1 HP Redirect Spike")
-	t.assert_eq(hit_parts.slice(1), ["scatter_shot", "scatter_shot"], "hits 2 and 3 reach Scatter Shot")
+	t.assert_eq(hit_parts.slice(1), ["scatter_shot"], "hit 2 reaches Scatter Shot")
 
 	t.group("Capacitor Bank: Absorb 10 on its own mech at the start of that mech's turn")
 	var cbp := DataLoader.load_mech_from_file("res://tests/fixtures/bastion_classic.json")

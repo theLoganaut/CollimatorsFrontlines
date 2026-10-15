@@ -888,7 +888,7 @@
      "name": "Whiplash",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "7-11",
+     "damage": "9-13",
      "statuses": [
       {
        "status": "shock",
@@ -963,7 +963,7 @@
      "name": "Embed",
      "heat_cost": "2",
      "hits": "1",
-     "damage": "7-14",
+     "damage": "9-15",
      "statuses": [
       {
        "status": "disabled",
@@ -983,7 +983,7 @@
      "name": "Jab Jab Jab!",
      "heat_cost": "4",
      "hits": "4",
-     "damage": "4-6",
+     "damage": "5-8",
      "statuses": [],
      "effect_text": "Double damage vs a Disabled part."
     },
@@ -2474,7 +2474,7 @@
      "name": "Redline Burst",
      "heat_cost": "5",
      "hits": "1",
-     "damage": "22-28",
+     "damage": "19-23",
      "statuses": [],
      "effect_text": "+50% damage while over max Heat."
     },

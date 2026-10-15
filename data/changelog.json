@@ -22,7 +22,7 @@
         },
         {
           "label": "Balance:",
-          "text": "repair bays heal at most 75 HP, and Reroute can't turn a status into Disabled any more."
+          "text": "repair bays heal at most 75 HP, Reroute can't turn a status into Disabled any more, Jackal's starting parts hit harder and Redline's Redline Burst a little softer."
         },
         {
           "label": "Combat:",

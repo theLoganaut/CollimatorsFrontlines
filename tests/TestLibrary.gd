@@ -93,7 +93,7 @@ static func _scaling(t: TestContext) -> void:
 	var blade := ComponentLibrary.make("ion_blade")
 	var swipe: CardData = blade.cards[0]
 	var thrust: CardData = blade.cards[1]
-	t.assert_eq([swipe.damage_min, swipe.damage_max], [5, 9], "Swipe 6–12 × 0.75 = 5–9 (rounded)")
+	t.assert_eq([swipe.damage_min, swipe.damage_max], [4, 6], "Swipe 5–8 × 0.75 = 4–6 (rounded)")
 	t.assert_eq(swipe.heat_cost, 2, "…and its 1 heat × 1.5 = 2")
 	t.assert_eq([thrust.damage_min, thrust.damage_max, thrust.heat_cost], [9, 12, 9], "Thrust Through 12–16 for 6 → 9–12 for 9")
 	var cool: CardData = ComponentLibrary.make("thermal_spike_rifle").cards.filter(func(c): return c.heat_cost < 0)[0]
@@ -107,7 +107,7 @@ static func _scaling(t: TestContext) -> void:
 	t.assert_eq(ComponentLibrary.make("targeting_computer").cards[0].heat_cost, 0, "…a free card stays free")
 	Balance.set_value("combat", "heat_add", 0)
 	Balance.set_value("combat", "damage_mult", 1.0)
-	t.assert_eq([ComponentLibrary.make("ion_blade").cards[0].damage_min, ComponentLibrary.make("ion_blade").cards[0].heat_cost], [6, 1], "at 1.0 Refit Bay's numbers are untouched")
+	t.assert_eq([ComponentLibrary.make("ion_blade").cards[0].damage_min, ComponentLibrary.make("ion_blade").cards[0].heat_cost], [5, 1], "at 1.0 Refit Bay's numbers are untouched")
 	for k in saved:
 		Balance.set_value("combat", k, saved[k])
 

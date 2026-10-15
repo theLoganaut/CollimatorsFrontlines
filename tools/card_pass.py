@@ -81,13 +81,13 @@ BATCH1 = {
              rule={**SELF, "guard": {"type": "static_field", "status": "shock", "stacks": 1}}),
     ],
     "Arc Whip": [
-        card("Whiplash", 2, 1, "7-11", [S("shock", 2)]),
+        card("Whiplash", 2, 1, "9-13", [S("shock", 2)]),
         card("Wrap Up", 4, 1, "8-13", [S("shock", 4), S("disabled", 2, "self")]),
         card("Snap", 2, 1, "6-9", effect="Double damage vs a Shocked part.", rule={"mult_if_target_status": {"status": "shock", "mult": 2}}),
     ],
     "Fang Blade": [
-        card("Embed", 2, 1, "7-14", [S("disabled", 1), S("disabled", 1, "self")]),
-        card("Jab Jab Jab!", 4, 4, "4-6", effect="Double damage vs a Disabled part.",
+        card("Embed", 2, 1, "9-15", [S("disabled", 1), S("disabled", 1, "self")]),
+        card("Jab Jab Jab!", 4, 4, "5-8", effect="Double damage vs a Disabled part.",
              rule={"mult_if_target_status": {"status": "disabled", "mult": 2}}),
         card("Twist", 1, 1, "4-6", effect="Vs a Disabled part: Disabled 1 more.",
              rule={"status_if_target_status": {"if": "disabled", "status": "disabled", "stacks": 1}}),
@@ -111,7 +111,7 @@ BATCH1 = {
     ],
     "Heat Lance": [
         card("Searing Line", 3, 1, "12-16", effect="+1 damage per 2 Heat you have.", rule={"bonus_per_heat": {"per": 2, "bonus": 1}}),
-        card("Redline Burst", 5, 1, "22-28", effect="+50% damage while over max Heat.", rule={"mult_if_over_max": 1.5}),
+        card("Redline Burst", 5, 1, "19-23", effect="+50% damage while over max Heat.", rule={"mult_if_over_max": 1.5}),
         card("Heat Dump", -3, 0, "", [S("disabled", 1, "self")], "Vent 3.", {"vents": True}),
     ],
     "Coil Whip": [

@@ -147,14 +147,14 @@ static func _hit_cards(t: TestContext) -> void:
 	cm5.play_attack_card(_card(p5, "grinder_maw", "chew"), e5, e5.components[0])
 	t.assert_true(p5.get_component("rivet_gun").current_hp > 10, "the Rivet Gun got HP back")
 
-	t.group("Nova Cannon: hits every enemy, and the cannon takes 6")
+	t.group("Nova Cannon: hits every enemy, and the cannon takes 12")
 	var p6 := _m([["nova_cannon", Vector2i(0, 0)]])
 	var ea := TestEffects._dummy(9999)
 	var eb := TestEffects._dummy(9999)
 	var cm6 := TestEffects._cm(p6, [ea, eb] as Array[MechData])
 	cm6.play_attack_card(_card(p6, "nova_cannon", "nova"), ea, ea.components[0])
 	t.assert_true(_lost(ea.components[0]) > 0 and _lost(eb.components[0]) > 0, "both enemies hit")
-	t.assert_eq(_lost(p6.get_component("nova_cannon")), 6, "recoil 6")
+	t.assert_eq(_lost(p6.get_component("nova_cannon")), 12, "recoil 12")
 
 	t.group("Resonance Blade: +4 for each earlier Resonate this fight")
 	var p7 := _m([["resonance_blade", Vector2i(0, 0)]])
