@@ -39,7 +39,8 @@ func _initialize() -> void:
 	quit(1 if not errors.is_empty() else 0)
 
 ## The What's New?! board: its current version is this build's, and every
-## release has a version and items, and every planned update a kind and when.
+## release has a version and items, and every planned update a kind and when
+## but no version (it gets one when it ships, so bug-fix releases never renumber it).
 func _changelog() -> void:
 	var d = _json("res://data/changelog.json")
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
@@ -55,10 +56,13 @@ func _changelog() -> void:
 		if not note.is_empty() and (str(note.get("title", "")) == "" or (note.has("link") and not str(note["link"]).begins_with("https://"))):
 			errors.append("changelog.json %s: a note needs a title, and its link must be https" % r.get("version", ""))
 	for u in d.get("next", {}).get("updates", []):
-		if str(u.get("version", "")) == "" or str(u.get("when", "")) == "" or (u.get("items", []) as Array).is_empty():
-			errors.append("changelog.json: a planned update without a version, when or items")
+		var when := str(u.get("when", ""))
+		if when == "" or (u.get("items", []) as Array).is_empty():
+			errors.append("changelog.json: a planned update without a when or items")
+		if u.has("version"):
+			errors.append("changelog.json: planned update (%s) has a version; it gets one when it ships" % when)
 		if not str(u.get("kind", "")) in ["minor", "major"]:
-			errors.append("changelog.json: planned update %s isn't \"minor\" or \"major\"" % u.get("version", ""))
+			errors.append("changelog.json: planned update (%s) isn't \"minor\" or \"major\"" % when)
 
 func _json(path: String):
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))

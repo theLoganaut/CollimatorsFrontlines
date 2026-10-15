@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Source drawing for hood.png, hood_opening.png and drop.png (layout.json).
+     Units are drawing units; the PNGs are rendered at 2.08 canvas px per unit
+     (the same scale as the stone). Hood bottom sits at canvas y 491, centred on x 960.
+     The drop is drawn at half scale (its group transform), outlined in the background colour. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 190 310" width="380" height="620">
+  <rect x="-2" y="0" width="190" height="310" fill="#0b0a12"/>
+  <path id="hood" fill="#f3f3f8" d="M94 2 C83 2 76 7 70 19 C65 36 58 56 50 76 C22 86 4 108 0 139 L0 194 L186 194 L186 139 C182 108 164 86 136 76 C128 56 123 36 118 19 C112 7 105 2 94 2Z"/>
+  <path id="hood_opening" fill="#0b0a12" stroke="#555" stroke-width=".4" d="M94 140 C94 140 63 98 63 79 A31 31 0 0 1 125 79 C125 98 94 140 94 140Z"/>
+  <g transform="translate(94 250) scale(.5)">
+    <path id="drop" fill="#f3f3f8" stroke="#0b0a12" stroke-width="5" stroke-linejoin="round" d="M0 0 C0 0 -18 26 -18 34 A18 18 0 0 0 18 34 C18 26 0 0 0 0Z"/>
+  </g>
+</svg>

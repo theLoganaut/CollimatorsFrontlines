@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dn13st32d8qms"
-path="res://.godot/imported/preview_rest_frame.png-8d37d8e1c195fbf1f2a5b36cfc9ed5fb.ctex"
+uid="uid://c2ynb5aacbgjm"
+path="res://.godot/imported/hood_source.svg-73b9baf04c712b245a2d01c3177edfea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/intro/trismeg/_preview/preview_rest_frame.png"
-dest_files=["res://.godot/imported/preview_rest_frame.png-8d37d8e1c195fbf1f2a5b36cfc9ed5fb.ctex"]
+source_file="res://assets/intro/trismeg/_preview/hood_source.svg"
+dest_files=["res://.godot/imported/hood_source.svg-73b9baf04c712b245a2d01c3177edfea.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

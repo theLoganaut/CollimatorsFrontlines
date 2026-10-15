@@ -78,8 +78,9 @@ last week's crash report, session trail, Godot log, profile, settings) to a Disc
 starts it and `SteamService.available` / `api()` say whether Steam is up; without the extension or a running client the game plays on.
 **Releases to testers** ("build it" / "push a build"): `tools/steam_release.sh [--desc "..."]` exports Windows (macOS too if
 `DEPOT_MACOS` is set) and uploads it with SteamCMD (one branch, default: Logan sets each build live on the Steamworks Builds page; settings: `tools/steam/config.sh`; logs:
-`build/steam/logs/`). If it says SteamCMD needs a login, Logan runs `tools/steam_release.sh --login` himself (password + Steam Guard).
-`tools/ship.sh` = push `main`, then `steam_release.sh` (Logan's one command). Every push to `main` runs a build check on GitHub (`.github/workflows/build_check.yml`: validate_data, a short sim for script errors, the Windows export; not the combat rule tests). It can't upload: Steam Guard binds SteamCMD's login to the Mac.
+`build/steam/logs/`). It runs on the Mac or on Logan's Windows PC (Git Bash; config.sh picks each one's SteamCMD and Godot). If it says SteamCMD needs a login, Logan runs `tools/steam_release.sh --login` himself on that machine (password + Steam Guard).
+`tools/ship.sh` = push `main`, then `steam_release.sh` (Logan's one command). Every push to `main` runs a build check on GitHub (`.github/workflows/build_check.yml`: validate_data, a short sim for script errors, the Windows export; not the combat rule tests). It can't upload: Steam Guard binds SteamCMD's login to Logan's own machines.
+**Versions** (`project.godot` config/version, `export_presets.cfg`, `current` in `data/changelog.json`; validate_data checks they match): a release bumps them and adds its notes to `releases`. The What's Next?! roadmap (`next.updates`) has no version numbers, only minor/major and when, so bug-fix releases and moving items between updates never renumber it.
 **Achievements** (`data/achievements.json`, `Achievements`, earned in `Profile.record_run`, Pilot Log tab).
 **Gamepad** (`Gamepad` autoload): the stick drives the mouse cursor and A clicks, so screens need nothing of their own;
 buttons press the bound keys; a screen can take buttons first (`Gamepad.handler.pad_button`, combat does). Code that
@@ -144,4 +145,5 @@ The hub is an index. Open only the subpage you need (fetch by ID with the Notion
 - **Mechs use only Refit Bay parts**, player and enemy alike: components, HP, shapes, cards and effect text copied verbatim. Never make up a part or effect unless Logan explicitly asks.
 - Settled decisions go into the matching Notion topic page, not only into chat or code.
 - Treat Scratchpad → "Thoughts in progress" as undecided. Pages tag items **Decided / Proposed / Open / Shelved / Cut**; only Decided is settled.
-- Godot CLI for headless runs/tests: `/Applications/Godot.app/Contents/MacOS/Godot`
+- Godot CLI for headless runs/tests: `/Applications/Godot.app/Contents/MacOS/Godot` on the Mac; on Windows,
+  `~/Desktop/Projects/Godot_v4.7-stable_win64_console.exe`.

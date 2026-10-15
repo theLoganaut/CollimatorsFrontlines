@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bbovwkl8y36do"
-path="res://.godot/imported/cuff_right_original.png-0f20e43a992a61b62a1b3cd856533e4a.ctex"
+uid="uid://tbpno5jje8jd"
+path="res://.godot/imported/hood.png-71ae53a49c5a2a1af1d67574bb448db6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/intro/trismeg/_preview/cuff_right_original.png"
-dest_files=["res://.godot/imported/cuff_right_original.png-0f20e43a992a61b62a1b3cd856533e4a.ctex"]
+source_file="res://assets/intro/trismeg/hood.png"
+dest_files=["res://.godot/imported/hood.png-71ae53a49c5a2a1af1d67574bb448db6.ctex"]
 
 [params]
 

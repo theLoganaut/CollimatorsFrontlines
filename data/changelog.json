@@ -1,5 +1,5 @@
 {
-  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (version, kind \"minor\"/\"major\", when, items) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
+  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
   "current": "0.2.2",
   "releases": [
     {
@@ -39,6 +39,20 @@
         {
           "label": "Fixes:",
           "text": "an enemy overheating no longer looks like damage to you, reactor passives light up their part, and the settings screen fits in release builds."
+        }
+      ]
+    },
+    {
+      "version": "0.2.1",
+      "title": "",
+      "items": [
+        {
+          "label": "New intro:",
+          "text": "a new Trismeg Studios intro screen."
+        },
+        {
+          "label": "Training:",
+          "text": "the training run's coaching and the reward screen were reworked."
         }
       ]
     },
@@ -85,7 +99,6 @@
   "next": {
     "updates": [
       {
-        "version": "0.2.3",
         "kind": "minor",
         "when": "Week of Nov 9",
         "items": [
@@ -96,7 +109,6 @@
         ]
       },
       {
-        "version": "0.3.0",
         "kind": "major",
         "when": "Week of Nov 16",
         "items": [
@@ -108,7 +120,6 @@
         ]
       },
       {
-        "version": "0.3.1",
         "kind": "minor",
         "when": "Week of Nov 23",
         "items": [
@@ -118,7 +129,6 @@
         ]
       },
       {
-        "version": "0.3.2",
         "kind": "minor",
         "when": "Dec 1",
         "items": [
@@ -132,7 +142,6 @@
         ]
       },
       {
-        "version": "0.4.0",
         "kind": "major",
         "when": "Week of Dec 7",
         "items": [
@@ -147,7 +156,6 @@
         ]
       },
       {
-        "version": "0.4.1",
         "kind": "minor",
         "when": "Week of Dec 14",
         "items": [
@@ -160,7 +168,6 @@
         ]
       },
       {
-        "version": "0.5.0",
         "kind": "major",
         "when": "Week of Dec 21",
         "items": [
