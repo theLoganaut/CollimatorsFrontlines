@@ -12,22 +12,26 @@ extends CanvasLayer
 
 const TRAINING_MISSION := "training"
 
-## [point, target name ("" = none), text, wait ("next" or an event)]
+## [point, target name(s) ("" = none; "a+b" rings both), text, wait ("next" or an event)].
+## The first sentence is the step's topic (lit in the box), so it says what the step is about.
 const STEPS := [
-	["war_room", "table", "Welcome aboard, pilot. Every mission starts at the War Table. Click it.", "table_opened"],
-	["sector_map", "map", "Three locations, each with a mission. Pick any one. In training they all lead to the same place.", "location_opened"],
+	["war_room", "table", "Every mission starts at the War Table. Welcome aboard, pilot: click the table.", "table_opened"],
+	["sector_map", "map", "This is a simulated mission at the Shipyard. Real missions offer three locations to choose from; for training there's just this one. Click it.", "location_opened"],
 	["popup", "launch", "Launch to drop in. Your HP and any parts you lose carry through the whole mission.", "launched"],
-	["location_map", "starts", "Your route, one stop per row, bottom to top: fights, repair bays, shops and events. Pick where to start.", "node_chosen"],
-	["combat", "player", "Your mech. Each colored block is a part with its own HP. Red parts are your weapons: lose them all and you're out.", "next"],
-	["combat", "hand", "Your hand. Each part gives you its cards. A card plays once a turn and comes back next turn.", "next"],
-	["combat", "heat", "Heat. Cards cost heat. Go over your max and you overheat: it damages your parts and ends your turn.", "next"],
-	["combat", "intents", "What the enemy plans to do. Hover an icon to see the card and which of your parts it's aiming at.", "next"],
-	["combat", "enemy", "Drag an attack card onto an enemy part to hit it. Destroy all its weapons, or bring its HP down into the dark red.", "card_played"],
-	["combat", "end_turn", "Done? Press End Turn. The enemy acts, then your heat vents for your next turn.", "turn_ended"],
-	["combat", "", "That's the loop. Finish it off.", "next"],
-	["reward", "reward", "Salvage. Your scraps are already banked. Pick a category, then one part for your Cargo. Or skip it for a few scraps.", "reward_done"],
-	["refit", "mech", "A refit. Click a part to pick it up, then click where it goes. R or right-click rotates it. Lit squares show where it fits.", "next"],
-	["refit", "cargo", "Yellow arrows are links: those parts affect whatever they point at. Finish the refit when you're ready.", "refit_done"],
+	["location_map", "starts", "This is your route through the location. One stop per row, bottom to top: fights, repair bays, shops and events. Click the lit stop.", "node_chosen"],
+	["combat", "player", "This is your mech, built from parts. Each colored block is one part with its own HP, and enemy attacks hit parts, not the whole mech.", "next"],
+	["combat", "player+hand", "Your cards come from your parts. Hardpoints (orange) are weapons: they give attack cards. Protocols (purple) are weapon augments: prime one and it powers up your next attack. Reactors (teal) are passives: always on, no cards.", "next"],
+	["combat", "hand", "This is your hand: every card your parts give you. Hover a card to see the part it comes from. Each card plays once a turn and comes back next turn.", "next"],
+	["combat", "heat", "Cards cost Heat. Go over your max and you overheat: it damages your parts and ends your turn.", "next"],
+	["combat", "intents", "These icons are what the enemy plans to do next. Hover one to see the card and which of your parts it's aiming at.", "next"],
+	["combat", "hand+enemy", "You win by destroying all of an enemy's hardpoints: with no weapons left, it explodes or retreats. Drag an attack card from your hand onto one of its parts.", "card_played"],
+	["combat", "enemy", "A part at 0 HP is destroyed. Its cards and passive are gone, and it stays wrecked for the rest of the mission. The same goes for yours: lose all your hardpoints and you're out.", "next"],
+	["combat", "end_turn", "Press End Turn when you're done. The enemy acts, then your heat vents for your next turn.", "turn_ended"],
+	["combat", "", "That's the whole loop. Finish it off.", "next"],
+	["reward", "reward", "Salvage comes after every win. Your scraps are already banked. Pick a category, then one part for your Cargo (or skip it for a few scraps), then Continue.", "reward_done"],
+	["refit", "mech", "A refit lets you rebuild your mech. Click a part to pick it up, then click where it goes. R or right-click rotates it. Lit squares show where it fits.", "next"],
+	["refit", "cargo", "Yellow arrows are links. A part with arrows affects whatever part they point at. Parts in Cargo wait here until you fit them.", "next"],
+	["refit", "leave", "Finish the refit when you're happy with the build.", "refit_done"],
 	["combat", "", "One more fight with your new setup.", "next"],
 	["debrief", "", "Training complete. Pick a location on the War Table for a real mission. The Hangar lets you change mechs and loadouts.", "next"],
 ]
@@ -54,10 +58,22 @@ var _dim: Control
 var _box: PanelContainer
 var _face: OperatorPortrait
 var _head: Label
-var _text: Label
+var _text: RichTextLabel
 var _talk: Tween
 var _next_btn: Button
 var _skip_btn: Button
+var _skip_corner: Button
+const SKIP_SIZE := Vector2(124, 30)
+## Under the settings button in every screen's top right corner.
+const SKIP_TOP := 62.0
+## On a step that waits for the pilot to do something, the box fades back
+## after it's spoken, so it doesn't hide what's under it (full again under
+## the mouse).
+const FADE_DELAY := 1.0
+const FADED_ALPHA := 0.4
+var _placed: bool = false
+var _fades: bool = false
+var _spoken_at: float = -1.0
 var _start_btn: Button
 var _t: float = 0.0
 
@@ -78,6 +94,7 @@ func _ready() -> void:
 	_box.add_theme_stylebox_override("panel", GlassPanel.panel_style(GlassPanel.HOLO, 12.0))
 	_box.draw.connect(func(): GlassPanel.draw_frame(_box, Rect2(Vector2.ZERO, _box.size)))
 	_root.add_child(_box)
+	get_viewport().size_changed.connect(func(): _place_skip())
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 14)
 	_box.add_child(h)
@@ -90,7 +107,14 @@ func _ready() -> void:
 	h.add_child(v)
 	_head = UIKit.label("OPERATOR  ·  TRAINING", 10, Color("b9d8d4"))
 	v.add_child(_head)
-	_text = UIKit.label("", 15, Color("eefcfa"), true)
+	_text = RichTextLabel.new()
+	_text.bbcode_enabled = true
+	_text.fit_content = true
+	_text.scroll_active = false
+	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_text.add_theme_font_size_override("normal_font_size", 15)
+	_text.add_theme_color_override("default_color", Color("eefcfa"))
 	_text.custom_minimum_size = Vector2(380, 0)
 	v.add_child(_text)
 	_name_row = HBoxContainer.new()
@@ -113,10 +137,18 @@ func _ready() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)
-	_skip_btn = GlassPanel.button("Skip training", 12)
+	_skip_btn = GlassPanel.button("Not now", 12)
 	_skip_btn.custom_minimum_size = Vector2(120, 32)
 	_skip_btn.pressed.connect(skip)
 	row.add_child(_skip_btn)
+	# During training, Skip sits on its own at the top right, under the
+	# settings button (Logan, 2026-10-14), not in the coach's box.
+	_skip_corner = GlassPanel.button("Skip training", 12)
+	_skip_corner.custom_minimum_size = SKIP_SIZE
+	_skip_corner.size = SKIP_SIZE
+	_skip_corner.pressed.connect(skip)
+	_skip_corner.visible = false
+	add_child(_skip_corner) # not in _root: it stays up between the coach's steps
 	row.add_child(UIKit.spacer())
 	_start_btn = GlassPanel.button("Start training", 13, true, Palette.LINK)
 	_start_btn.custom_minimum_size = Vector2(140, 32)
@@ -193,6 +225,8 @@ func _accept_offer() -> void:
 func start() -> void:
 	active = true
 	step = 0
+	_place_skip()
+	_skip_corner.visible = true
 
 func skip() -> void:
 	_offer = false
@@ -200,6 +234,7 @@ func skip() -> void:
 	Profile.tutorial_done = true
 	Profile.save()
 	_root.visible = false
+	_skip_corner.visible = false
 	finished.emit()
 
 func is_training_run(run: RunData) -> bool:
@@ -234,6 +269,7 @@ func event(name: String) -> void:
 		Profile.tutorial_done = true
 		Profile.save()
 		_root.visible = false
+		_skip_corner.visible = false
 		finished.emit()
 		return
 	_refresh()
@@ -247,19 +283,41 @@ func _refresh() -> void:
 
 func _show(text: String, target: String, wait_next: bool) -> void:
 	_root.visible = true
-	_text.text = text
+	_text.text = _topic(text) if active and not _hinting else _escape(text)
 	_text.visible_ratio = 0.0
 	_name_row.visible = _naming
 	_start_btn.visible = _offer and not _naming
 	_next_btn.visible = not _offer and not _naming and wait_next
 	_next_btn.text = "Got it" if _hinting or step >= STEPS.size() - 1 or text.ends_with("off.") else "Next"
-	_skip_btn.text = "Not now" if _offer else "Skip training"
-	_skip_btn.visible = not _naming and not _hinting
-	# "Next" steps hold the screen; action steps let clicks through.
-	_dim.mouse_filter = Control.MOUSE_FILTER_STOP if (wait_next or _offer or _naming) else Control.MOUSE_FILTER_IGNORE
+	_skip_btn.visible = _offer and not _naming
+	_place_skip()
+	# The offer and the name hold the screen. Training steps never do: the
+	# pilot can hover the mech, cards and icons while the coach talks
+	# (Logan, 2026-10-14); "Next" steps just dim more.
+	_dim.mouse_filter = Control.MOUSE_FILTER_STOP if (_offer or _naming) else Control.MOUSE_FILTER_IGNORE
+	_hold = wait_next or _offer or _naming
+	_fades = active and not wait_next and not _offer and not _naming and not _hinting
 	_current_target = target
 	_t = 0.0
 	_place_box()
+
+## Whether this step waits on "Next" (a darker dim) rather than an action.
+var _hold: bool = false
+
+## The step's first sentence (its topic) lit, the rest as is.
+static func _topic(text: String) -> String:
+	var m := RegEx.create_from_string("^(.+?[.!?])(\\s|$)").search(text)
+	if m == null:
+		return _escape(text)
+	var head := m.get_string(1)
+	return "[color=#%s]%s[/color]%s" % [Palette.LINK.to_html(false), _escape(head), _escape(text.substr(head.length()))]
+
+static func _escape(s: String) -> String:
+	return s.replace("[", "[lb]")
+
+func _place_skip() -> void:
+	var screen: Vector2 = _root.get_viewport_rect().size
+	_skip_corner.position = Vector2(screen.x - SKIP_SIZE.x - 16.0, SKIP_TOP)
 
 var _current_target: String = ""
 
@@ -277,8 +335,11 @@ static func _rects_of(t) -> Array[Rect2]:
 ## The ringed rects, in screen space (empty if there's nothing to ring).
 func _target_rects() -> Array[Rect2]:
 	var out: Array[Rect2] = []
-	for r in _rects_of(_targets.get(_current_target, null)):
-		out.append(r.grow(8.0))
+	if _current_target == "":
+		return out
+	for name in _current_target.split("+"):
+		for r in _rects_of(_targets.get(name, null)):
+			out.append(r.grow(8.0))
 	return out
 
 ## All ringed rects merged into one (empty Rect2 if none).
@@ -305,6 +366,8 @@ var _place_gen: int = 0
 func _place_box() -> void:
 	_place_gen += 1
 	var gen := _place_gen
+	_placed = false
+	_spoken_at = -1.0
 	_box.modulate.a = 0.0
 	var screen: Vector2 = _root.get_viewport_rect().size
 	var ring := _target_rects()
@@ -315,9 +378,11 @@ func _place_box() -> void:
 		if r.get_area() < screen.x * screen.y * 0.5:
 			hard.append(r)
 	hard.append_array(_rects_of(_targets.get("keep_clear", null)))
+	if _skip_corner.visible:
+		hard.append(_skip_corner.get_global_rect().grow(6.0))
 	var soft: Array[Rect2] = []
 	for key in _targets:
-		if key != _current_target and key != "keep_clear":
+		if not (key in _current_target.split("+")) and key != "keep_clear":
 			for o in _rects_of(_targets[key]):
 				if merged.size == Vector2.ZERO or not o.encloses(merged):
 					soft.append(o)
@@ -353,6 +418,7 @@ func _place_box() -> void:
 		return
 	_box.position = best_pos
 	_box.modulate.a = 1.0
+	_placed = true
 	_speak()
 
 ## The line comes in over the channel a few letters at a time.
@@ -362,7 +428,9 @@ func _speak() -> void:
 	_face.talking = true
 	_talk = create_tween()
 	_talk.tween_property(_text, "visible_ratio", 1.0, clampf(_text.text.length() / 60.0, 0.4, 2.2))
-	_talk.tween_callback(func(): _face.talking = false)
+	_talk.tween_callback(func():
+		_face.talking = false
+		_spoken_at = _t)
 
 ## Spots to try: beside the ringed thing on each side, then a scan of the screen.
 func _candidates(screen: Vector2, bs: Vector2, r: Rect2) -> Array[Vector2]:
@@ -390,10 +458,14 @@ func _process(delta: float) -> void:
 	if _root.visible:
 		_t += delta
 		_dim.queue_redraw()
+		if _placed:
+			var faded := _fades and _spoken_at >= 0.0 and _t - _spoken_at >= FADE_DELAY \
+				and not _box.get_global_rect().has_point(_box.get_global_mouse_position())
+			_box.modulate.a = move_toward(_box.modulate.a, FADED_ALPHA if faded else 1.0, delta * 3.0)
 
 func _draw_dim() -> void:
 	var screen: Vector2 = _root.get_viewport_rect().size
-	var shade := Color(0, 0, 0, 0.5 if _dim.mouse_filter == Control.MOUSE_FILTER_STOP else 0.28)
+	var shade := Color(0, 0, 0, 0.45 if _hold else 0.22)
 	var holes := _target_rects()
 	if holes.is_empty():
 		_dim.draw_rect(Rect2(Vector2.ZERO, screen), Color(0, 0, 0, 0.35), true)

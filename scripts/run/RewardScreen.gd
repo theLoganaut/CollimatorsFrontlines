@@ -11,11 +11,10 @@ extends RunScreen
 ## on (to a refit on the refit rows). The reward was rolled when the fight
 ## ended, so leaving and continuing can't reroll it. It's shown over the
 ## battlefield the fight was on (dimmed), on holo glass.
-## SHOW MECH (bottom left; Logan, 2026-10-02) opens the mech's grid beside
-## the box, so the player can see what would fit.
+## SHOW MECH (bottom left; Logan, 2026-10-02) opens the mech and its Cargo
+## over the box, so the player can see what they have and what would fit.
 
 const PANEL_W := 760.0
-const MECH_GAP := 20.0 # between the mech's panel and the salvage box
 
 var _content: VBoxContainer
 var _pick_area: VBoxContainer
@@ -96,8 +95,7 @@ func _build() -> void:
 	bottom.add_theme_constant_override("separation", 12)
 	_mech_toggle = GlassPanel.button("SHOW MECH", 15, false, Palette.LINK)
 	_mech_toggle.custom_minimum_size = Vector2(150, 44)
-	_mech_toggle.toggle_mode = true
-	_mech_toggle.toggled.connect(_show_mech)
+	_mech_toggle.pressed.connect(_show_mech)
 	bottom.add_child(_mech_toggle)
 	bottom.add_child(UIKit.spacer())
 	_skip = GlassPanel.button("", 15, false, Palette.SCRAPS)
@@ -120,15 +118,11 @@ func _panel_w() -> float:
 	return maxf(PANEL_W, most * PartCardUI.SIZE.x + (most - 1) * 20.0)
 
 func _layout(screen: Vector2) -> void:
-	# With the mech shown, the two panels are centered together (mech on the left).
-	var mech_w := 0.0
-	if _mech_glass != null and _mech_glass.visible:
-		mech_w = _mech_glass.size.x + MECH_GAP
-	_content.position = Vector2((screen.x - _panel_w() + mech_w) / 2.0, TOP_BAR_H + 34.0)
+	_content.position = Vector2((screen.x - _panel_w()) / 2.0, TOP_BAR_H + 34.0)
 	_content.size = Vector2(_panel_w(), 0)
 	_fit_glass()
-	if mech_w > 0.0:
-		_mech_glass.position = Vector2(_glass.position.x - MECH_GAP - _mech_glass.size.x, _glass.position.y)
+	if _mech_glass != null and is_instance_valid(_mech_glass):
+		_mech_glass.position = ((screen - _mech_glass.size) / 2.0).floor()
 
 ## The glass sits behind the content, a margin wider.
 func _fit_glass() -> void:
@@ -234,47 +228,126 @@ func _on_cargo_part_pressed(_grid: PackingGrid, part: ComponentData, _cell: Vect
 	_show_cargo()
 	_refresh()
 
-## The mech's grid (its frame and the parts in it) on glass left of the box.
-func _show_mech(on: bool) -> void:
-	_mech_toggle.text = "HIDE MECH" if on else "SHOW MECH"
-	if _mech_glass == null:
-		_mech_glass = GlassPanel.new()
-		_mech_glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_mech_glass)
-		_mech_box = VBoxContainer.new()
-		_mech_box.add_theme_constant_override("separation", 10)
-		_mech_glass.add_child(_mech_box)
-	_mech_glass.visible = on
-	if on:
-		_build_mech_view()
-	_layout(get_viewport_rect().size)
+## SHOW MECH (Logan, 2026-10-14: the small grid beside the box wasn't
+## enough): a screen over the salvage with the mech's grid drawn big, its
+## Cargo beside it, what it's carrying by type, and a PartPreview of
+## whatever part is hovered (its cards, HP or passive). Esc, the button or
+## a click outside closes it.
+func _show_mech(_on: bool = true) -> void:
+	if _mech_glass != null:
+		_mech_glass.queue_free()
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0.01, 0.02, 0.72)
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	shade.z_index = 200
+	shade.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			_hide_mech())
+	add_child(shade)
+	_mech_glass = GlassPanel.new()
+	_mech_glass.tint = 0.85
+	_mech_glass.mouse_filter = Control.MOUSE_FILTER_STOP
+	# a dark backing under the glass, so the salvage behind doesn't show through
+	var backing := ColorRect.new()
+	backing.color = Color(0.01, 0.025, 0.03, 0.9)
+	backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backing.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backing.show_behind_parent = true
+	_mech_glass.add_child(backing)
+	shade.add_child(_mech_glass)
+	_mech_box = VBoxContainer.new()
+	_mech_box.add_theme_constant_override("separation", 12)
+	_mech_box.position = Vector2(24, 20)
+	_mech_glass.add_child(_mech_box)
+	_build_mech_view()
+	Audio.play("holo", 0.03, -4.0)
+
+func _hide_mech() -> void:
+	if _mech_glass != null and is_instance_valid(_mech_glass):
+		_mech_glass.get_parent().queue_free()
+	_mech_glass = null
+	Audio.play("ui")
+
+## Esc closes the mech first (before the settings menu takes it).
+func _input(event: InputEvent) -> void:
+	if _mech_glass != null and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		_hide_mech()
 
 func _build_mech_view() -> void:
-	for c in _mech_box.get_children():
-		_mech_box.remove_child(c)
-		c.queue_free()
 	var m := run.player_mech
+	var screen := get_viewport_rect().size
 	var b := Vector2i.ZERO
-	for c in m.cells:
+	for c in run.chassis_cells():
 		b = Vector2i(maxi(b.x, c.x + 1), maxi(b.y, c.y + 1))
-	# Fits beside the salvage box (at most 34 px squares).
-	var room := get_viewport_rect().size.x - (_panel_w() + 44.0) - MECH_GAP - 36.0 - 24.0
-	var cell := floorf(clampf((room + PackingGrid.GAP) / maxf(b.y, 1) - PackingGrid.GAP, 16.0, 34.0))
+	var cell := floorf(clampf((screen.y - 380.0) / maxf(b.x, 1) - PackingGrid.GAP, 24.0, 46.0))
 	var free := run.chassis_cells().size() - run.mech_occupied().size()
-	_mech_box.add_child(UIKit.label(m.name.to_upper(), 15, Color("eefcfa")))
-	_mech_box.add_child(UIKit.label("%d free square%s" % [free, "" if free == 1 else "s"], 12, Color("9fb9b6")))
+
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 16)
+	_mech_box.add_child(head)
+	head.add_child(UIKit.label(m.name.to_upper(), 20, Color("eefcfa")))
+	var hp := UIKit.label("%d / %d HP" % [m.current_hp(), m.max_hp()], 15, Palette.OK if m.current_hp() * 2 > m.max_hp() else Palette.WARNING)
+	hp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(hp)
+	head.add_child(UIKit.spacer())
+	var close := GlassPanel.button("Close", 13)
+	close.custom_minimum_size = Vector2(90, 32)
+	close.pressed.connect(_hide_mech)
+	head.add_child(close)
+
+	# what it carries, by type, in the words training uses
+	var counts := {}
+	var lost := 0
+	for c in m.components:
+		if c.destroyed:
+			lost += 1
+		else:
+			counts[c.category] = int(counts.get(c.category, 0)) + 1
+	var kinds := HBoxContainer.new()
+	kinds.add_theme_constant_override("separation", 18)
+	_mech_box.add_child(kinds)
+	for cat in [[ComponentData.CATEGORY_HARDPOINT, "weapons"], [ComponentData.CATEGORY_PROTOCOL, "weapon augments"], [ComponentData.CATEGORY_REACTOR, "passives"]]:
+		var n := int(counts.get(cat[0], 0))
+		kinds.add_child(UIKit.label("%d %s%s (%s)" % [n, str(cat[0]).capitalize(), "" if n == 1 else "s", cat[1]], 13, Palette.category_color(cat[0])))
+	if lost > 0:
+		kinds.add_child(UIKit.label("%d destroyed" % lost, 13, Palette.DANGER))
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 26)
+	_mech_box.add_child(row)
+	var preview := PartPreview.new()
+	preview.hint_text = "Hover a part to see its cards."
+	var mech_col := VBoxContainer.new()
+	mech_col.add_theme_constant_override("separation", 6)
+	row.add_child(mech_col)
+	mech_col.add_child(UIKit.label("FRAME  ·  %d free square%s" % [free, "" if free == 1 else "s"], 11, Color("8fd8d0")))
 	var g := PackingGrid.new()
-	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_mech_box.add_child(g)
+	mech_col.add_child(g)
 	g.setup(run.chassis_cells(), b, cell)
 	g.set_parts(m.components)
-	_mech_box.position = Vector2(18, 16)
+	g.part_hovered.connect(func(_g, part): preview.show_part(part))
+	var cargo_col := VBoxContainer.new()
+	cargo_col.add_theme_constant_override("separation", 6)
+	row.add_child(cargo_col)
+	cargo_col.add_child(UIKit.label("CARGO  ·  %d part%s" % [run.cargo.items.size(), "" if run.cargo.items.size() == 1 else "s"], 11, Color("8fd8d0")))
+	var cg := PackingGrid.new()
+	cargo_col.add_child(cg)
+	cg.setup(run.cargo.cells(), Vector2i(run.cargo.rows, run.cargo.cols), minf(cell, 34.0))
+	cg.set_parts(run.cargo.items)
+	cg.part_hovered.connect(func(_g, part): preview.show_part(part))
+	preview.custom_minimum_size = Vector2(420, maxf(g.size.y, 260.0) + 18.0)
+	row.add_child(preview)
+
+	_mech_box.add_child(UIKit.label("Parts in Cargo go into the frame at the next refit. Destroyed parts (crossed out) are cleared then.", 12, Color("9fb9b6")))
 	_mech_box.reset_size()
-	var w := maxf(g.size.x, 120.0) + 36.0
-	_mech_glass.size = Vector2(w, _mech_box.get_combined_minimum_size().y + 32.0)
+	_mech_glass.size = _mech_box.get_combined_minimum_size() + Vector2(48, 40)
+	_mech_glass.position = ((screen - _mech_glass.size) / 2.0).floor()
 
 func _tutorial_targets() -> Dictionary:
-	return {"reward": _content}
+	# the choices and Continue, not the whole box
+	return {"reward": [_pick_area, _continue], "keep_clear": [_content]}
 
 func _on_continue() -> void:
 	Tutorial.event("reward_done")

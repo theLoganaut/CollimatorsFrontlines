@@ -71,7 +71,6 @@ var _floors: Array[Texture2D] = []
 var _top_bar: TopBar
 var _settings_button: SettingsButton
 var _build_label: Label # which build this is (BuildInfo), bottom right
-var _whats_new_btn: Button
 ## Said instead of the usual line (a saved run closed after an update).
 var _operator_override: String = ""
 var _back_button: Button
@@ -136,8 +135,16 @@ func _ready() -> void:
 		_operator_override = "Your last sortie was logged on an older build and can't be picked up after the update. I've closed it out. Your Chips, record and hangar are untouched."
 	_build_operator()
 	_build_top_bar()
+	# the version stamp reopens the update notes (WhatsNewDialog)
 	_build_label = UIKit.label(BuildInfo.label(), 10, Color(Palette.TEXT_MUTED, 0.7))
-	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_build_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_build_label.tooltip_text = "What's new in this update, and what's coming next"
+	_build_label.mouse_entered.connect(func(): _build_label.add_theme_color_override("font_color", Palette.LINK))
+	_build_label.mouse_exited.connect(func(): _build_label.add_theme_color_override("font_color", Color(Palette.TEXT_MUTED, 0.7)))
+	_build_label.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and not Tutorial.active:
+			WhatsNewDialog.open(get_tree()))
 	add_child(_build_label)
 
 	# the room darkens behind the table's hologram
@@ -152,11 +159,7 @@ func _ready() -> void:
 	sector_map.visible = false
 	sector_map.location_chosen.connect(_on_location_chosen)
 	add_child(sector_map)
-	var missions := {}
-	var rolled := Profile.sector_missions()
-	for loc_id in rolled.keys():
-		missions[loc_id] = GameData.mission(rolled[loc_id])
-	sector_map.setup(GameData.sectors(), missions, war_map)
+	_setup_sector_map()
 
 	_back_button = GlassPanel.button("◀  War Room", 13)
 	_back_button.custom_minimum_size = Vector2(130, 36)
@@ -193,6 +196,10 @@ func _ready() -> void:
 		Tutorial.ask_base_name() # offers training after, if it's due
 	elif not Tutorial.active and not Profile.tutorial_done and not saved:
 		Tutorial.offer()
+	elif not Tutorial.active and WhatsNewDialog.unread():
+		(func(): WhatsNewDialog.open(get_tree())).call_deferred() # pops up once after an update
+	if Profile.runs == 0 and not Profile.tutorial_done:
+		WhatsNewDialog.mark_read() # a new pilot didn't update from anything
 	Tutorial.reached("war_room", {"table": table})
 
 func _process(delta: float) -> void:
@@ -453,25 +460,11 @@ func _build_top_bar() -> void:
 	var row := _top_bar.row
 	_on_base_named()
 	row.add_child(UIKit.spacer())
-	# the update notes (WhatsNewDialog): lit until opened for this version
-	_whats_new_btn = GlassPanel.button("What's New?!", 12)
-	_whats_new_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_whats_new_btn.tooltip_text = "What changed in this update, and what's coming next"
-	_whats_new_btn.pressed.connect(func():
-		if Tutorial.active:
-			return
-		WhatsNewDialog.open(get_tree())
-		_style_whats_new())
-	row.add_child(_whats_new_btn)
-	_style_whats_new()
 	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
 	# (the co-op lobby button comes back once co-op exists; Logan, 2026-10-13)
 	_settings_button = SettingsButton.new()
 	_settings_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_settings_button)
-
-func _style_whats_new() -> void:
-	GlassPanel.style_button(_whats_new_btn, WhatsNewDialog.unread(), Palette.LINK)
 
 func _on_base_named() -> void:
 	_top_bar.set_title(Profile.base_name if Profile.base_name.strip_edges() != "" else "Home Base")
@@ -509,6 +502,27 @@ func _place_sector_map() -> void:
 	sector_map.position = Vector2(0, TOP_BAR_H)
 	sector_map.size = Vector2(screen.x, screen.y - TOP_BAR_H)
 
+## The locations on the map and this roll's mission at each. Training
+## shows one: a simulated mission at the Shipyard (Logan, 2026-10-14).
+var _map_training = null # whether the map was set up for training (null: not yet)
+
+func _setup_sector_map() -> void:
+	if _map_training == Tutorial.active:
+		return
+	_map_training = Tutorial.active
+	var missions := {}
+	var locations: Array = GameData.sectors()
+	if Tutorial.active:
+		var training := GameData.mission(Tutorial.TRAINING_MISSION)
+		var where: String = training.get("location", "")
+		locations = locations.filter(func(l): return l["id"] == where)
+		missions[where] = training
+	else:
+		var rolled := Profile.sector_missions()
+		for loc_id in rolled.keys():
+			missions[loc_id] = GameData.mission(rolled[loc_id])
+	sector_map.setup(locations, missions, war_map)
+
 func _set_dim(a: float) -> void:
 	_dim_a = a
 	_dim.queue_redraw()
@@ -518,6 +532,7 @@ func _zoom_in() -> void:
 		return
 	_zooming = true
 	Tutorial.event("table_opened")
+	_setup_sector_map() # training may have started since the room opened
 	_set_stations_interactive(false)
 	table.queue_redraw()
 	var z := _zoom_target(get_viewport_rect().size)

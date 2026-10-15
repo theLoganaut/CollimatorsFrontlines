@@ -630,7 +630,8 @@ func _end_passive_reveal() -> void:
 		return
 	Tutorial.reached("combat", {"player": player_panel, "hand": hand_tray, "heat": player_panel._heat_box,
 		"intents": enemy_panels[0]._intent_row if not enemy_panels.is_empty() else null,
-		"enemy": enemy_panels[0] if not enemy_panels.is_empty() else null, "end_turn": turn_panel})
+		"enemy": enemy_panels[0] if not enemy_panels.is_empty() else null, "end_turn": turn_panel,
+		"keep_clear": [turn_panel, settings_button, speed_controls, map_button, log_button]}) # never over a button
 	if _in_run():
 		for line in RunState.run.apply_fight_start_effects(player_mech, enemy_mechs):
 			combat_log.log_line(line)
@@ -1461,7 +1462,17 @@ func _on_card_hover(card: CardData) -> void:
 	if player_panel != null and is_instance_valid(player_panel):
 		player_panel.grid.set_linked(player_mech.get_component(card.owner_component_id) if card != null else null)
 
+var _passive_grid: ChassisGridUI = null
+
 func _on_part_hover(component: ComponentData, mech: MechData) -> void:
+	# a passive badge outlines the part it comes from
+	if _passive_grid != null and is_instance_valid(_passive_grid):
+		_passive_grid.set_linked(null)
+	_passive_grid = null
+	if component != null and UIState.hovered_passive:
+		_passive_grid = _grid_for(mech)
+		if _passive_grid != null:
+			_passive_grid.set_linked(component)
 	if hand_tray != null and is_instance_valid(hand_tray):
 		hand_tray.set_linked_part(component if mech == player_mech and not UIState.hovered_passive else null)
 	_show_enemy_cards(component if mech != null and mech != player_mech and not UIState.hovered_passive else null, mech)
@@ -1602,9 +1613,16 @@ func _on_overheated(mech: MechData, backlash: int) -> void:
 	Audio.play("overheat", 0.0)
 	_refresh_all_panels()
 	if hit_fx != null:
-		hit_fx.flash_screen(Palette.DANGER, 0.35, 0.5)
-		hit_fx.shake(0.75)
-		hit_fx.float_text(player_panel.image_global_rect().get_center(), "OVERHEAT −%d" % backlash, Palette.DANGER, 30)
+		if mech == player_mech:
+			hit_fx.flash_screen(Palette.DANGER, 0.35, 0.5)
+			hit_fx.shake(0.75)
+			hit_fx.float_text(player_panel.image_global_rect().get_center(), "OVERHEAT −%d" % backlash, Palette.DANGER, 30)
+		else:
+			# over the enemy that overheated, in heat amber, so it never reads as the player's damage
+			var panel := _panel_for(mech)
+			hit_fx.shake(0.3)
+			if panel != null:
+				hit_fx.float_text(panel.image_global_rect().get_center(), "%s OVERHEATED\n−%d to itself" % [_label_for(mech).to_upper(), backlash], Palette.WARNING, 24)
 	combat_log.log_line("%s overheated! %d dmg spread across its components. Turn forced to end." % [_label_for(mech), backlash], CombatLog.CAT_DAMAGE)
 
 ## The first time a pilot meets a status, the Operator explains it once,

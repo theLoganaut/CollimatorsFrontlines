@@ -56,8 +56,10 @@
       "max_shops": 3
     },
     "training": {
-      "name": "Training",
-      "summary": "Two short fights with a salvage and a refit between them. Doesn't count toward your record.",
+      "name": "Simulated Mission",
+      "summary": "A simulator run: two short fights against a Scrap Warden, with a salvage and a refit between them. Nothing here counts toward your record.",
+      "location": "shipyard",
+      "location_description": "The Shipyard, as the simulator remembers it: the cranes and dry docks are holograms, the enemy is a recording, and nothing you lose here is lost for real.",
       "rows": 2,
       "boss": false,
       "refit_after_rows": [

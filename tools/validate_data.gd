@@ -39,7 +39,7 @@ func _initialize() -> void:
 	quit(1 if not errors.is_empty() else 0)
 
 ## The What's New?! board: its current version is this build's, and every
-## release has a version and items.
+## release has a version and items, and every planned update a kind and when.
 func _changelog() -> void:
 	var d = _json("res://data/changelog.json")
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
@@ -51,6 +51,11 @@ func _changelog() -> void:
 	for r in releases:
 		if str(r.get("version", "")) == "" or (r.get("items", []) as Array).is_empty():
 			errors.append("changelog.json: a release without a version or items")
+	for u in d.get("next", {}).get("updates", []):
+		if str(u.get("version", "")) == "" or str(u.get("when", "")) == "" or (u.get("items", []) as Array).is_empty():
+			errors.append("changelog.json: a planned update without a version, when or items")
+		if not str(u.get("kind", "")) in ["minor", "major"]:
+			errors.append("changelog.json: planned update %s isn't \"minor\" or \"major\"" % u.get("version", ""))
 
 func _json(path: String):
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -216,6 +221,13 @@ func _directives() -> void:
 			errors.append("directives.json %s: no location %s" % [id, d["location"]])
 		if d.has("mission") and not mission_ids.has(d["mission"]):
 			errors.append("directives.json %s: no mission %s" % [id, d["mission"]])
+	# a mission pinned to one location (training: the Shipyard)
+	var missions: Dictionary = _json("res://data/missions.json").get("missions", {})
+	for mid in missions:
+		if missions[mid].has("location") and not sector_ids.has(missions[mid]["location"]):
+			errors.append("missions.json %s: no location %s" % [mid, missions[mid]["location"]])
+	if not missions.get("training", {}).has("location"):
+		errors.append("missions.json training: needs a location (the War Table shows only that one in training)")
 
 func _orders() -> void:
 	var bal: Dictionary = Balance.section("orders")

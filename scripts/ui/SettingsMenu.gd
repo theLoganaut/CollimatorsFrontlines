@@ -45,6 +45,10 @@ var _restart_text: String = "Restart fight"
 ## Saves a mid-run playtest report (only during a run).
 var _report_btn: Button
 var _restart_confirm_text: String = "Click again to restart"
+## The panel's size: PANEL_SIZE, or more if its content needs it (longer
+## button text), never more than the screen.
+var _panel_size: Vector2 = PANEL_SIZE
+var _outer: VBoxContainer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -59,6 +63,23 @@ func _ready() -> void:
 func _fit_screen() -> void:
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
+	_fit_panel()
+
+## Grows the panel to its content's minimum size (the content keeps a
+## 24 / 20 px margin), centered, and keeps it on screen.
+func _fit_panel() -> void:
+	if _panel == null or _outer == null:
+		return
+	var need := _outer.get_combined_minimum_size() + Vector2(48, 40)
+	var screen := get_viewport_rect().size - Vector2(24, 24)
+	_panel_size = Vector2(maxf(PANEL_SIZE.x, need.x), maxf(PANEL_SIZE.y, need.y)).min(screen)
+	_panel.size = _panel_size
+	_outer.size = _panel_size - Vector2(48, 40)
+	_panel.position = ((size - _panel_size) / 2.0).floor()
+	if _controls != null:
+		_controls.size = _panel_size
+		_controls.position = _panel.position
+	queue_redraw()
 
 func open() -> void:
 	_confirming = ""
@@ -132,13 +153,18 @@ func _show_controls(on: bool) -> void:
 func _build_controls() -> void:
 	_controls = GlassPanel.new()
 	_controls.tint = 0.8
-	_controls.size = PANEL_SIZE
+	_controls.size = _panel_size
 	_controls.position = _panel.position
 	_controls.visible = false
 	add_child(_controls)
 	var outer := VBoxContainer.new()
 	outer.position = Vector2(24, 20)
-	outer.size = Vector2(PANEL_SIZE.x - 48, PANEL_SIZE.y - 40)
+	outer.size = _panel_size - Vector2(48, 40)
+	outer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	outer.offset_left = 24
+	outer.offset_top = 20
+	outer.offset_right = -24
+	outer.offset_bottom = -20
 	outer.add_theme_constant_override("separation", 4)
 	_controls.add_child(outer)
 	outer.add_child(_title("Keys and controls"))
@@ -230,14 +256,11 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.6), true)
 	# a dark backing under the glass, so the fight behind doesn't show through the text
 	if _panel != null:
-		draw_rect(Rect2(_panel.position, PANEL_SIZE), Color(0.01, 0.025, 0.03, 0.88), true)
+		draw_rect(Rect2(_panel.position, _panel_size), Color(0.01, 0.025, 0.03, 0.88), true)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED and _panel != null:
-		_panel.position = (size - PANEL_SIZE) / 2.0
-		if _controls != null:
-			_controls.position = _panel.position
-		queue_redraw()
+		_fit_panel()
 
 func _build() -> void:
 	_panel = GlassPanel.new()
@@ -317,10 +340,14 @@ func _build() -> void:
 	_quit_btn = _action_button("Quit game", false, Palette.DANGER)
 	_quit_btn.pressed.connect(_on_quit)
 	actions.add_child(_quit_btn)
-	actions.add_child(UIKit.spacer())
+	# its own line: a release build's stamp is long enough to push the panel's
+	# columns out past its edge
 	var build := UIKit.label(BuildInfo.label(), 10, Palette.TEXT_MUTED)
-	build.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	actions.add_child(build)
+	build.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	build.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	build.clip_text = true
+	outer.add_child(build)
+	_outer = outer
 
 ## A row of buttons, one per value of a setting (speed, UI scale).
 func _choice_row(text: String, labels: Array, key: String, values: Array, on_color: Color) -> HBoxContainer:
@@ -478,6 +505,7 @@ func _sync() -> void:
 		_toggles[key].queue_redraw()
 	_restart_btn.text = _restart_confirm_text if _confirming == "restart" else _restart_text
 	_quit_btn.text = "Click again to quit" if _confirming == "quit" else "Quit game"
+	_fit_panel.call_deferred() # longer button text can widen the panel
 
 func _on_restart() -> void:
 	if _confirming != "restart":

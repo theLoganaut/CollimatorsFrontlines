@@ -106,7 +106,8 @@ func _ready() -> void:
 	_map_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_map_layer.draw.connect(_draw_map)
 	add_child(_map_layer)
-	var rows := maxi(run.map.row_count - 1, 1)
+	# A map of two rows (training) puts its second at mid-map, not at the far edge.
+	var rows := maxi(run.map.row_count - 1, 2)
 	for n in run.map.nodes:
 		var ui := MapNodeUI.new()
 		add_child(ui)

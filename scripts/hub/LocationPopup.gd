@@ -138,7 +138,7 @@ func open(location: Dictionary, mission: Dictionary, anchor: Rect2 = Rect2(), gr
 	_where.text = "HOSTILE OBJECTIVE" + ("  ·  GRID %s" % grid if grid != "" else "")
 	_where.add_theme_color_override("font_color", HOSTILE_TEXT)
 	_name.text = location.get("name", "")
-	_desc.text = location.get("description", "")
+	_desc.text = mission.get("location_description", location.get("description", "")) # training's simulator
 	_desc.visible = true
 	var stops: int = int(mission.get("rows", 7)) + (1 if mission.get("boss", false) else 0)
 	var variant := Conditions.variant(mission)

@@ -131,7 +131,7 @@ func _describe(st: String) -> Array:
 			if n > 0:
 				total += n
 				on.append("%s %d" % [comp.name, n])
-	var text := "%s\n%s" % [e["rule"], e.get("decay", "")]
+	var text: String = e["rule"] # says how long it lasts
 	if not on.is_empty():
 		text = "On %s.\n%s" % [", ".join(on), text]
 	return ["%s %d" % [e["label"], total], text.strip_edges()]

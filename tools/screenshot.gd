@@ -2,7 +2,7 @@ extends Node
 ## Dev tool: opens one run screen in a set-up state and saves a PNG, to
 ## check layouts without playing to them. Needs a window (not --headless):
 ##   Godot --path . res://tools/Screenshot.tscn -- <shop|combat|combat_play|map|refit|event>[_settings] <out.png> [seconds] [event id] [choice taken]
-##        [--colorblind] [--reduce-motion] [--pad-page (with _settings: the gamepad controls page)]
+##        [--colorblind] [--reduce-motion] [--tutorial=<step> (the training coach at that step of Tutorial.STEPS)] [--pad-page (with _settings: the gamepad controls page)]
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ## A screen name ending in _settings opens the settings menu over it.
@@ -44,6 +44,9 @@ func _ready() -> void:
 				GameSettings.colorblind = true
 			elif a == "--reduce-motion":
 				GameSettings.reduce_motion = true
+			elif a.begins_with("--tutorial="): # the training coach at this step (never saved)
+				Tutorial.start()
+				Tutorial.step = int(a.get_slice("=", 1))
 			elif a == "--seen-all": # the codex as if every enemy and order had been met (not saved)
 				for f in DirAccess.get_files_at("res://data/mechs"):
 					Profile.seen_enemies.append(f.get_basename())
@@ -240,7 +243,7 @@ func _ready() -> void:
 		LocationMapScreen.peek(get_tree().current_scene)
 		await get_tree().create_timer(2.0).timeout
 	if what == "reward_mech":
-		get_tree().current_scene._mech_toggle.button_pressed = true
+		get_tree().current_scene._show_mech()
 		await get_tree().create_timer(0.5).timeout
 	if what == "combat_status": # statuses on every enemy (a part's Shock, the mech's Deflect)
 		var cs := get_tree().current_scene

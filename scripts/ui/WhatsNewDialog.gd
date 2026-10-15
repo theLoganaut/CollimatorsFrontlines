@@ -2,8 +2,10 @@ class_name WhatsNewDialog
 extends CanvasLayer
 ## The War Room's What's New?! board: a bulletin on holo glass of what each
 ## update changed (data/changelog.json, newest first), and a What's Next?!
-## button at the top that swaps to what's planned. Opening it marks this
-## version as read (Profile.seen_hints), so the top bar button stops glowing.
+## button at the top that swaps to the roadmap (the planned minor and major
+## updates, in order). It pops up on the first War Room visit after an
+## update (a brand-new pilot skips it); opening it marks this version as read
+## (Profile.seen_hints). The War Room's version stamp (bottom right) reopens it.
 
 const PATH := "res://data/changelog.json"
 const PANEL_SIZE := Vector2(620, 540)
@@ -35,6 +37,12 @@ static func _seen_key() -> String:
 static func unread() -> bool:
 	return current_version() != "" and not Profile.seen_hints.has(_seen_key())
 
+## Marks this version's notes as read, so the board stops popping up.
+static func mark_read() -> void:
+	if unread():
+		Profile.seen_hints.append(_seen_key())
+		Profile.save()
+
 ## Opens the board over the current screen (once at a time).
 static func open(tree: SceneTree) -> void:
 	if _open != null and is_instance_valid(_open):
@@ -42,9 +50,7 @@ static func open(tree: SceneTree) -> void:
 	var d := WhatsNewDialog.new()
 	_open = d
 	tree.root.add_child(d)
-	if unread():
-		Profile.seen_hints.append(_seen_key())
-		Profile.save()
+	mark_read()
 
 func _ready() -> void:
 	layer = 240
@@ -102,7 +108,7 @@ func _ready() -> void:
 func _center() -> void:
 	_panel.position = ((get_viewport().get_visible_rect().size - PANEL_SIZE) / 2.0).floor()
 
-## The changelog (newest first), or the What's Next?! list.
+## The changelog (newest first), or the What's Next?! roadmap.
 func _fill() -> void:
 	for c in _list.get_children():
 		c.queue_free()
@@ -110,8 +116,16 @@ func _fill() -> void:
 	_title.text = "WHAT'S NEXT?!" if _showing_next else "WHAT'S NEW?!"
 	_swap.text = "What's New?!" if _showing_next else "What's Next?!"
 	if _showing_next:
-		_list.add_child(UIKit.label("Coming in future updates", 13, Palette.TEXT_MUTED))
-		for item in d.get("next", {}).get("items", []):
+		var next: Dictionary = d.get("next", {})
+		_list.add_child(UIKit.label("The roadmap: planned, and it may shift", 13, Palette.TEXT_MUTED))
+		for u in next.get("updates", []):
+			_list.add_child(_gap(6))
+			_add_update_head(u)
+			for item in u.get("items", []):
+				_add_item(item, 0)
+		if not (next.get("items", []) as Array).is_empty():
+			_list.add_child(_gap(10))
+		for item in next.get("items", []):
 			_add_item(item, 0)
 	else:
 		var first := true
@@ -131,6 +145,21 @@ func _add_release_head(r: Dictionary) -> void:
 	row.add_child(version)
 	if str(r.get("title", "")) != "":
 		row.add_child(UIKit.label("—  " + str(r["title"]), 15, BODY))
+	_list.add_child(row)
+	var line := ColorRect.new()
+	line.color = Color(GlassPanel.HOLO, 0.35)
+	line.custom_minimum_size = Vector2(0, 1)
+	_list.add_child(line)
+
+## A planned update on the roadmap: its version, minor or major, and when.
+func _add_update_head(u: Dictionary) -> void:
+	var major := str(u.get("kind", "")) == "major"
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.add_child(UIKit.label(str(u.get("version", "")), 17, Palette.SCRAPS))
+	row.add_child(UIKit.label("MAJOR UPDATE" if major else "Minor update", 13, LEAD if major else BULLET))
+	row.add_child(UIKit.spacer())
+	row.add_child(UIKit.label(str(u.get("when", "")), 13, Palette.TEXT_MUTED))
 	_list.add_child(row)
 	var line := ColorRect.new()
 	line.color = Color(GlassPanel.HOLO, 0.35)

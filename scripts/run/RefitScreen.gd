@@ -143,7 +143,7 @@ func _centre_on(grid: PackingGrid, cells: Array[Vector2i]) -> Vector2:
 	return grid.global_position - _stage.global_position + (lo + hi) / 2.0
 
 func _tutorial_targets() -> Dictionary:
-	return {"mech": _mech_grid, "cargo": _cargo_grid, "keep_clear": [_mech_grid, _cargo_grid, _leave]}
+	return {"mech": _mech_grid, "cargo": _cargo_grid, "leave": _leave, "keep_clear": [_mech_grid, _cargo_grid, _leave]}
 
 func _on_leave() -> void:
 	if SceneRouter.is_busy() or not _confirm_leave():
