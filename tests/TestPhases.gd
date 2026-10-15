@@ -158,7 +158,7 @@ static func run_all(t: TestContext) -> void:
 	var cm := CombatManager.new(bast, [drone] as Array[MechData], 3)
 	cm.start_combat()
 	var plan: Array = cm.enemy_plans[drone]
-	var types := plan.map(func(s): return (s["card"] as CardData).protocol())
+	var types := plan.map(func(s): return (s["card"] as CardData).id) # Lock On is a "grant" protocol since the card pass
 	t.assert_true(types.has("lock_on"), "the Needle Drone plans a Lock On")
 	t.assert_true(types.find("lock_on") < plan.size() - 1, "ahead of an attack")
 	t.assert_true(plan.all(func(s): return (s["card"] as CardData).protocol() != "" or s.has("target")), "every attack is planned at a part of yours (shown on hover)")
@@ -171,7 +171,7 @@ static func run_all(t: TestContext) -> void:
 		if act.is_empty():
 			break
 		cm.begin_enemy_attack(act)
-		if (act["card"] as CardData).protocol() == "lock_on":
+		if (act["card"] as CardData).id == "lock_on":
 			primed_seen = not (cm.enemy_primed.get(drone, []) as Array).is_empty()
 		elif primed_seen and not mult_used:
 			mult_used = (cm.enemy_primed.get(drone, []) as Array).is_empty()
@@ -188,12 +188,19 @@ static func run_all(t: TestContext) -> void:
 	var target_mech := _bastion()
 	var cm2 := CombatManager.new(target_mech, [sb_mech] as Array[MechData], 5)
 	cm2.start_combat()
-	var hp0 := target_mech.current_hp()
-	cm2.end_player_turn() # standby primes, the autocannon's attack is set aside
-	t.assert_true(not (cm2.enemy_standby.get(sb_mech, {}) as Dictionary).is_empty(), "the attack is set aside")
-	t.assert_eq(target_mech.current_hp(), hp0, "nothing hit this turn")
+	var fired := []
+	cm2.enemy_action.connect(func(e: Dictionary): fired.append(e.get("card")))
+	cm2.end_player_turn() # standby primes, the autocannon's next attack is set aside
+	var aside: Dictionary = cm2.enemy_standby.get(sb_mech, {})
+	t.assert_true(not aside.is_empty(), "the attack is set aside")
+	# (the Autocannon has more than one card since the card pass: only the one set aside waits)
+	var aside_id: String = (aside["card"] as CardData).id if not aside.is_empty() else "?"
+	t.assert_true(not fired.has(aside_id), "the card set aside doesn't fire this turn")
+	fired.clear()
+	var standby_fired := []
+	cm2.card_played.connect(func(m: MechData, c: CardData): if m == sb_mech: standby_fired.append(c.id))
 	cm2.end_player_turn()
-	t.assert_true(target_mech.current_hp() < hp0, "it fires at the start of the enemy's next turn")
+	t.assert_true(standby_fired.has(aside_id), "it fires at the start of the enemy's next turn")
 
 	t.group("Boss phases: at half HP a boss changes tactics, once")
 	var anchor := DataLoader.load_mech_from_file("res://data/mechs/anchor.json")

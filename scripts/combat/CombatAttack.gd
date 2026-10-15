@@ -104,13 +104,16 @@ static func next_hit(cm: CombatManager) -> Dictionary:
 			primary = false
 			continue
 		var sure: bool = card.rule.get("sure_hit", false)
+		# Overlay can't be covered, dodged or parried (but can be redirected,
+		# and later hits can still miss); Loaded Dice never misses.
+		var undodgeable: bool = sure or card.rule.get("undodgeable", false) or a["mods"].get("max_roll", false)
 		if not sure and not _hit_fires(cm, card, i) and not a["mods"].get("max_roll", false):
 			if primary:
 				missed = true
 			cm.hit_missed.emit(t["mech"], tc)
 			primary = false
 			continue
-		if not sure and (_parried(cm, t["mech"], a["attacker_mech"], a["attacker_component"]) or _dodges(cm, t["mech"])):
+		if not undodgeable and (_parried(cm, t["mech"], a["attacker_mech"], a["attacker_component"]) or _dodges(cm, t["mech"])):
 			if primary:
 				missed = true
 			cm.hit_missed.emit(t["mech"], tc)
@@ -119,7 +122,7 @@ static func next_hit(cm: CombatManager) -> Dictionary:
 		var mods: Dictionary = a["mods"].duplicate()
 		if i > 0 or not primary:
 			mods.erase("bonus_first") # Recycling Loops boosts one hit
-		if sure:
+		if sure or card.rule.get("undodgeable", false):
 			mods["no_cover"] = true
 		var r := CardResolver.resolve_hit(card, a["attacker_component"], t["mech"], tc, cm.rng, mods)
 		_after_hit(cm, t["mech"], tc, r)
@@ -297,9 +300,11 @@ static func finish_statuses(cm: CombatManager, a: Dictionary) -> void:
 	var defender: MechData = a["defender_mech"]
 	if card.hits > 0 and attacker != defender:
 		if int(card.rule.get("heat_to_target", 0)) > 0:
-			defender.current_heat += int(card.rule["heat_to_target"])
-			if card.rule.get("transfer", false): # Heat Transfer: it's yours that moves
-				attacker.current_heat = maxi(0, attacker.current_heat - int(card.rule["heat_to_target"]))
+			var moved := int(card.rule["heat_to_target"])
+			if card.rule.get("transfer", false): # Heat Transfer: it's yours that moves, so no more than you have
+				moved = mini(moved, attacker.current_heat)
+				attacker.current_heat -= moved
+			defender.current_heat += moved
 		for c in attacker.living_passives("status_on_attack"):
 			if not target.destroyed and cm.rng.randf() < float(c.passive.get("chance", 1.0)):
 				CardResolver.add_status_to(defender, target, c.passive.get("status", "shock"), int(c.passive.get("stacks", 1)), true)

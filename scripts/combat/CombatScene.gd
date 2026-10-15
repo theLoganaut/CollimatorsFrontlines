@@ -93,6 +93,7 @@ var player_reticle: TargetingReticle
 var enemy_reticle: TargetingReticle
 var speed_controls: SpeedControls
 var turn_plate: TurnPlate
+var feedback_button: Button
 ## Opens the location map over the fight (a run fight only), left of the speed buttons.
 var map_button: MapButton
 var settings_menu: SettingsMenu
@@ -157,7 +158,8 @@ func _record_so_far() -> Dictionary:
 	if _record.is_empty() or combat == null:
 		return {}
 	var rec := _record.duplicate(true)
-	FightRecord.finish(rec, combat, "in progress")
+	var over := FightRecord.result_name(combat.result) if combat.is_game_over() else ""
+	FightRecord.finish(rec, combat, over if over != "" else "in progress")
 	return rec
 
 func _ready() -> void:
@@ -274,6 +276,10 @@ func _build_ui_and_start() -> void:
 	turn_plate = TurnPlate.new()
 	add_child(turn_plate)
 	turn_plate.resized.connect(func(): _place_turn_plate())
+	# right of the location name, at all times (over the opening reveal's dim too)
+	feedback_button = FeedbackDialog.button(TurnPlate.HEIGHT)
+	feedback_button.z_index = 300
+	add_child(feedback_button)
 
 	for i in range(enemy_mechs.size()):
 		var panel := EnemyPanel.new()
@@ -363,6 +369,8 @@ func _place_turn_plate() -> void:
 		return
 	var screen := get_viewport_rect().size
 	turn_plate.position = Vector2(round((screen.x - turn_plate.size.x) / 2.0), SIDE_MARGIN)
+	if feedback_button != null:
+		feedback_button.position = Vector2(turn_plate.position.x + turn_plate.size.x + 10.0, SIDE_MARGIN)
 
 func _layout() -> void:
 	if player_panel == null:
@@ -463,6 +471,8 @@ func _run_passive_reveal(gen: int) -> void:
 	UIState.input_locked = true
 	turn_panel.set_enabled(false)
 	turn_plate.set_label("Deploying")
+	if _in_run():
+		turn_plate.set_location(str(RunState.run.location.get("name", "")))
 	if _in_run() and not RunState.run.current_node().is_empty():
 		turn_plate.set_encounter(int(RunState.run.current_node()["row"]) + 1, RunState.run.encounter_count())
 	_reveal_dim = ColorRect.new()
@@ -1170,6 +1180,9 @@ func _refresh_primed() -> void:
 	if not combat.standby.is_empty():
 		titles.append("Standby")
 		lines.append("Standby: %s plays itself at the start of your next turn, for 0 heat." % combat.standby["card"].name)
+	for r in combat.recalled:
+		titles.append("Recall")
+		lines.append("Recall: %s plays again at the start of your next turn, for 0 heat." % (r["card"] as CardData).name)
 	if titles.is_empty():
 		player_panel.set_protocol([])
 	else:
@@ -1565,6 +1578,11 @@ func _find_card_name(mech: MechData, component_id: String, card_id: String) -> S
 func _refresh_all_panels() -> void:
 	if player_panel != null:
 		player_panel.refresh()
+		# High Five: each attack this turn is a stack on its badge
+		for c in player_mech.living_passives(ComponentData.PASSIVE_NTH_ATTACK_TWICE):
+			var icon := player_panel.passive_row.icon_for(c)
+			if icon != null:
+				icon.set_count(combat._attacks_this_turn if combat.is_player_turn() else 0)
 	for panel in enemy_panels:
 		panel.refresh()
 		# Either defeat route (all hardpoints, or the HP threshold) plays this once.

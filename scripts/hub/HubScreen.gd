@@ -42,6 +42,7 @@ func _ready() -> void:
 		_backdrop_layer.draw.connect(_draw_backdrop)
 		add_child(_backdrop_layer)
 	top_row = UIKit.top_bar(self, screen_title())
+	top_row.add_child(FeedbackDialog.button())
 	top_row.add_child(UIKit.spacer())
 	chips_label = UIKit.label("", 14, Palette.SCRAPS)
 	top_row.add_child(TopBar.chip(chips_label, Palette.SCRAPS))

@@ -2,13 +2,15 @@ extends Node
 ## Dev tool: opens one run screen in a set-up state and saves a PNG, to
 ## check layouts without playing to them. Needs a window (not --headless):
 ##   Godot --path . res://tools/Screenshot.tscn -- <shop|combat|combat_play|map|refit|event>[_settings] <out.png> [seconds] [event id] [choice taken]
-##        [--colorblind] [--reduce-motion] [--tutorial=<step> (the training coach at that step of Tutorial.STEPS)] [--pad-page (with _settings: the gamepad controls page)]
+##        [--colorblind] [--reduce-motion] [--tutorial=<step> (the training coach at that step of Tutorial.STEPS)]
+##        [--feedback-dry (also writes what Send feedback would post: <out>.txt and <out>.zip)] [--pad-page (with _settings: the gamepad controls page)]
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ## A screen name ending in _settings opens the settings menu over it.
 ## "hub_<station>" [tab] opens a War Room station (hub_pilot_log mechs).
 ## "weather" <out folder> <frames> <background id> [interval] saves a frame every 0.25 s (or interval) of
 ## that background and its weather (rain, snow, dust), to watch it move.
+## "whats_new" opens the War Room with the What's New?! board up.
 ## "daily" opens the War Room, zooms into the War Table and opens the Daily
 ## Operation's pop-up (it reads the real profile but never saves it).
 ## combat_keys does the same with key presses (number keys, Tab, Enter, E).
@@ -97,7 +99,7 @@ func _ready() -> void:
 		print("saved ", out)
 		get_tree().quit()
 		return
-	if what == "continue" or what == "warroom" or what == "warroom_name": # the War Room (its Operator line); "continue" opens a saved run's box (read only); warroom_name: the Operator asking for the base's name (never saved)
+	if what == "continue" or what == "warroom" or what == "warroom_name" or what == "whats_new": # the War Room (its Operator line); "continue" opens a saved run's box (read only); warroom_name: the Operator asking for the base's name (never saved)
 		var wr: Node = load(SceneRouter.WAR_ROOM).instantiate()
 		get_tree().root.add_child.call_deferred(wr)
 		get_tree().set_deferred("current_scene", wr)
@@ -112,6 +114,8 @@ func _ready() -> void:
 			Tutorial._root.visible = false
 		if what == "continue" and SaveGame.has_save():
 			wr.popup.open_continue(SaveGame.summary())
+		if what == "whats_new": # the What's New?! board, read or not
+			WhatsNewDialog.open(get_tree())
 		await get_tree().create_timer(wait).timeout
 		get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
@@ -361,7 +365,24 @@ func _ready() -> void:
 			"SAME" if r["turns"] == cm.turn_number and r["result"] == FightRecord.result_name(cm.result) and r["combat"].stats.get_stat("damage_dealt") == cm.stats.get_stat("damage_dealt") else "DIFFERENT"])
 	get_viewport().get_texture().get_image().save_png(out)
 	print("saved ", out)
+	if "--feedback-dry" in OS.get_cmdline_user_args():
+		_feedback_dry(out)
 	get_tree().quit()
+
+## --feedback-dry: what Send feedback would post from this screen (nothing
+## is sent): the Discord message to <out>.txt, the zip to <out>.zip.
+func _feedback_dry(out: String) -> void:
+	var screen := get_tree().current_scene.scene_file_path.get_file().get_basename()
+	var ctx := Feedback.context(screen)
+	var report: Dictionary = PlaytestReport.snapshot(RunState.run) if RunState.is_active() else {}
+	var b := Feedback.bundle("(dry run)", get_viewport().get_texture().get_image(), report, ctx)
+	var f := FileAccess.open(out + ".txt", FileAccess.WRITE)
+	f.store_string(Feedback.message("(dry run)", str(ctx["where"])))
+	f.close()
+	f = FileAccess.open(out + ".zip", FileAccess.WRITE)
+	f.store_buffer(b["bytes"])
+	f.close()
+	print("feedback dry run: %s · %d bytes, left out %s" % [ctx["where"], (b["bytes"] as PackedByteArray).size(), b["left_out"]])
 
 ## Combat: plays the first affordable attack so the SPENT state shows.
 func _play_one_card() -> void:

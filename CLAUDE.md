@@ -68,9 +68,11 @@ playtest report (`PlaytestReport`, `user://playtests/`; Settings → "Save playt
 flushed line by line to `user://session/`. A launch that finds the last session never quit writes `<stamp>_crash.txt` (verdict,
 last action, system/GPU, trail, the end of that session's Godot log) to `user://playtests/`; a run continued after it lists it in
 `RunData.resumes`, and the run's playtest report carries the text.
-**Feedback** (`Feedback`, `FeedbackDialog`): Settings → Send feedback (or F8) posts the pilot's note with a zip (screenshot, run so far,
+**Feedback** (`Feedback`, `FeedbackDialog`): the Feedback button right of the location name on every screen (combat: right of the
+turn plate, which names the location), Settings → Send feedback, or F8 posts the pilot's note, where they are (`Feedback.context`), and
+a zip (screenshot, the fight in progress as `fight_replay.json` (a one-fight playtest report), run so far,
 last week's crash report, session trail, Godot log, profile, settings) to a Discord webhook; the address is `FEEDBACK_WEBHOOK` in
-`tools/steam/config.sh`, stamped into the build by the release script (`BuildInfo`), or `user://feedback_webhook.txt` for a dev test.
+`tools/steam/config.local.sh` (git-ignored, read by `config.sh`), stamped into the build by the release script (`BuildInfo`), or `user://feedback_webhook.txt` for a dev test.
 **Steam** (App ID 5441720, project setting `steam/initialization/app_data/app_id`): the GodotSteam GDExtension in
 `addons/godotsteam` (Steamworks SDK 1.65; the steam_api libraries are copied from Valve's SDK). The `SteamService` autoload
 starts it and `SteamService.available` / `api()` say whether Steam is up; without the extension or a running client the game plays on.
@@ -128,6 +130,7 @@ The hub is an index. Open only the subpage you need (fetch by ID with the Notion
 | Balance Targets | `3e783c39984681cf9a83e34ef26268bd` | Feel targets, HP calibration, current sim results, watch list |
 | UI & Screens | `3e783c39984681e893f9f69f833474f8` | **Chosen combat layout = Logan's sketch** (image on page), card face, intents, settings, screen flow, art |
 | Tech & Tools | `3e783c399846811abcebdaa3f51e0749` | Project setup, data files, tools, Refit Bay, conventions |
+| Change Log | `3fa83c39984681219dfecc7645c982f7` | One subpage per version (0.X.X) with what changed, the version in progress, and the roadmap (the one posted on Discord). **Add every change to the in-progress version's page as it's made** |
 | Scratchpad & Backlog | `3e783c39984681f88fbef6abf2ecefaf` | Logan's in-progress thoughts (not decided); its **Backlog (non-art)** subpage (`3ea83c39984681418305d1e79f381380`) is the open work |
 
 ## Other sources

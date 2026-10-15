@@ -2,7 +2,7 @@ extends WorkshopScreen
 ## Repair bay (Logan, 2026-09-27), in the field repair station
 ## (assets/run/repair_bay.png), laid out like the other workshops: the
 ## chassis on the left, the part preview on top, the mech as a hologram on
-## the pad. A pool of 50% of the mech's max HP to hand out: hold the mouse on
+## the pad. A pool of 50% of the mech's max HP (at most 75) to hand out: hold the mouse on
 ## a damaged part to heal it slowly, and the pool drains as it goes.
 ## Destroyed parts can't be repaired. Whatever's left in the pool is lost on
 ## leaving. The right screen shows the pool and every damaged part, with

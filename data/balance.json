@@ -42,6 +42,8 @@
     "cargo_upgrade_base": 50,
     "cargo_upgrade_growth": 1.5,
     "repair_pool_fraction": 0.5,
+    "_repair_pool_max_note": "A repair bay heals at most this much in all (Logan, 2026-10-15).",
+    "repair_pool_max": 75,
     "_shop_note": "Shop rework (Logan 2026-09-29/30: more options to buy from, no rerolls): shop_offers parts per category, each rolled for rarity; any part in Cargo or on the bench sells for its scrap value; once a visit, refine a part into a random one of its type one rarity up (refine_prices by its current rarity).",
     "shop_offers": 2,
     "refine_prices": {

@@ -90,6 +90,7 @@ func _ready() -> void:
 	_stage.add_child(_armory)
 
 	var row := UIKit.top_bar(self, "Hangar")
+	row.add_child(FeedbackDialog.button())
 	row.add_child(UIKit.spacer())
 	var back := UIKit.back_button()
 	back.pressed.connect(func(): SceneRouter.go(SceneRouter.WAR_ROOM))

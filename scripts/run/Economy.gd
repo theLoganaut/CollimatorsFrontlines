@@ -80,8 +80,9 @@ static func scrap_value(comp: ComponentData) -> int:
 static func cargo_upgrade_price(bought_before: int) -> int:
 	return int(round(Balance.get_num("economy", "cargo_upgrade_base", 50) * pow(Balance.get_num("economy", "cargo_upgrade_growth", 1.5), bought_before)))
 
+## A repair bay's pool: a share of max HP, never more than repair_pool_max.
 static func repair_pool(max_hp: int, mult: float = 1.0) -> int:
-	return int(floor(max_hp * Balance.get_num("economy", "repair_pool_fraction", 0.5) * mult))
+	return mini(int(floor(max_hp * Balance.get_num("economy", "repair_pool_fraction", 0.5) * mult)), int(Balance.get_num("economy", "repair_pool_max", 75)))
 
 ## The next rarity up (Prototype stays Prototype).
 static func rarity_above(rarity: String) -> String:

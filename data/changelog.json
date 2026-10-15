@@ -1,23 +1,75 @@
 {
-  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. `next` is the What's Next?! roadmap: `updates` (version, kind \"minor\"/\"major\", when, items) in planned order, then loose `items`. Text: Logan, 2026-10-14.",
-  "current": "0.2.0",
+  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (version, kind \"minor\"/\"major\", when, items) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
+  "current": "0.2.2",
   "releases": [
+    {
+      "version": "0.2.2",
+      "title": "",
+      "note": {
+        "title": "The Discord is open!",
+        "text": "Come meet the other pilots, report bugs, share your builds and see what's coming next. You can join any time from the sign in the War Room.",
+        "button": "Join the Discord",
+        "link": "https://discord.gg/52vMbtkZtN"
+      },
+      "items": [
+        {
+          "label": "New:",
+          "text": "a Feedback button on every screen (it sends where you are, and the fight so far), and a Join the Discord! sign in the War Room."
+        },
+        {
+          "label": "Training:",
+          "text": "a simulated mission at the Shipyard, clearer steps (where cards come from, how a fight is won, what a destroyed part means), and a Skip button in the corner."
+        },
+        {
+          "label": "Balance:",
+          "text": "repair bays heal at most 75 HP, and Reroute can't turn a status into Disabled any more."
+        },
+        {
+          "label": "Combat:",
+          "text": "High Five counts your attacks on its badge, Replay says it repeats your last hardpoint card, and every status says how long it lasts."
+        },
+        {
+          "label": "Salvage:",
+          "text": "Show Mech now opens your whole mech and Cargo, with every part's cards on hover."
+        },
+        {
+          "label": "Protocols:",
+          "text": "every protocol now does exactly what its card says. Coordinated Strike fires again (drop it on an enemy part), Loaded Dice can't be parried or dodged, Overlay no longer also does Zero Lock's job (it can be redirected, and later hits can miss), Heat Transfer only moves Heat you have, Bleed Off waits for a linked part to pay, Recall works alongside a Standby card, and Echo can take an enemy's Standby."
+        },
+        {
+          "label": "Fixes:",
+          "text": "an enemy overheating no longer looks like damage to you, reactor passives light up their part, and the settings screen fits in release builds."
+        }
+      ]
+    },
     {
       "version": "0.2.0",
       "title": "",
       "items": [
-        {"label": "New Art!", "items": [
-          "Data Archives and Mining Grounds combat backgrounds",
-          "Every event scene",
-          "12 new component portraits",
-          "War Room stations: Directives, Pilot Log, Memorial Wall, Info Bay and Livery Bay",
-          "Snow and dust weather in combat",
-          "Game icon",
-          "Trismeg Studio intro screen"
-        ]},
-        {"label": "Balance:", "text": "tuned some deployment orders and enemy loadouts, and enemies no longer waste their own parts."},
-        {"label": "Combat:", "text": "hover an enemy part to see its cards. Enemies with nothing left to play retreat, and status effects have their own icons."},
-        {"label": "New:", "text": "name your War Room, a new run summary, and this What's New?! board."}
+        {
+          "label": "New Art!",
+          "items": [
+            "Data Archives and Mining Grounds combat backgrounds",
+            "Every event scene",
+            "12 new component portraits",
+            "War Room stations: Directives, Pilot Log, Memorial Wall, Info Bay and Livery Bay",
+            "Snow and dust weather in combat",
+            "Game icon",
+            "Trismeg Studio intro screen"
+          ]
+        },
+        {
+          "label": "Balance:",
+          "text": "tuned some deployment orders and enemy loadouts, and enemies no longer waste their own parts."
+        },
+        {
+          "label": "Combat:",
+          "text": "hover an enemy part to see its cards. Enemies with nothing left to play retreat, and status effects have their own icons."
+        },
+        {
+          "label": "New:",
+          "text": "name your War Room, a new run summary, and this What's New?! board."
+        }
       ]
     },
     {
@@ -32,28 +84,97 @@
   ],
   "next": {
     "updates": [
-      {"version": "0.2.1", "kind": "minor", "when": "Late October", "items": [
-        "Send feedback from in-game, and a Discord server",
-        "Better icons for enemy intents and statuses"
-      ]},
-      {"version": "0.2.2", "kind": "minor", "when": "Early November", "items": [
-        "Steam Deck compatibility",
-        "Steam Cloud saves, so your progress follows you between PCs",
-        "A Steam store page with wishlists"
-      ]},
-      {"version": "0.3.0", "kind": "major", "when": "Mid November", "items": [
-        {"label": "New mission types:", "items": [
-          "Research Runs to unlock new mechs",
-          "Backline Blitz: only elites and bosses, for bigger Chip rewards"
-        ]},
-        "More parts to unlock as you play"
-      ]},
-      {"version": "0.4.0", "kind": "major", "when": "December", "items": [
-        "Bigger boss fights"
-      ]}
+      {
+        "version": "0.2.3",
+        "kind": "minor",
+        "when": "Week of Nov 9",
+        "items": [
+          "New icons for enemy intents and statuses",
+          "New achievements",
+          "New deployment orders",
+          "Fixes from your feedback"
+        ]
+      },
+      {
+        "version": "0.3.0",
+        "kind": "major",
+        "when": "Week of Nov 16",
+        "items": [
+          {
+            "label": "Research Runs:",
+            "text": "a new mission type to unlock new mechs"
+          },
+          "More parts to unlock as you play"
+        ]
+      },
+      {
+        "version": "0.3.1",
+        "kind": "minor",
+        "when": "Week of Nov 23",
+        "items": [
+          "Steam Deck compatibility",
+          "Steam Cloud saves, so your progress follows you between PCs",
+          "Steam achievements"
+        ]
+      },
+      {
+        "version": "0.3.2",
+        "kind": "minor",
+        "when": "Dec 1",
+        "items": [
+          {
+            "label": "The Steam store page goes live:",
+            "text": "wishlist us!"
+          },
+          "New events",
+          "Daily run leaderboards",
+          "New liveries"
+        ]
+      },
+      {
+        "version": "0.4.0",
+        "kind": "major",
+        "when": "Week of Dec 7",
+        "items": [
+          {
+            "label": "Bigger boss fights:",
+            "text": "phases, new lines, bigger rewards"
+          },
+          {
+            "label": "Backline Blitz:",
+            "text": "elites and bosses only, for bigger Chip rewards"
+          }
+        ]
+      },
+      {
+        "version": "0.4.1",
+        "kind": "minor",
+        "when": "Week of Dec 14",
+        "items": [
+          {
+            "label": "Threat levels:",
+            "text": "optional harder modifiers for more Chips"
+          },
+          "More weekly directives",
+          "Balance pass"
+        ]
+      },
+      {
+        "version": "0.5.0",
+        "kind": "major",
+        "when": "Week of Dec 21",
+        "items": [
+          {
+            "label": "A new sector:",
+            "text": "new location, enemies, events and battlegrounds"
+          }
+        ]
+      }
     ],
     "items": [
-      "And much more, including your feedback!"
+      "Oct 26 – Nov 8: the dev is on vacation, so no updates. Keep the feedback coming!",
+      "Week of Dec 28: holiday break, fixes only.",
+      "And much more, including your ideas!"
     ]
   }
 }

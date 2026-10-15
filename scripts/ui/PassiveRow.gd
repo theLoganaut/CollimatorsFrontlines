@@ -42,6 +42,7 @@ func setup(p_mech: MechData, row_width: float) -> void:
 	size = Vector2(row_width, PassiveIcon.ICON_SIZE.y)
 	for comp in (mech.passive_components() if show_passives else []):
 		var icon := PassiveIcon.new()
+		icon.numbers_below = numbers_below
 		add_child(icon)
 		icon.setup(comp, mech)
 		icon.visible = false

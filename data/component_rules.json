@@ -422,7 +422,8 @@
    "play_mode": "self"
   },
   "coordinated_strike": {
-   "protocol": "salvo"
+   "protocol": "salvo",
+   "play_mode": "attack"
   },
   "wreck": {
    "pierce": true
@@ -767,7 +768,7 @@
    "protocol": "grant",
    "on": "attack",
    "grant": {
-    "sure_hit": true,
+    "undodgeable": true,
     "vs_attacking": {
      "status": "shock",
      "stacks": 2

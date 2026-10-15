@@ -264,6 +264,7 @@ func _show_default_info() -> void:
 func _build_top_bar() -> void:
 	var bar := TopBar.make(self, run.location.get("name", ""))
 	var row := bar.row
+	row.add_child(FeedbackDialog.button())
 	if run.mission_name() != "":
 		row.add_child(_bar_label(run.mission_name().to_upper(), 12, Palette.LINK))
 	if not run.mission.get("alert", {}).is_empty():
@@ -315,7 +316,10 @@ func _on_node_hover(id: int, hovering: bool) -> void:
 	match n["kind"]:
 		RunMap.KIND_REPAIR:
 			title = "Repair bay"
-			body = "Patch your parts up: a pool of %d%% of your max HP to hand out. Wrecked parts can't be fixed." % roundi(Balance.get_num("economy", "repair_pool_fraction", 0.5) * float(run.mod("repair_mult", 1.0)) * 100.0)
+			body = "Patch your parts up: a pool of %d HP to hand out (%d%% of your max HP, at most %d). Wrecked parts can't be fixed." % [
+				Economy.repair_pool(run.player_mech.max_hp(), float(run.mod("repair_mult", 1.0))),
+				roundi(Balance.get_num("economy", "repair_pool_fraction", 0.5) * float(run.mod("repair_mult", 1.0)) * 100.0),
+				int(Balance.get_num("economy", "repair_pool_max", 75))]
 		RunMap.KIND_SHOP:
 			title = "Autonomous bay"
 			body = "Spend scraps: parts, a bigger Cargo, frame squares; sell or refine what you carry."

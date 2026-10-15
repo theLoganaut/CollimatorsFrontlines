@@ -329,7 +329,7 @@ static func run_all(t: TestContext) -> void:
 	rf.scrap_destroyed()
 	t.assert_true(not rf.finish_refit(), "a refit can't end without a working hardpoint")
 
-	t.group("Repair bay: a pool of 50% of max HP, living parts only")
+	t.group("Repair bay: a pool of 50% of max HP (at most 75), living parts only")
 	var rp := _new_run(22)
 	rp.phase = RunData.PHASE_MAP
 	for n in rp.map.nodes:
@@ -344,11 +344,12 @@ static func run_all(t: TestContext) -> void:
 	rp.phase = RunData.PHASE_REPAIR
 	rp.current_node_id = repair_id
 	rp.repair_pool = Economy.repair_pool(rp.player_mech.max_hp())
-	t.assert_eq(rp.repair_pool, 81, "Bastion: 50% of 162 = 81")
+	t.assert_eq(rp.repair_pool, 75, "Bastion: 50% of 162 = 81, capped at 75")
+	t.assert_eq(Economy.repair_pool(100), 50, "a smaller mech: 50% of 100 = 50, under the cap")
 	var nx := rp.player_mech.get_component("neon_axe")
 	nx.apply_damage(30)
 	t.assert_eq(rp.repair(nx, 100), 30, "heals only what's missing")
-	t.assert_eq(rp.repair_pool, 51, "and draws that from the pool")
+	t.assert_eq(rp.repair_pool, 45, "and draws that from the pool")
 	var ic := rp.player_mech.get_component("insulated_core")
 	ic.apply_damage(999)
 	t.assert_eq(rp.repair(ic, 10), 0, "a destroyed part can't be repaired")

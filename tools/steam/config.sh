@@ -29,4 +29,10 @@ GODOT="/Applications/Godot.app/Contents/MacOS/Godot"
 # In-game "Send feedback" (Feedback.gd): a Discord webhook for a private channel
 # (Discord: Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy URL).
 # Stamped into each build; "" = the button says feedback isn't set up.
+# Don't paste the address here (this file is in git, and anyone with it can post
+# to the channel): put FEEDBACK_WEBHOOK="https://..." in tools/steam/config.local.sh,
+# which git ignores and which is read last, so it overrides anything above.
 FEEDBACK_WEBHOOK=""
+
+LOCAL_CONFIG="$(dirname "${BASH_SOURCE[0]}")/config.local.sh"
+if [[ -f "$LOCAL_CONFIG" ]]; then source "$LOCAL_CONFIG"; fi

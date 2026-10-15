@@ -134,6 +134,8 @@ func _fill() -> void:
 				_list.add_child(_gap(10))
 			first = false
 			_add_release_head(r)
+			if r.has("note"):
+				_add_note(r["note"])
 			for item in r.get("items", []):
 				_add_item(item, 0)
 	_scroll.scroll_vertical = 0
@@ -150,6 +152,35 @@ func _add_release_head(r: Dictionary) -> void:
 	line.color = Color(GlassPanel.HOLO, 0.35)
 	line.custom_minimum_size = Vector2(0, 1)
 	_list.add_child(line)
+
+## A release's special note (0.2.2: the Discord is open), on its own lit
+## glass under the version: a title, a line, and a button that opens `link`.
+const NOTE_COLOR := Color("5865f2") # Discord's blurple
+
+func _add_note(n: Dictionary) -> void:
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", GlassPanel.panel_style(NOTE_COLOR, 10.0))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	box.add_child(row)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(col)
+	col.add_child(UIKit.label(str(n.get("title", "")), 16, NOTE_COLOR.lightened(0.45)))
+	col.add_child(UIKit.label(str(n.get("text", "")), 13, BODY, true))
+	var link := str(n.get("link", ""))
+	if link != "":
+		var b := GlassPanel.button(str(n.get("button", "Open")), 13, true, NOTE_COLOR)
+		b.custom_minimum_size = Vector2(150, 36)
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.pressed.connect(func():
+			Audio.play("ui")
+			OS.shell_open(link))
+		row.add_child(b)
+	_list.add_child(_gap(4))
+	_list.add_child(box)
+	_list.add_child(_gap(4))
 
 ## A planned update on the roadmap: its version, minor or major, and when.
 func _add_update_head(u: Dictionary) -> void:

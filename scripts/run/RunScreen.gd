@@ -41,6 +41,7 @@ func _ready() -> void:
 	Audio.ambience(Audio.location_ambience(run.location))
 	top_row = UIKit.top_bar(self, screen_title())
 	top_row.add_child(UIKit.label(run.location.get("name", "").to_upper(), 12, Color("7f9d9a")))
+	top_row.add_child(FeedbackDialog.button())
 	top_row.add_child(UIKit.spacer())
 	_scraps_label = UIKit.scraps_label(run.scraps, 14)
 	top_row.add_child(TopBar.chip(_scraps_label, Palette.SCRAPS))

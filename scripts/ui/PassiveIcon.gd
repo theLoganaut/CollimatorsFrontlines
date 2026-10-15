@@ -12,6 +12,15 @@ var component: ComponentData
 var mech: MechData
 
 var _pulse: float = 0.0
+## A running count shown as a stack number, like a status badge's (High
+## Five: each attack this turn is a stack; Logan, 2026-10-15). 0 = none.
+var count: int = 0
+var numbers_below: bool = true
+
+func set_count(n: int) -> void:
+	if n != count:
+		count = n
+		queue_redraw()
 
 func _ready() -> void:
 	size = ICON_SIZE
@@ -88,6 +97,13 @@ func _draw() -> void:
 			draw_circle(m, 3.0, c)
 	if off:
 		draw_line(m + Vector2(-r * 0.7, r * 0.7), m + Vector2(r * 0.7, -r * 0.7), Palette.DANGER, 2.5, true)
+	elif count > 0:
+		var font := get_theme_default_font()
+		var y := ICON_SIZE.y + 12.0 if numbers_below else -3.0
+		var text := str(count)
+		for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
+			draw_string(font, Vector2(0, y) + o, text, HORIZONTAL_ALIGNMENT_CENTER, ICON_SIZE.x, 12, Color(0, 0, 0, 0.85))
+		draw_string(font, Vector2(0, y), text, HORIZONTAL_ALIGNMENT_CENTER, ICON_SIZE.x, 12, c.lightened(0.2))
 
 ## Redirect Spike: an arrow bending down into a bar (hits get pulled to it).
 func _draw_redirect(m: Vector2, c: Color) -> void:

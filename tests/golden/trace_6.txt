@@ -901,7 +901,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 5722b6fe6d0341198414b6168a2349b4
 run map node -1 scraps 78 rng 8356249223329461791 adaaa4560e30d79e05b4dd885e035c15
-run repair node 7 scraps 78 rng 8356249223329461791 44788c7d8035d48f9ec6c1371252f346
+run repair node 7 scraps 78 rng 8356249223329461791 e622946df939c588bb47971972c916bb
 run refit node -1 scraps 78 rng 8356249223329461791 8d4083eb236cb5dc847e5b70331f822a
 run map node -1 scraps 78 rng 8356249223329461791 644aa4fb02afdd69a37dcf3a92eac6fd
 run fight node 9 scraps 78 rng 8356249223329461791 33006d5a676d75b18f108a94a4cf43ca
@@ -2539,7 +2539,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:5[] grinder_maw:59[shock2,disabled2] voltage_spike:58[shock3] targeting_computer:11[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 03d5e5f607c657c5b4ce2cb1a50f394b
 run map node -1 scraps 78 rng 8356249223329461791 60173e688737dcf83622cee7525d6c89
-run repair node 7 scraps 78 rng 8356249223329461791 039ec0cd499c8d64636f7b5b5250485b
+run repair node 7 scraps 78 rng 8356249223329461791 ebbb8bf7ca59bc3971173d6578318002
 run refit node -1 scraps 78 rng 8356249223329461791 308a01a38c9bb1d471427d3b9a5d782c
 run map node -1 scraps 78 rng 8356249223329461791 d0eca3b12ff141fb5b58ea529d4e89ae
 run fight node 9 scraps 78 rng 8356249223329461791 6d323063bc8212408b453bcc2efa33ec
@@ -3746,7 +3746,7 @@ game_over 1
 state rng 1393608326188315831 | bastion h7 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:57[shock1] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[] autocannon:6[shock2] coolant_flush:10[]
 run reward node 5 scraps 78 rng 8356249223329461791 41d8f6399f9e27b533ceea4a90823deb
 run map node -1 scraps 78 rng 8356249223329461791 6ba236927a92ff527be567e69641a0db
-run repair node 7 scraps 78 rng 8356249223329461791 3b8e395421c32f286168c176bc78220f
+run repair node 7 scraps 78 rng 8356249223329461791 3ec4b2c5b960ab9fe54d808d1c199712
 run refit node -1 scraps 78 rng 8356249223329461791 c21dc08cda36c54f9c5289cd66be5280
 run map node -1 scraps 78 rng 8356249223329461791 02acfc22fbbc32c4b1097528fc0bfe14
 run fight node 9 scraps 78 rng 8356249223329461791 233d155a5e1906b5e703cffbb1574882
@@ -5129,7 +5129,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 8b2240ebe0786b03f5cfb04b3ec05fad
 run map node -1 scraps 78 rng 8356249223329461791 8659580f531f386a8834a0a908363326
-run repair node 7 scraps 78 rng 8356249223329461791 af44e1d486a38b81a210e44252621167
+run repair node 7 scraps 78 rng 8356249223329461791 a8ce8328a3467027207bab0e852aff95
 run refit node -1 scraps 78 rng 8356249223329461791 6473f4e65826e40ee5a60589dd69b3f1
 run map node -1 scraps 78 rng 8356249223329461791 a89c02794a2ea9f34820fe14626c864f
 run fight node 9 scraps 78 rng 8356249223329461791 7c5072296086e346994f69d9279b00f2
@@ -5563,7 +5563,7 @@ game_over 1
 state rng -1449169418760542385 | bastion h14 [] voltage_spike:48[jam1] targeting_computer:32[] laser_drive:53[] parasite_leech:78[jam1] | needle_drone h0 [] autocannon:17[disabled1] fang_blade:0D[] targeting_computer:20[]
 run reward node 18 scraps 171 rng -5630599501351333668 1689e79d753c222f33d5ec5546b68e56
 run map node -1 scraps 171 rng -5630599501351333668 3e6bea97655f6c6da375d139d3d06397
-run repair node 20 scraps 171 rng -5630599501351333668 e9a7be418a37b7c34eb28acd8017d0bd
+run repair node 20 scraps 171 rng -5630599501351333668 c7c360c627588058f3b69f6a4f87a75b
 run map node -1 scraps 171 rng -5630599501351333668 2cbf408a5c53d47b831dd31ee6ffe2d5
 run fight node 23 scraps 171 rng -5630599501351333668 0e9162ed5909a9b948a5ec026d1bf84f
 turn 0 1
@@ -6889,7 +6889,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 cc5d41231bb77144b5b16e9d0247557f
 run map node -1 scraps 78 rng 8356249223329461791 e27925c0bb9d844de42ab8f928ce4de7
-run repair node 7 scraps 78 rng 8356249223329461791 7d652149a7f8a3c45ea4a6d00086a168
+run repair node 7 scraps 78 rng 8356249223329461791 33c6607440686904eb08158606bea0f1
 run refit node -1 scraps 78 rng 8356249223329461791 699bb1c4b93e14fa61ca7eaaa387af58
 run map node -1 scraps 78 rng 8356249223329461791 bbaa90d026bc368b64927ac12e061829
 run fight node 9 scraps 78 rng 8356249223329461791 2cdf489725e4f610baaac5e160cbd636
@@ -8421,7 +8421,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:5[] grinder_maw:59[shock2,disabled2] voltage_spike:58[shock3] targeting_computer:11[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 ef8c6f5c1654dc66ff499222174bba89
 run map node -1 scraps 78 rng 8356249223329461791 7791b77670601be23087cd4e97d96679
-run repair node 7 scraps 78 rng 8356249223329461791 203e80715a46282ef87d646336dc07fa
+run repair node 7 scraps 78 rng 8356249223329461791 01b0b3238f9dced066c9ba0053ebe84d
 run refit node -1 scraps 78 rng 8356249223329461791 ee46c8a939438a65ea8d0664f861e2e0
 run map node -1 scraps 78 rng 8356249223329461791 00ea6d870f696c8acd851f79aa741998
 run fight node 9 scraps 78 rng 8356249223329461791 2427362a99af42d69c92d6aef4fab8f8
@@ -9587,7 +9587,7 @@ game_over 1
 state rng 1393608326188315831 | bastion h7 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:57[shock1] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[] autocannon:6[shock2] coolant_flush:10[]
 run reward node 5 scraps 78 rng 8356249223329461791 6dfb6a17876a3bd5f5a3256096ecf0dc
 run map node -1 scraps 78 rng 8356249223329461791 a653f46200a8a146eee393a28d9a416d
-run repair node 7 scraps 78 rng 8356249223329461791 adf1b322769fabe89f29d86967126f3b
+run repair node 7 scraps 78 rng 8356249223329461791 fc05eafff262853842b5a1649240c279
 run refit node -1 scraps 78 rng 8356249223329461791 b4d49c6e1777767dc500537f1f3644f6
 run map node -1 scraps 78 rng 8356249223329461791 3d90328dfde7e4f047c59e65c4c9a08b
 run fight node 9 scraps 78 rng 8356249223329461791 ac6068f00c3b20e5af43bde97ca1f839
@@ -10897,7 +10897,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 3f5076d3cdad808f3fd4a94244384606
 run map node -1 scraps 78 rng 8356249223329461791 6ef3f31b5cdb26e1502b2e9905e66b4f
-run repair node 7 scraps 78 rng 8356249223329461791 a3ccbeb4d4a3ebfcd607c33ee07686dd
+run repair node 7 scraps 78 rng 8356249223329461791 d84c179ebe481f2beafaa39d52274c2c
 run refit node -1 scraps 78 rng 8356249223329461791 d88f1b9a22e78f58aec06e83ed2af016
 run map node -1 scraps 78 rng 8356249223329461791 3f32de29e440ad1108fa9d55875f306c
 run fight node 9 scraps 78 rng 8356249223329461791 3d51c8f49ef379647593b6a5e21a57a2
@@ -12627,7 +12627,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 558e2b0e5bbd51134b1465930ff8e721
 run map node -1 scraps 78 rng 8356249223329461791 83934e215ac50d7a73d303b5c5e22326
-run repair node 7 scraps 78 rng 8356249223329461791 20ae23b6c079a631a0de5b8e807e6f4f
+run repair node 7 scraps 78 rng 8356249223329461791 2c16aced939cf1511ca00a7b4bb680b8
 run refit node -1 scraps 78 rng 8356249223329461791 286935967f47fd415375404e306fd6e1
 run map node -1 scraps 78 rng 8356249223329461791 8096cc52ab0171381dfdce42d50313ad
 run fight node 9 scraps 78 rng 8356249223329461791 b73b31a963ce708f1680bbd81dbe59aa
@@ -14187,7 +14187,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:5[] grinder_maw:59[shock2,disabled2] voltage_spike:58[shock3] targeting_computer:11[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 aeeec32227e7f7126a7f16535a3286a5
 run map node -1 scraps 78 rng 8356249223329461791 2dbfa3445e8bdbc0c19fd20bc18b8d47
-run repair node 7 scraps 78 rng 8356249223329461791 df3a22a70a0a90defd2b0c48b4c27114
+run repair node 7 scraps 78 rng 8356249223329461791 07c4e979aaad2b604146ca362e4e4733
 run refit node -1 scraps 78 rng 8356249223329461791 ecd44f3e8123b16fe329e3e8886e4312
 run map node -1 scraps 78 rng 8356249223329461791 6253654f8cd95be96d890d51395365e1
 run fight node 9 scraps 78 rng 8356249223329461791 33a6033436d846449feae852e5120b2d
@@ -15394,7 +15394,7 @@ game_over 1
 state rng 1393608326188315831 | bastion h7 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:57[shock1] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[] autocannon:6[shock2] coolant_flush:10[]
 run reward node 5 scraps 78 rng 8356249223329461791 7717153398c7bf3651aeb517fbd2d309
 run map node -1 scraps 78 rng 8356249223329461791 2596fe993346d26bc9fa5678209b7243
-run repair node 7 scraps 78 rng 8356249223329461791 809edbc7b9eb232ffb216ec6ec978df7
+run repair node 7 scraps 78 rng 8356249223329461791 df736aba1d6d4879d5394b9c664f1072
 run refit node -1 scraps 78 rng 8356249223329461791 3ea2fe902749a69e6e220393708e30da
 run map node -1 scraps 78 rng 8356249223329461791 40666add209406907f7ea44e26c1016e
 run fight node 9 scraps 78 rng 8356249223329461791 8ec47255d946fdff4d9fffa5f5cb73bb
@@ -16777,7 +16777,7 @@ game_over 1
 state rng 1907718963079371763 | bastion h6 [] insulated_core:18[] grinder_maw:64[shock2,disabled2] voltage_spike:62[shock3] targeting_computer:12[] | arc_sentry h0 [] arc_whip:31[shock2,disabled1] autocannon:0D[shock2] coolant_flush:22[]
 run reward node 5 scraps 78 rng 8356249223329461791 b3172a3a24a843ed3a471f4e3ac39e8a
 run map node -1 scraps 78 rng 8356249223329461791 bffd6c9ef040a809cf2475f91a2e1f07
-run repair node 7 scraps 78 rng 8356249223329461791 93a4666bc95329991a9544eab42befa5
+run repair node 7 scraps 78 rng 8356249223329461791 2c64ce82009ed0b93b6ecb0e3ac2a12b
 run refit node -1 scraps 78 rng 8356249223329461791 e2cc8c0af91a2c72b3b9f80e380efc2c
 run map node -1 scraps 78 rng 8356249223329461791 371ec61a7187d3f8fcc02cfc9e23bbac
 run fight node 9 scraps 78 rng 8356249223329461791 81de87b6e57d5a16ac2cf47609794448

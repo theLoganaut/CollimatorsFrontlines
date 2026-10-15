@@ -81,8 +81,8 @@ static func any_card_protocols(cm: CombatManager, card: CardData, cost: int, tar
 	var fort := take_primed(cm, "fortify", card)
 	if not fort.is_empty() and cost > 0:
 		cm.player_mech.add_mech_status("deflect", cost * int(fort["card"].rule.get("per_heat", 2)))
-	if not take_primed(cm, "recall", card).is_empty() and cm.standby.is_empty():
-		cm.standby = {"card": card, "target_mech": target_mech, "target": target}
+	if not take_primed(cm, "recall", card).is_empty():
+		cm.recalled.append({"card": card, "target_mech": target_mech, "target": target})
 
 ## Whether a grant protocol (Notion: Dynamic Turn Rework, card pass) fits
 ## `card`: its "on" says which cards take it: "attack" (default), "self"
@@ -139,6 +139,14 @@ static func play_steal(cm: CombatManager, card: CardData, comp: ComponentData) -
 	cm.card_played.emit(cm.player_mech, card)
 	for w in cm.living_enemies():
 		var list: Array = cm.enemy_primed.get(w, [])
+		if list.is_empty() and cm._enemy_standby_pending.has(w):
+			# its waiting Standby (kept apart from its other protocols)
+			var sb_card = cm._enemy_standby_pending[w]
+			cm._enemy_standby_pending.erase(w)
+			cm.primed.clear()
+			cm.primed.append({"type": "standby", "card": sb_card if sb_card is CardData else card, "component": comp})
+			cm.primed_changed.emit()
+			return {"ok": true, "overheated": false}
 		if list.is_empty():
 			continue
 		var e: Dictionary = list.pop_front()
@@ -216,6 +224,17 @@ static func run_standby(cm: CombatManager) -> void:
 		return
 	var sb := cm.standby
 	cm.standby = {}
+	_play_free(cm, sb)
+
+## The cards Recall plays again, now, for 0 heat (after any Standby card).
+static func run_recalled(cm: CombatManager) -> void:
+	var list := cm.recalled
+	cm.recalled = []
+	for r in list:
+		_play_free(cm, r)
+
+## Plays a remembered card ({card, target_mech, target}) for 0 heat.
+static func _play_free(cm: CombatManager, sb: Dictionary) -> void:
 	var card: CardData = sb["card"]
 	var comp := cm.player_mech.get_component(card.owner_component_id)
 	if comp == null or comp.destroyed:

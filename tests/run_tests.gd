@@ -23,6 +23,7 @@ func _initialize() -> void:
 	TestEffects.run_all(t)
 	TestPhases.run_all(t)
 	TestParts.run_all(t)
+	TestProtocols.run_all(t)
 	TestOrders.run_all(t)
 	TestCommands.run_all(t)
 	TestContent.run_all(t)

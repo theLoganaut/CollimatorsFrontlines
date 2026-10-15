@@ -33,12 +33,17 @@ const STATIONS := [
 	["memorial_wall", "Memorial Wall", "The corrupted Collimators you've faced.", "memorial_wall_empty.png", Rect2(67, 124, 118, 115), Vector2(126, 124), "up"],
 	["hangar", "Hangar", "Pick your mech and loadout.", "hangar.png", Rect2(231, 124, 164, 115), Vector2(313, 124), "up"],
 	["directives", "Directives", "Today's three goals. Earn Chips.", "directives.png", Rect2(438, 124, 118, 115), Vector2(497, 124), "up"],
+	["discord", "Join the Discord!", "Meet other pilots, report bugs, see what's coming.", "discord_sign.png", Rect2(292, 62, 90, 46), Vector2(376, 91), "right"],
 	["research_bay", "Research Bay", "Permanent unlocks, paid in Chips.", "research_bay.png", Rect2(), Vector2(34, 128), "up_right"],
 	["livery_bay", "Livery Bay", "Paint schemes, paid in Chips.", "livery_bay.png", Rect2(), Vector2(590, 124), "up_left"],
 	["war_table", "War Table", "Sector Select: pick where to drop in.", "war_table.png", Rect2(203.7, 216.7, 216.6, 114.8), Vector2(418, 255), "right"],
 	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(60, 242), "up_right"],
 	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(562, 246), "up_left"],
 ]
+## The "Join the Discord!" sign hanging over Bay 2 (Logan, 2026-10-15; in
+## STATIONS, its art made in build/discord_sign/): clicking it opens the
+## server's invite (a permanent one) in the browser.
+const DISCORD_INVITE := "https://discord.gg/52vMbtkZtN"
 ## Where each station goes (the Research Bay has no unlocks yet).
 const STATION_SCENES := {
 	"hangar": "res://scenes/HangarScreen.tscn", "directives": "res://scenes/DirectivesScreen.tscn",
@@ -120,6 +125,8 @@ func _ready() -> void:
 			spot.pressed.connect(_on_table_pressed)
 		elif STATION_SCENES.has(s[0]):
 			spot.pressed.connect(_open_station.bind(s[0]))
+		elif s[0] == "discord":
+			spot.pressed.connect(_open_discord)
 
 	_add_holograms(_stations["hangar"])
 	_stations["directives"].draw_extra = _draw_dailies
@@ -246,7 +253,7 @@ func _build_station(s: Array) -> Hotspot:
 		region = Rect2(tex.get_image().get_used_rect())
 		art_rect = region
 	var spot := Hotspot.new()
-	spot.setup(s[0], s[1], s[2], s[0] == "war_table" or STATION_SCENES.has(s[0]), tex, _art(art_rect), region)
+	spot.setup(s[0], s[1], s[2], s[0] in ["war_table", "discord"] or STATION_SCENES.has(s[0]), tex, _art(art_rect), region)
 	spot.anchor = (s[5] as Vector2) * ART_SCALE
 	spot.label_dir = s[6]
 	spot.hover_changed.connect(_on_station_hover.bind(spot))
@@ -459,6 +466,7 @@ func _build_top_bar() -> void:
 	_top_bar.clickable_title(func(): if not Tutorial.active: Tutorial.ask_base_name(), "Rename the base")
 	var row := _top_bar.row
 	_on_base_named()
+	row.add_child(FeedbackDialog.button())
 	row.add_child(UIKit.spacer())
 	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
 	# (the co-op lobby button comes back once co-op exists; Logan, 2026-10-13)
@@ -592,6 +600,13 @@ func _open_station(id: String) -> void:
 	tw.tween_property(room, "position", center - r.get_center() * s, SceneRouter.FADE_OUT + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(_operator, "modulate:a", 0.0, 0.2)
 	SceneRouter.go(STATION_SCENES[id])
+
+func _open_discord() -> void:
+	if _zooming or _zoomed or SceneRouter.is_busy():
+		return
+	Audio.play("ui")
+	CrashLog.crumb("open Discord invite")
+	OS.shell_open(DISCORD_INVITE)
 
 ## With a saved run, the table offers to continue it instead of a new one.
 func _on_table_pressed() -> void:

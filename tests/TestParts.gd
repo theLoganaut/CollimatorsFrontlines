@@ -369,12 +369,12 @@ static func _protocols(t: TestContext) -> void:
 	cm4.play_self_card(_card(p4, "breach_charge", "breach"))
 	cm4.reload(g4)
 	cm4.play_attack_card(g4, e4, e4.components[0])
-	t.assert_eq(_lost(e4.components[0]), 12, "Breach: straight through Deflect, +25%")
+	t.assert_eq(_lost(e4.components[0]), 10, "Breach: straight through Deflect (Pierce)")
 	e4.clear_mech_status("deflect")
 	cm4.play_self_card(_card(p4, "tactical_uplink", "double_tap"))
 	cm4.reload(g4)
 	cm4.play_attack_card(g4, e4, e4.components[0])
-	t.assert_eq(_lost(e4.components[0]), 32, "Double Tap: 2 hits")
+	t.assert_eq(_lost(e4.components[0]), 20, "Double Tap: no attack shown, so only the target is hit (10 more)")
 	e4.components[0].current_hp = 300
 	cm4.play_self_card(_card(p4, "kill_switch", "execute"))
 	cm4.reload(g4)
@@ -384,6 +384,8 @@ static func _protocols(t: TestContext) -> void:
 	cm4.reload(g4)
 	cm4.play_attack_card(g4, e4, e4.components[0])
 	t.assert_eq(e4.components[0].status_stacks("disabled"), 1, "Ram: the target is Disabled")
+	p4.get_component("g").remove_status("disabled", 9) # Ram disabled the gun
+	cm4.primed.clear()
 	e4.current_heat = 7
 	var mine := p4.current_heat
 	cm4.play_self_card(_card(p4, "polarity_inverter", "invert"))
@@ -397,7 +399,7 @@ static func _protocols(t: TestContext) -> void:
 	var cm5 := TestEffects._cm(p5, [e5] as Array[MechData])
 	cm5.play_self_card(_card(p5, "probability_engine", "loaded_dice"))
 	cm5.play_attack_card(_card(p5, "needle_carbine", "needle_storm"), e5, e5.components[0])
-	t.assert_eq(_lost(e5.components[0]), 45, "Loaded Dice: 5 hits, none miss, all max (6) +50%")
+	t.assert_eq(_lost(e5.components[0]), 30, "Loaded Dice: 5 hits, none miss, all max (6)")
 
 	t.group("Recall: the next card plays again next turn for free")
 	var p6 := _m([["salvage_recursor", Vector2i(0, 0)]])
@@ -417,7 +419,7 @@ static func _protocols(t: TestContext) -> void:
 	cm7.play_attack_card(p7.get_component("g").cards[0], cm7.enemies[0], cm7.enemies[0].components[0])
 	t.assert_eq(p7.mech_status_stacks("deflect"), 16, "4 Heat → Deflect 16")
 
-	t.group("Last Stand: +20% per 10% HP lost; Feedback: vent 2 per hit")
+	t.group("Last Stand: 0 Heat at half HP or less; Feedback: vent 2 per hit")
 	var p8 := _m([["last_stand_protocol", Vector2i(0, 0)], ["feedback_loop", Vector2i(1, 0)]])
 	p8.components.append(TestEffects._gun("g", 100, 1, 0))
 	var filler := _tank("filler", 1000, Vector2i(5, 0))
@@ -428,7 +430,7 @@ static func _protocols(t: TestContext) -> void:
 	var lost := 1.0 - float(p8.current_hp()) / p8.max_hp()
 	cm8.play_self_card(_card(p8, "last_stand_protocol", "last_stand"))
 	cm8.play_attack_card(p8.get_component("g").cards[0], e8, e8.components[0])
-	t.assert_eq(_lost(e8.components[0]), int(floor(100 * (1.0 + floor(lost * 10.0) * 0.2))), "100 × (1 + %d%%)" % int(floor(lost * 10.0) * 20))
+	t.assert_eq(_lost(e8.components[0]), 100, "Last Stand doesn't add damage any more (%d%% HP lost; it's a 0-Heat discount: TestProtocols)" % int(lost * 100))
 	p8.current_heat = 7
 	cm8.play_self_card(_card(p8, "feedback_loop", "feedback"))
 	var g8 := TestFixtures.make_card("multi", "g", 0, 3, 1, 1)

@@ -10,8 +10,8 @@ extends RefCounted
 
 const OVERRIDE := "user://feedback_webhook.txt"
 const GODOT_LOG := "user://logs/godot.log"
-## Discord takes up to 25 MB a message; keep under it.
-const MAX_BYTES := 24 * 1024 * 1024
+## Discord takes 10 MB a message on a server without boosts; keep under it.
+const MAX_BYTES := 9 * 1024 * 1024 + 512 * 1024
 const MAX_CONTENT := 1900
 ## Only a crash report from the last week goes along (older ones are old news).
 const CRASH_MAX_AGE := 7 * 24 * 3600
@@ -28,13 +28,33 @@ static func enabled() -> bool:
 	var url := webhook_url()
 	return url.begins_with("https://") or url.begins_with("http://127.0.0.1") # (the second: a local test server)
 
+## Where the pilot is when they open the form (Logan, 2026-10-15: every
+## report says where it came from): {"where": one line ("Shipyard · Assault ·
+## encounter 3 / 14 · fight, turn 4", or the screen outside a run), "fight":
+## the fight in progress as a record so far ({} outside a fight)}.
+static func context(screen: String) -> Dictionary:
+	var fight: Dictionary = PlaytestReport.current_fight.call() if PlaytestReport.current_fight.is_valid() else {}
+	if not RunState.is_active():
+		return {"where": screen.capitalize() if screen != "" else "?", "fight": fight}
+	var run: RunData = RunState.run
+	var parts: Array[String] = [str(run.location.get("name", "?"))]
+	if run.mission_name() != "":
+		parts.append(run.mission_name())
+	var at := run.path.size() + (1 if run.current_node_id >= 0 and not run.path.has(run.current_node_id) else 0)
+	parts.append("encounter %d / %d" % [at, run.encounter_count()])
+	if not fight.is_empty():
+		parts.append("fight, turn %d" % int(fight.get("turns", 0)))
+	else:
+		parts.append(screen.capitalize())
+	return {"where": "  ·  ".join(parts), "fight": fight}
+
 ## The chat message: who, which build, where they were, and their note.
-static func message(note: String, screen: String) -> String:
+static func message(note: String, where: String) -> String:
 	var who := "no Steam"
 	var steam := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("SteamService")
 	if steam != null and steam.available:
 		who = steam.user_name
-	var head := "**Feedback** · %s · %s · %s · %s" % [BuildInfo.label(), OS.get_name(), who, screen]
+	var head := "**Feedback** · %s · %s · %s\n📍 %s" % [BuildInfo.label(), OS.get_name(), who, where]
 	var body := note.strip_edges()
 	var text := head + ("\n>>> " + body if body != "" else "\n(no note)")
 	return text.substr(0, MAX_CONTENT)
@@ -43,12 +63,19 @@ static func message(note: String, screen: String) -> String:
 ## so far (or the last finished run's report), the newest crash report,
 ## this session's trail and Godot log, the profile and settings. Returns
 ## {"bytes": PackedByteArray, "name": file name, "left_out": [what didn't fit]}.
-static func bundle(note: String, screenshot: Image, run_report: Dictionary) -> Dictionary:
+static func bundle(note: String, screenshot: Image, run_report: Dictionary, ctx: Dictionary = {}) -> Dictionary:
 	var stamp := Time.get_datetime_string_from_system(false, true).replace(":", "").replace(" ", "_").replace("-", "")
 	var name := "feedback_%s.zip" % stamp
 	var files := {
-		"note.txt": ("%s\n\n%s\n\n%s" % [note.strip_edges(), BuildInfo.label(), JSON.stringify(CrashLog.system_info(), "  ")]).to_utf8_buffer(),
+		"note.txt": ("%s\n\nWhere: %s\n%s\n\n%s" % [note.strip_edges(), ctx.get("where", "?"), BuildInfo.label(), JSON.stringify(CrashLog.system_info(), "  ")]).to_utf8_buffer(),
 	}
+	# The fight in progress on its own, as a one-fight playtest report
+	# (tools/playtest_report.gd replays it); small, so it's never left out.
+	var fight: Dictionary = ctx.get("fight", {})
+	if not fight.is_empty():
+		files["fight_replay.json"] = JSON.stringify({"v": PlaytestReport.VERSION, "kind": "snapshot",
+			"written": Time.get_datetime_string_from_system(false, true), "game": PlaytestReport.game_info(),
+			"fights": [fight]}).to_utf8_buffer()
 	if screenshot != null:
 		files["screenshot.png"] = screenshot.save_png_to_buffer()
 	if not run_report.is_empty():

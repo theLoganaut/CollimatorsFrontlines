@@ -1,10 +1,12 @@
 class_name FeedbackDialog
 extends CanvasLayer
-## The "Send feedback" form (Settings, or F8 anywhere): a note box and
-## Send. Takes a screenshot of the game as it was, then posts the note and
+## The "Send feedback" form (the Feedback button beside the location name
+## on every screen, Settings, or F8): a note box and Send. Takes a
+## screenshot of the game as it was and notes where the pilot is (and, in a
+## fight, its replay so far; Feedback.context), then posts the note and
 ## Feedback.bundle to the feedback webhook. The game pauses while it's open.
 
-const PANEL_SIZE := Vector2(560, 380)
+const PANEL_SIZE := Vector2(560, 410)
 
 static var _open: FeedbackDialog = null
 
@@ -17,6 +19,7 @@ var _http: HTTPRequest
 var _shot: Image
 var _report: Dictionary = {}
 var _screen: String = ""
+var _ctx: Dictionary = {}
 var _was_paused: bool = false
 var _sending: bool = false
 
@@ -32,8 +35,22 @@ static func open(tree: SceneTree) -> void:
 	d._screen = tree.current_scene.scene_file_path.get_file().get_basename() if tree.current_scene != null else ""
 	if RunState.is_active():
 		d._report = PlaytestReport.snapshot(RunState.run)
+	d._ctx = Feedback.context(d._screen)
 	_open = d
 	tree.root.add_child(d)
+
+## The Feedback button every screen puts right of its location name
+## (Logan, 2026-10-15: there at all times). Opens this form.
+static func button(height: float = TopBar.CHIP_H) -> Button:
+	var b := GlassPanel.button("Feedback", 12, false, Palette.LINK)
+	b.custom_minimum_size = Vector2(92, height)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = "Send us a bug, something confusing, or an idea (%s). Where you are goes with it." % GameSettings.key_label("feedback")
+	b.pressed.connect(func():
+		Audio.play("ui")
+		open(b.get_tree()))
+	return b
 
 func _ready() -> void:
 	layer = 250
@@ -64,7 +81,10 @@ func _ready() -> void:
 	_note.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_note.add_theme_font_size_override("font_size", 14)
 	v.add_child(_note)
-	v.add_child(UIKit.label("Sent with it: a screenshot, your run so far, recent crash reports and the game's logs.", 11, Palette.TEXT_MUTED, true))
+	v.add_child(UIKit.label("From: " + str(_ctx.get("where", "?")), 12, Color("8fd8d0"), true))
+	var sent := "a screenshot, this fight's replay so far, your run, recent crash reports and the game's logs" if not (_ctx.get("fight", {}) as Dictionary).is_empty() \
+		else ("a screenshot, your run so far, recent crash reports and the game's logs" if RunState.is_active() else "a screenshot, recent crash reports and the game's logs")
+	v.add_child(UIKit.label("Sent with it: %s." % sent, 11, Palette.TEXT_MUTED, true))
 	_status = UIKit.label("", 12, Palette.WARNING, true)
 	v.add_child(_status)
 	var row := HBoxContainer.new()
@@ -108,8 +128,8 @@ func _on_send() -> void:
 	_status.add_theme_color_override("font_color", Palette.TEXT_MUTED)
 	_status.text = "Sending…"
 	await get_tree().process_frame # let "Sending…" show before the zip is built
-	var b := Feedback.bundle(_note.text, _shot, _report)
-	var mp := Feedback.multipart(Feedback.message(_note.text, _screen), b["name"], b["bytes"])
+	var b := Feedback.bundle(_note.text, _shot, _report, _ctx)
+	var mp := Feedback.multipart(Feedback.message(_note.text, str(_ctx.get("where", _screen))), b["name"], b["bytes"])
 	var err := _http.request_raw(Feedback.webhook_url(), ["Content-Type: " + mp["content_type"]], HTTPClient.METHOD_POST, mp["body"])
 	if err != OK:
 		_failed("couldn't start (%s)" % error_string(err))

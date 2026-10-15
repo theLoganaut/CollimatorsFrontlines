@@ -143,7 +143,7 @@ static func _protocol(cm: CombatManager, warden: MechData, comp: ComponentData, 
 		# One protocol waits at a time, as for the player: a new one replaces it.
 		"standby":
 			cm.enemy_primed.erase(warden)
-			cm._enemy_standby_pending[warden] = true
+			cm._enemy_standby_pending[warden] = card # the Standby card (Echo can take it)
 		_:
 			var list: Array = cm.enemy_primed.get(warden, [])
 			if not list.any(func(e): return e["type"] == type):

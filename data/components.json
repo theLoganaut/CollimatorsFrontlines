@@ -1842,7 +1842,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Play the last card you used this turn again, for +2 Heat."
+     "effect_text": "Play the last hardpoint card you used this turn again, for +2 Heat."
     },
     {
      "id": "echo",

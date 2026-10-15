@@ -77,6 +77,7 @@ func _build(run: RunData) -> void:
 	var where := HBoxContainer.new()
 	where.add_theme_constant_override("separation", 12)
 	where.add_child(UIKit.label("%s  ·  %s  ·  %d / %d encounters" % [run.location.get("name", ""), run.mission_name(), run.path.size(), run.encounter_count()], 14, Color("9fb9b6")))
+	where.add_child(FeedbackDialog.button())
 	where.add_child(UIKit.seed_row(run.seed_value, 14, Color("9fb9b6")))
 	_content.add_child(where)
 	if run.mission.get("training", false):

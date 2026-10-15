@@ -345,7 +345,7 @@ static func _protocols(t: TestContext) -> void:
 	t.assert_eq(p.current_heat, 0, "protocols cost no heat")
 	cm.play_attack_card(p.get_component("g").cards[0], e, e.components[0])
 	var d := e.components[0].max_hp - e.components[0].current_hp
-	t.assert_true(d >= 25 and d <= 27, "Lock On: 20 × 1.25–1.35 (%d)" % d)
+	t.assert_eq(d, 20, "Lock On: a part that isn't attacking takes normal damage (×2 vs an attacker: TestProtocols)")
 	t.assert_eq(cm.primed.size(), 0, "and it's used up")
 
 	t.group("Protocols: one waits at a time; a new one replaces it")
@@ -404,14 +404,14 @@ static func _protocols(t: TestContext) -> void:
 	qcm.end_player_turn()
 	t.assert_eq(qe.components[0].max_hp - qe.components[0].current_hp, 7, "it fires at the start of the next turn")
 
-	t.group("Overdrive: double damage, then the part that played it is Disabled")
+	t.group("Overdrive: the hit, then the part that played it is Disabled")
 	var odp := _mech([["overdrive_chip", Vector2i(0, 0)]])
 	odp.components.append(_gun("g", 9, 1, 0))
 	var ode := _dummy()
 	var odcm := _cm(odp, [ode] as Array[MechData])
 	odcm.play_self_card(_card(odp, "overdrive_chip", "overdrive"))
 	odcm.play_attack_card(odp.get_component("g").cards[0], ode, ode.components[0])
-	t.assert_eq(ode.components[0].max_hp - ode.components[0].current_hp, 18, "9 × 2")
+	t.assert_eq(ode.components[0].max_hp - ode.components[0].current_hp, 9, "9 (and every other hardpoint of the target: TestProtocols)")
 	t.assert_eq(odp.get_component("g").status_stacks("disabled"), 1, "the gun is Disabled")
 
 	t.group("Replay: the last card again, same target, for its heat +2")

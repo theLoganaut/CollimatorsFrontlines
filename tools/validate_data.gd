@@ -51,6 +51,9 @@ func _changelog() -> void:
 	for r in releases:
 		if str(r.get("version", "")) == "" or (r.get("items", []) as Array).is_empty():
 			errors.append("changelog.json: a release without a version or items")
+		var note: Dictionary = r.get("note", {})
+		if not note.is_empty() and (str(note.get("title", "")) == "" or (note.has("link") and not str(note["link"]).begins_with("https://"))):
+			errors.append("changelog.json %s: a note needs a title, and its link must be https" % r.get("version", ""))
 	for u in d.get("next", {}).get("updates", []):
 		if str(u.get("version", "")) == "" or str(u.get("when", "")) == "" or (u.get("items", []) as Array).is_empty():
 			errors.append("changelog.json: a planned update without a version, when or items")

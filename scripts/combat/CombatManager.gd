@@ -62,7 +62,8 @@ const PROTOCOLS_PRIMED := ["lock_on", "split_feed", "catalyze", "reroute", "stan
 	"discount", "fan_out", "siphon", "pierce", "chain", "knockback", "double_hits", "execute", "max_roll",
 	"invert", "last_stand", "vent_on_hit", "fortify", "recall", "grant", "defer_heat"]
 ## Statuses Reroute can swap to (enemy-applied ones).
-const REROUTE_OPTIONS := ["shock", "acid", "burn", "disabled", "freeze", "jam", "smoke"]
+## Reroute's choices (Logan, 2026-10-15: not Disabled any more).
+const REROUTE_OPTIONS := ["shock", "acid", "burn", "freeze", "jam", "smoke"]
 
 var player_mech: MechData
 var enemies: Array[MechData] = []
@@ -95,6 +96,8 @@ var bonus_cards: Array[CardData] = []
 ## A card set aside by Standby: {card, target_mech, target}, played at the
 ## start of the next player turn for 0 heat.
 var standby: Dictionary = {}
+## Cards Recall plays again at the start of the next turn ({card, target_mech, target}).
+var recalled: Array = []
 ## Attacks repeating on later turns (Spillage): [{card, attacker_mech,
 ## attacker_component, defender_mech, target, turns_left}].
 var repeats: Array = []
@@ -423,7 +426,8 @@ func can_play(card: CardData) -> bool:
 ## (then a linked part pays it in HP). Negative costs vent, floored at 0
 ## heat; venting feeds Recycling Loops. Returns the heat actually added.
 func _pay_heat(mech: MechData, card: CardData, cost: int, allow_bleed: bool) -> int:
-	if allow_bleed and cost > 0:
+	# Bleed Off waits (isn't used up) while nothing is linked to pay.
+	if allow_bleed and cost > 0 and primed.any(func(p): return p["type"] == "bleed_off" and not Links.linked(mech, p["component"]).is_empty()):
 		var bleed := CombatProtocols.take_primed(self, "bleed_off", card)
 		if not bleed.is_empty():
 			var bus: ComponentData = bleed["component"]
@@ -765,6 +769,7 @@ func _start_player_turn() -> void:
 	turn_changed.emit(phase, turn_number)
 	_run_repeats(true)
 	CombatProtocols.run_standby(self)
+	CombatProtocols.run_recalled(self)
 	if _check_game_over():
 		return
 	if burn > 0 or player_mech.turn_heat > 0:

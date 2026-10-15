@@ -353,7 +353,7 @@ def grant(rule, on="attack"):
 BATCH2 = {
     # ---- Surplus ----
     "Echo Buffer": [
-        proto("Replay", "Play the last card you used this turn again, for +2 Heat.", {"protocol": "replay", "extra_heat": 2}),
+        proto("Replay", "Play the last hardpoint card you used this turn again, for +2 Heat.", {"protocol": "replay", "extra_heat": 2}),
         proto("Echo", "Take the protocol an enemy has waiting: it's primed for you instead.", {"protocol": "steal"}),
     ],
     "Targeting Computer": [
@@ -437,14 +437,14 @@ BATCH2 = {
         proto("Double Tap", "Your next attack also hits the enemy part with the biggest attack shown this turn.",
               grant({"hits_top_attacker": True})),
         proto("Overlay", "Your next attack can't be covered, dodged or parried. Vs a part attacking this turn: Shock 2.",
-              grant({"sure_hit": True, "vs_attacking": {"status": "shock", "stacks": 2}})),
+              grant({"undodgeable": True, "vs_attacking": {"status": "shock", "stacks": 2}})),
     ],
     "Kill Switch": [
         proto("Execute", "Next attack: triple damage vs a part at or below half HP.", {"protocol": "execute", "fraction": 0.5, "mult": 3}),
         proto("Kill Order", "Your next attack: if it destroys a part, Vent 5.", grant({"vent_on_kill": 5})),
     ],
     "Coordinated Strike Suite": [
-        proto("Coordinated Strike", "Linked hardpoints fire their cheapest card.", {"protocol": "salvo"}),
+        proto("Coordinated Strike", "Linked hardpoints fire their cheapest card.", {"protocol": "salvo", "play_mode": "attack"}),
         card("Hold the Line", 3, 0, "", effect="Until your next turn: no hit deals more than 12 to one of your parts.",
              rule={**SELF, "guard": {"type": "cap", "cap": 12}}),
     ],
