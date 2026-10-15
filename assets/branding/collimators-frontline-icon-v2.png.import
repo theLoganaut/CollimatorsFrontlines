@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dn13st32d8qms"
-path="res://.godot/imported/preview_rest_frame.png-8d37d8e1c195fbf1f2a5b36cfc9ed5fb.ctex"
+uid="uid://db2wnjsdkakst"
+path="res://.godot/imported/collimators-frontline-icon-v2.png-b20198cdf8fb9107f5f516cfe2078a37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/intro/trismeg/_preview/preview_rest_frame.png"
-dest_files=["res://.godot/imported/preview_rest_frame.png-8d37d8e1c195fbf1f2a5b36cfc9ed5fb.ctex"]
+source_file="res://assets/branding/collimators-frontline-icon-v2.png"
+dest_files=["res://.godot/imported/collimators-frontline-icon-v2.png-b20198cdf8fb9107f5f516cfe2078a37.ctex"]
 
 [params]
 

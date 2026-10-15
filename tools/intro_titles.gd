@@ -12,8 +12,8 @@ const FILL := Color("#f3f3f8")
 # text, cap height (px; the originals were 60 and 20), extra space between
 # letters (px). Blackletter reads in mixed case, so a touch taller.
 const TITLES := {
-	"title_trismeg": ["Trismeg", 64.0, 1.0],
-	"title_studios": ["Studio", 24.0, 2.0],
+	"title_trismeg": ["Trismeg", 96.0, 1.5],
+	"title_studios": ["Studios", 36.0, 3.0],
 }
 
 var _view: SubViewport

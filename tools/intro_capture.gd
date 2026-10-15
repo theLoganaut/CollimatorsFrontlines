@@ -2,7 +2,7 @@
 ## Godot --path . --resolution 1920x1080 -s tools/intro_capture.gd -- <out dir> [seconds...]
 extends SceneTree
 var intro: Node
-var times := [1.0, 2.5, 3.3, 3.45, 3.55, 3.75, 4.2, 5.0, 8.0]
+var times := [0.6, 1.8, 2.4, 2.75, 2.9, 3.1, 3.4, 4.5, 7.0]
 var out := OS.get_cmdline_user_args()[0]
 func _initialize() -> void:
 	if OS.get_cmdline_user_args().size() > 1:

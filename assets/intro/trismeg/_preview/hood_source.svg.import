@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c27sshfsoaavb"
-path="res://.godot/imported/robe.png-004166daff5576d9179d5a79b9497b3e.ctex"
+uid="uid://c2ynb5aacbgjm"
+path="res://.godot/imported/hood_source.svg-73b9baf04c712b245a2d01c3177edfea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/intro/trismeg/robe.png"
-dest_files=["res://.godot/imported/robe.png-004166daff5576d9179d5a79b9497b3e.ctex"]
+source_file="res://assets/intro/trismeg/_preview/hood_source.svg"
+dest_files=["res://.godot/imported/hood_source.svg-73b9baf04c712b245a2d01c3177edfea.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

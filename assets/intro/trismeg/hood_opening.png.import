@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://duh5wc5x7dip7"
-path="res://.godot/imported/hand_left_front.png-8751a26c34d4c29cf6e6801a23d9b05a.ctex"
+uid="uid://c7160t1op5pok"
+path="res://.godot/imported/hood_opening.png-cc648ddeeca969dfdfebbf6766a541c8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/intro/trismeg/hand_left_front.png"
-dest_files=["res://.godot/imported/hand_left_front.png-8751a26c34d4c29cf6e6801a23d9b05a.ctex"]
+source_file="res://assets/intro/trismeg/hood_opening.png"
+dest_files=["res://.godot/imported/hood_opening.png-cc648ddeeca969dfdfebbf6766a541c8.ctex"]
 
 [params]
 

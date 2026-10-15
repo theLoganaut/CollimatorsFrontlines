@@ -1,10 +1,12 @@
 extends Control
-## The Trismeg Studios intro: the hooded alchemist tips his vial and flask,
-## the drops hit the stone, it bursts into smoke and comes out a keyboard and
-## mouse, then the title. Built in _ready() from `<pieces_dir>/layout.json`
-## (every piece's pivot, and every timing under "timeline"), drawn on a
-## 1920×1080 stage scaled to fit the window. Any key, click or pad button
-## skips. Nothing here is game-specific: only `next_scene` changes per game.
+## The Trismeg Studios intro: a hooded figure whose drop-shaped opening gives up
+## its area to a new drop swelling at its bottom point. The drop lets go and
+## falls through the hood onto the stone, which bursts into smoke and comes out
+## the title. Built in _ready() from
+## `<pieces_dir>/layout.json` (every piece's pivot, and every timing under
+## "timeline"), drawn on a 1920×1080 stage scaled to fit the window. Any key,
+## click or pad button skips. Nothing here is game-specific: only `next_scene`
+## changes per game.
 
 signal finished
 
@@ -20,12 +22,9 @@ var _layout: Dictionary
 var _tl: Dictionary
 var _stage: Node2D         # the 1920×1080 canvas, scaled and centred
 var _scene: Node2D         # everything that shakes
-var _bodies: Array[Node2D] = []  # the figure (behind and in front of the stone), moving as one
 var _sprites: Dictionary = {}
-var _pivots: Dictionary = {}   # side -> HandPivot
-var _vessels: Dictionary = {}  # side -> vial/flask sprite
-var _overlays: Dictionary = {} # side -> [layer, vessel copy, hand copy] drawn over the cuff
-var _drops: Dictionary = {}    # side -> drop sprite
+var _opening: Sprite2D     # the hood's drop-shaped opening, painted in the background colour
+var _drop: Sprite2D        # the drop that grows at the opening's tip and falls
 var _sparks: CPUParticles2D
 var _smoke: Array[CPUParticles2D] = []
 var _smoke_at: Array[float] = []  # seconds after impact
@@ -51,54 +50,21 @@ func _ready() -> void:
 	_scene = Node2D.new()
 	_scene.name = "Scene"
 	_stage.add_child(_scene)
-	var back := _body()
-	for piece in ["robe", "beard"]:
-		back.add_child(_piece(piece))
-	for piece in ["stone", "keyboard_mouse"]:
-		_scene.add_child(_piece(piece))
-	_sprites.keyboard_mouse.visible = false
-	var front := _body()
-	for side in ["left", "right"]:
-		var vessel: String = "vial_left" if side == "left" else "flask_right"
-		var pivot := Node2D.new()
-		pivot.name = "HandPivot_" + side
-		pivot.position = _vec(_layout.pieces["hand_%s_thumb" % side].pivot_screen)
-		front.add_child(pivot)
-		pivot.add_child(_piece("hand_%s_thumb" % side, pivot.position))
-		pivot.add_child(_piece(vessel, pivot.position))
-		pivot.add_child(_piece("hand_%s_front" % side, pivot.position))
-		front.add_child(_piece("cuff_" + side))
-		# The cuff hides the back of the hand in the sleeve, but the vessel
-		# swings in front of the sleeve: draw the vessel again over the cuff,
-		# and the hand again over that, clipped to the vessel's shape so only
-		# the fingers on the vessel show.
-		var real_vessel: Sprite2D = _sprites[vessel]
-		var real_front: Sprite2D = _sprites["hand_%s_front" % side]
-		var layer := Node2D.new()
-		layer.name = "OverCuff_" + side
-		layer.position = pivot.position
-		front.add_child(layer)
-		var vessel_copy := _piece(vessel, pivot.position)
-		vessel_copy.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
-		layer.add_child(vessel_copy)
-		var hand_copy := _piece("hand_%s_front" % side, pivot.position)
-		vessel_copy.add_child(hand_copy)
-		_overlays[side] = [layer, vessel_copy, hand_copy]
-		_sprites[vessel] = real_vessel  # _piece() filed the copies under these names
-		_sprites["hand_%s_front" % side] = real_front
-		_pivots[side] = pivot
-		_vessels[side] = _sprites[vessel]
-	for side in ["left", "right"]:
-		var drop := _piece("drop")
-		drop.name = "Drop_" + side
-		drop.visible = false
-		_scene.add_child(drop)
-		_drops[side] = drop
-	_build_particles()
+	# the hood is solid; the opening is a second sprite on top of it
+	_scene.add_child(_piece("hood"))
+	_opening = _piece("hood_opening")
+	_scene.add_child(_opening)
+	_scene.add_child(_piece("stone"))
+	# the drop is drawn after the stone, so it falls in front of the hood and lands on the stone
+	_drop = _piece("drop")
+	_drop.visible = false
+	_scene.add_child(_drop)
+	# the title is drawn under the smoke, so it comes out of it as it clears
 	for piece in ["title_trismeg", "title_line", "title_studios"]:
 		var s := _piece(piece)
 		s.modulate.a = 0.0
 		_scene.add_child(s)
+	_build_particles()
 	_black = ColorRect.new()
 	_black.color = Color.BLACK
 	_black.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -107,37 +73,6 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit)
 	_fit()
 	_pose(0.0)
-
-## A layer of the figure: everything in it moves with the body (see
-## _body_xform). Pieces go in at their canvas positions.
-func _body() -> Node2D:
-	var body := Node2D.new()
-	body.name = "Body"
-	_scene.add_child(body)
-	_bodies.append(body)
-	return body
-
-## Where the body is at time t: timeline.body_motion keys of
-## [seconds, rise (px, negative is up), stretch y, stretch x], eased between,
-## about body_motion.pivot (the foot of the robe). Identity without them.
-func _body_xform(t: float) -> Transform2D:
-	if not _tl.has("body_motion"):
-		return Transform2D.IDENTITY
-	var keys: Array = _tl.body_motion.keys
-	var k: Array = keys[-1]
-	if t < float(keys[0][0]):
-		k = keys[0]
-	else:
-		for i in range(keys.size() - 1):
-			var a: Array = keys[i]
-			var b: Array = keys[i + 1]
-			if t >= float(a[0]) and t < float(b[0]):
-				var u := (1.0 - cos(PI * (t - float(a[0])) / (float(b[0]) - float(a[0])))) / 2.0
-				k = [t, lerpf(a[1], b[1], u), lerpf(a[2], b[2], u), lerpf(a[3], b[3], u)]
-				break
-	var pivot := _vec(_tl.body_motion.pivot)
-	return Transform2D(0.0, Vector2(float(k[3]), float(k[2])), 0.0, pivot + Vector2(0, float(k[1]))) \
-			* Transform2D(0.0, -pivot)
 
 ## A piece as a Sprite2D whose position is its pivot, given in its parent's
 ## space (`origin` is the parent's position on the 1920×1080 canvas).
@@ -173,23 +108,9 @@ func _process(delta: float) -> void:
 ## Sets every animated piece for time t. Particles are the only part that
 ## isn't a pure function of t: they're fired as t passes their moment.
 func _pose(t: float) -> void:
-	var split: Dictionary = _tl.tilt_split
-	var body := _body_xform(t)
-	for b in _bodies:
-		b.transform = body
-	for side in ["left", "right"]:
-		var dir := 1.0 if side == "left" else -1.0  # toward the centre
-		var theta := deg_to_rad(_tilt(t, side)) * dir
-		_pivots[side].rotation = theta * float(split.hand_pivot_share)
-		_vessels[side].rotation = theta * float(split.flask_extra_share)
-		if _overlays.has(side):
-			var o: Array = _overlays[side]
-			o[0].rotation = _pivots[side].rotation
-			o[1].rotation = _vessels[side].rotation
-			# the hand copy sits where the real hand is: undo the vessel's own turn
-			var front: Sprite2D = _sprites["hand_%s_front" % side]
-			o[2].transform = o[1].transform.affine_inverse() * front.transform
-		_pose_drop(t, side)
+	var growth := _drop_growth(t)
+	_pose_opening(t, growth)
+	_pose_drop(t, growth)
 	var impact := float(_tl.impact)
 	if t >= impact and not _impacted:
 		_impacted = true
@@ -204,9 +125,7 @@ func _pose(t: float) -> void:
 		_scene.position = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * amp
 	else:
 		_scene.position = Vector2.ZERO
-	var swapped := t >= float(_tl.swap_stone_for_keyboard)
-	_sprites.stone.visible = not swapped
-	_sprites.keyboard_mouse.visible = swapped
+	_sprites.stone.visible = t < float(_tl.stone_vanishes)
 	var fade := _ease(t, _tl.title_trismeg_fade, Tween.TRANS_SINE, Tween.EASE_OUT)
 	_sprites.title_trismeg.modulate.a = fade
 	_sprites.title_trismeg.scale = Vector2.ONE * lerpf(1.05, 1.0, fade)
@@ -218,54 +137,57 @@ func _pose(t: float) -> void:
 		_black.modulate.a = 1.0 - _ease(t, _tl.fade_in, Tween.TRANS_SINE, Tween.EASE_IN_OUT) \
 				+ _ease(t, _tl.fade_out, Tween.TRANS_SINE, Tween.EASE_IN_OUT)
 
-## The tilt toward the centre, in degrees, for one side at time t.
-func _tilt(t: float, side: String) -> float:
-	var a: Dictionary = _tl.anticipation_tilt
-	var m: Dictionary = _tl.main_tilt
-	var r: Dictionary = _tl.return_upright
-	var theta := 0.0
-	# a small lean away, rising to its peak and falling back
-	if t > float(a.start) and t < float(a.end):
-		var u: float
-		if t < float(a.peak):
-			u = sin(PI / 2.0 * (t - float(a.start)) / (float(a.peak) - float(a.start)))
-		else:
-			u = cos(PI / 2.0 * (t - float(a.peak)) / (float(a.end) - float(a.peak)))
-		theta -= float(a.degrees) * u
-	# the pour, held, then back upright
-	var deg := float(m.degrees)
-	if t >= float(m.end) and t < float(r.start):
-		theta += deg
-	elif t >= float(r.start):
-		theta += deg - _ease(t, [r.start, r.end], Tween.TRANS_BACK, Tween.EASE_OUT) * deg
-	else:
-		theta += _ease(t, [m.start, m.end], Tween.TRANS_BACK, Tween.EASE_IN_OUT) * deg
-	# a flick as the drop lets go
-	var d := float(_tl.drops[side].drop_detaches_at)
-	if absf(t - d) < 0.14:
-		theta += float(_tl.release_flick.degrees) * sin(PI * (t - d + 0.14) / 0.28)
-	return theta
+## How grown the drop is, as a scale from drop.start_scale to 1 (0 before it
+## forms). One smoothstep curve drives both the drop and the opening.
+func _drop_growth(t: float) -> float:
+	var d: Dictionary = _tl.drop
+	var forms := float(d.forms_at)
+	var full := float(d.full_at)
+	if t <= forms:
+		return 0.0
+	if t >= full:
+		return 1.0
+	var u := (t - forms) / (full - forms)
+	return lerpf(float(d.start_scale), 1.0, u * u * (3.0 - 2.0 * u))
 
-func _pose_drop(t: float, side: String) -> void:
-	var info: Dictionary = _tl.drops[side]
-	var forms := float(info.drop_forms_at)
-	var detach := float(info.drop_detaches_at)
-	var lands := detach + float(info.fall_seconds)
-	var drop: Sprite2D = _drops[side]
-	drop.visible = t >= forms and t < lands
-	if not drop.visible:
+## The opening gives up area in step with the drop: its scale is
+## sqrt(1 - (1 - end²) * growth²), so it ends at `end_scale`. It stays small
+## through the fall and grows back once the drop has landed.
+func _pose_opening(t: float, growth: float) -> void:
+	var o: Dictionary = _tl.opening
+	var end := float(o.end_scale)
+	var s := sqrt(1.0 - (1.0 - end * end) * growth * growth)
+	var regrow: Array = o.regrow
+	if t >= float(regrow[0]):
+		s = lerpf(end, 1.0, _ease(t, regrow, Tween.TRANS_BACK, Tween.EASE_OUT))
+	_opening.scale = Vector2.ONE * s
+
+## The drop swells at the opening's tip (its pivot is its top point, so it
+## grows downward), stretches a little, lets go, and falls straight down.
+func _pose_drop(t: float, growth: float) -> void:
+	var d: Dictionary = _tl.drop
+	var full := float(d.full_at)
+	var detach := float(d.detaches_at)
+	var lands := detach + float(d.fall_seconds)
+	_drop.visible = t > float(d.forms_at) and t < lands
+	if not _drop.visible:
 		return
-	# the lip moves with the body: the drop swells where the lip is, then
-	# falls straight down from where it let go to the stone's height
-	var start := _vec(info.drop_start_screen)
+	var start := _vec(d.start_screen)
 	if t < detach:
-		drop.position = _body_xform(t) * start
-		drop.scale = Vector2.ONE * _ease(t, [forms, detach], Tween.TRANS_SINE, Tween.EASE_OUT)
+		_drop.position = start
+		if t < full:
+			_drop.scale = Vector2.ONE * growth
+		else:
+			# the stretch just before it lets go: (1, 1) -> (.97, 1.08) -> (1, 1.1)
+			var u := (t - full) / (detach - full)
+			if u < 0.5:
+				_drop.scale = Vector2(lerpf(1.0, 0.97, u * 2.0), lerpf(1.0, 1.08, u * 2.0))
+			else:
+				_drop.scale = Vector2(lerpf(0.97, 1.0, (u - 0.5) * 2.0), lerpf(1.08, 1.1, (u - 0.5) * 2.0))
 	else:
 		var u := _ease(t, [detach, lands], Tween.TRANS_QUAD, Tween.EASE_IN)
-		var from := _body_xform(detach) * start
-		drop.position = from.lerp(Vector2(from.x, _vec(info.drop_lands_screen).y), u)
-		drop.scale = Vector2(lerpf(1.0, 0.85, u), lerpf(1.0, 1.3, u))
+		_drop.position = start + Vector2(0.0, float(d.fall_px) * u)
+		_drop.scale = Vector2(lerpf(1.0, 0.97, u), lerpf(1.1, 1.12, u))
 
 ## 0 → 1 across the window [from, to], eased.
 func _ease(t: float, window: Array, trans: Tween.TransitionType, easing: Tween.EaseType) -> float:
