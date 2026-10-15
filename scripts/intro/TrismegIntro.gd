@@ -52,13 +52,14 @@ func _ready() -> void:
 	_stage.add_child(_scene)
 	# the hood is solid; the opening is a second sprite on top of it
 	_scene.add_child(_piece("hood"))
-	_opening = _piece("hood_opening")
-	_scene.add_child(_opening)
-	_scene.add_child(_piece("stone"))
-	# the drop is drawn after the stone, so it falls in front of the hood and lands on the stone
+	# the drop is drawn over the hood's body but under the opening, so it
+	# swells out from behind the opening's tip
 	_drop = _piece("drop")
 	_drop.visible = false
 	_scene.add_child(_drop)
+	_opening = _piece("hood_opening")
+	_scene.add_child(_opening)
+	_scene.add_child(_piece("stone"))
 	# the title is drawn under the smoke, so it comes out of it as it clears
 	for piece in ["title_trismeg", "title_line", "title_studios"]:
 		var s := _piece(piece)
@@ -66,7 +67,7 @@ func _ready() -> void:
 		_scene.add_child(s)
 	_build_particles()
 	_black = ColorRect.new()
-	_black.color = Color.BLACK
+	_black.color = Color(_tl.background_color)
 	_black.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_black.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_black)
@@ -150,13 +151,14 @@ func _drop_growth(t: float) -> float:
 	var u := (t - forms) / (full - forms)
 	return lerpf(float(d.start_scale), 1.0, u * u * (3.0 - 2.0 * u))
 
-## The opening gives up area in step with the drop: its scale is
-## sqrt(1 - (1 - end²) * growth²), so it ends at `end_scale`. It stays small
-## through the fall and grows back once the drop has landed.
-func _pose_opening(t: float, growth: float) -> void:
+## The opening shrinks at a steady rate while the drop swells (forms_at to
+## full_at), down to `end_scale`. It stays small through the fall and grows
+## back once the drop has landed.
+func _pose_opening(t: float, _growth: float) -> void:
 	var o: Dictionary = _tl.opening
 	var end := float(o.end_scale)
-	var s := sqrt(1.0 - (1.0 - end * end) * growth * growth)
+	var d: Dictionary = _tl.drop
+	var s := lerpf(1.0, end, clampf(inverse_lerp(float(d.forms_at), float(d.full_at), t), 0.0, 1.0))
 	var regrow: Array = o.regrow
 	if t >= float(regrow[0]):
 		s = lerpf(end, 1.0, _ease(t, regrow, Tween.TRANS_BACK, Tween.EASE_OUT))

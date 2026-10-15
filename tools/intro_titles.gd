@@ -7,7 +7,7 @@ extends SceneTree
 
 const DIR := "res://assets/intro/trismeg/"
 const FONT := "Chomsky.otf"
-const FILL := Color("#f3f3f8")
+const FILL := Color("#d2ba82")
 
 # text, cap height (px; the originals were 60 and 20), extra space between
 # letters (px). Blackletter reads in mixed case, so a touch taller.

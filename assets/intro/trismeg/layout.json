@@ -18,23 +18,23 @@
         199.7,
         403.5
       ],
-      "note": "Static. Hood body, solid (no face opening)."
+      "note": "Static. Hood body in the background colour with a gold outline (no face opening)."
     },
     "hood_opening": {
       "file": "hood_opening.png",
       "size": [
-        137.0,
-        200.0
+        157.0,
+        220.0
       ],
       "pivot_screen": [
         960.0,
-        496.7
+        503.7
       ],
       "pivot_in_image": [
-        68.6,
-        195.5
+        78.6,
+        212.5
       ],
-      "note": "Filled with the background colour. Scales about its pivot (the bottom point) as the drop grows."
+      "note": "Filled with the background colour, with a gold ring just outside it (padded 10 px). Pivot = the ring's outer bottom point; scales about it as the drop grows."
     },
     "drop": {
       "file": "drop.png",
@@ -44,13 +44,13 @@
       ],
       "pivot_screen": [
         960.0,
-        488.4
+        503.7
       ],
       "pivot_in_image": [
         23.0,
-        6.2
+        3.5
       ],
-      "note": "White with a dark outline. Pivot = its top point, which sits just inside the opening tip."
+      "note": "Background-coloured with a gold outline. Pivot = its outline's outer top point, which touches the opening ring's bottom point."
     },
     "stone": {
       "file": "stone.png",
@@ -148,9 +148,9 @@
       "start_scale": 0.06,
       "start_screen": [
         960.0,
-        488.4
+        503.7
       ],
-      "fall_px": 194.0,
+      "fall_px": 176.0,
       "note": "Swells at the opening's tip from forms_at to full_at, stretches slightly until detaches_at, then falls fall_px straight down."
     },
     "opening": {
@@ -159,7 +159,7 @@
         3.05,
         3.55
       ],
-      "note": "Scale = sqrt(1 - (1 - end_scale^2) * g^2), g = the drop's growth 0..1, so it shrinks in step with the drop; held until impact, then grows back."
+      "note": "Shrinks linearly from 1 to end_scale while the drop swells (drop.forms_at to drop.full_at); held until impact, then grows back."
     },
     "impact": 3.05,
     "screen_shake": {
