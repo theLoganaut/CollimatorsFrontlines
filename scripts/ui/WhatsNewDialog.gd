@@ -151,13 +151,13 @@ func _add_release_head(r: Dictionary) -> void:
 	line.custom_minimum_size = Vector2(0, 1)
 	_list.add_child(line)
 
-## A planned update on the roadmap: its version, minor or major, and when.
+## A planned update on the roadmap: minor or major, and when. It has no
+## version number until it ships (then it's a release).
 func _add_update_head(u: Dictionary) -> void:
 	var major := str(u.get("kind", "")) == "major"
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
-	row.add_child(UIKit.label(str(u.get("version", "")), 17, Palette.SCRAPS))
-	row.add_child(UIKit.label("MAJOR UPDATE" if major else "Minor update", 13, LEAD if major else BULLET))
+	row.add_child(UIKit.label("MAJOR UPDATE" if major else "Minor update", 17 if major else 15, LEAD if major else BULLET))
 	row.add_child(UIKit.spacer())
 	row.add_child(UIKit.label(str(u.get("when", "")), 13, Palette.TEXT_MUTED))
 	_list.add_child(row)

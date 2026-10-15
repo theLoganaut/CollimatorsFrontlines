@@ -1,7 +1,15 @@
 {
-  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. `next` is the What's Next?! roadmap: `updates` (version, kind \"minor\"/\"major\", when, items) in planned order, then loose `items`. Text: Logan, 2026-10-14.",
-  "current": "0.2.0",
+  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14.",
+  "current": "0.2.1",
   "releases": [
+    {
+      "version": "0.2.1",
+      "title": "",
+      "items": [
+        {"label": "New intro:", "text": "a new Trismeg Studios intro screen."},
+        {"label": "Training:", "text": "the training run's coaching and the reward screen were reworked."}
+      ]
+    },
     {
       "version": "0.2.0",
       "title": "",
@@ -32,23 +40,23 @@
   ],
   "next": {
     "updates": [
-      {"version": "0.2.1", "kind": "minor", "when": "Late October", "items": [
+      {"kind": "minor", "when": "Late October", "items": [
         "Send feedback from in-game, and a Discord server",
         "Better icons for enemy intents and statuses"
       ]},
-      {"version": "0.2.2", "kind": "minor", "when": "Early November", "items": [
+      {"kind": "minor", "when": "Early November", "items": [
         "Steam Deck compatibility",
         "Steam Cloud saves, so your progress follows you between PCs",
         "A Steam store page with wishlists"
       ]},
-      {"version": "0.3.0", "kind": "major", "when": "Mid November", "items": [
+      {"kind": "major", "when": "Mid November", "items": [
         {"label": "New mission types:", "items": [
           "Research Runs to unlock new mechs",
           "Backline Blitz: only elites and bosses, for bigger Chip rewards"
         ]},
         "More parts to unlock as you play"
       ]},
-      {"version": "0.4.0", "kind": "major", "when": "December", "items": [
+      {"kind": "major", "when": "December", "items": [
         "Bigger boss fights"
       ]}
     ],

@@ -22,9 +22,14 @@ PLAYTEST_DEPOT=""
 # "testers") makes uploads go live by themselves, but testers must opt into it once.
 BRANCH=""
 
-# Tools: SteamCMD from the Steamworks SDK, and the Godot editor.
-STEAMCMD="$HOME/Downloads/sdk/tools/ContentBuilder/builder_osx/steamcmd.sh"
-GODOT="/Applications/Godot.app/Contents/MacOS/Godot"
+# Tools: SteamCMD from the Steamworks SDK, and the Godot editor (Mac, or Windows in Git Bash).
+if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
+	STEAMCMD="$HOME/Downloads/steamworks/sdk/tools/ContentBuilder/builder/steamcmd.exe"
+	GODOT="$HOME/Desktop/Projects/Godot_v4.7-stable_win64_console.exe"
+else
+	STEAMCMD="$HOME/Downloads/sdk/tools/ContentBuilder/builder_osx/steamcmd.sh"
+	GODOT="/Applications/Godot.app/Contents/MacOS/Godot"
+fi
 
 # In-game "Send feedback" (Feedback.gd): a Discord webhook for a private channel
 # (Discord: Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy URL).

@@ -66,6 +66,10 @@ ls -la "$OUT/windows"
 
 [[ $UPLOAD == 1 ]] || { echo "== Exported to $OUT (no upload)"; exit 0; }
 
+# SteamCMD reads paths in its build scripts natively: C:/... on Windows, not Git Bash's /c/...
+OUT_NATIVE="$OUT"
+command -v cygpath > /dev/null && OUT_NATIVE="$(cygpath -m "$OUT")"
+
 # The app build script for one app, written fresh each time (SetLive, description).
 write_vdf() { # app_id windows_depot mac_depot vdf_path
 	{
@@ -75,8 +79,8 @@ write_vdf() { # app_id windows_depot mac_depot vdf_path
 		echo "	\"Desc\" \"${DESC//\"/\'}\""
 		echo "	\"Preview\" \"$PREVIEW\""
 		echo "	\"SetLive\" \"$BRANCH\""
-		echo "	\"ContentRoot\" \"$OUT\""
-		echo "	\"BuildOutput\" \"$OUT/output\""
+		echo "	\"ContentRoot\" \"$OUT_NATIVE\""
+		echo "	\"BuildOutput\" \"$OUT_NATIVE/output\""
 		echo '	"Depots"'
 		echo '	{'
 		echo "		\"$2\" { \"FileMapping\" { \"LocalPath\" \"windows/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
@@ -88,11 +92,11 @@ write_vdf() { # app_id windows_depot mac_depot vdf_path
 
 ARGS=(+login "$STEAM_USER")
 write_vdf "$APP_ID" "$DEPOT_WINDOWS" "$DEPOT_MACOS" "$OUT/app_build.vdf"
-ARGS+=(+run_app_build "$OUT/app_build.vdf")
+ARGS+=(+run_app_build "$OUT_NATIVE/app_build.vdf")
 APPS=("$APP_ID")
 if [[ -n "$PLAYTEST_APP_ID" && -n "$PLAYTEST_DEPOT" ]]; then
 	write_vdf "$PLAYTEST_APP_ID" "$PLAYTEST_DEPOT" "" "$OUT/app_build_playtest.vdf"
-	ARGS+=(+run_app_build "$OUT/app_build_playtest.vdf")
+	ARGS+=(+run_app_build "$OUT_NATIVE/app_build_playtest.vdf")
 	APPS+=("$PLAYTEST_APP_ID")
 fi
 ARGS+=(+quit)
