@@ -186,6 +186,55 @@ static func run_all(t: TestContext) -> void:
 		if pieces.size() != 1:
 			one_piece = false
 	t.assert_true(one_piece, "no separate lanes: every map is one connected piece (300 seeds, 10 rows)")
+	t.group("MapGenerator: layout 2 (walkers on a grid of columns)")
+	var l2_shape := true
+	var l2_links := true
+	var l2_reach := true
+	var l2_cross := true
+	var l2_pinch := true
+	var l2_forced := 0
+	for seed_value in range(1, 201):
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_value
+		var map := MapGenerator.generate(rng, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], {"layout": 2})
+		if map.row_count != 12 or map.nodes_in_row(0).size() < Balance.get_int("map", "start_min", 3):
+			l2_shape = false
+		var incoming := {}
+		for r in range(map.row_count):
+			var row := map.nodes_in_row(r)
+			if r > 0 and r < map.row_count - 1 and row.size() < 2:
+				l2_pinch = false
+			for n in row:
+				if not map.is_last_row(r) and n["next"].is_empty():
+					l2_links = false
+				for to_id in n["next"]:
+					if map.get_map_node(to_id)["row"] != r + 1:
+						l2_links = false
+					incoming[to_id] = true
+			var edges := []
+			for n in row:
+				for to_id in n["next"]:
+					edges.append([n["x"], map.get_map_node(to_id)["x"]])
+			for a in edges:
+				for b in edges:
+					if a[0] < b[0] and a[1] > b[1]:
+						l2_cross = false
+		for n in map.nodes:
+			if n["row"] > 0 and not incoming.has(n["id"]):
+				l2_reach = false
+		# the longest run of stops with one way on
+		var best := {}
+		for r in range(map.row_count - 1, -1, -1):
+			for n in map.nodes_in_row(r):
+				var run := 1 + int(best.get(n["next"][0], 0)) if (n["next"] as Array).size() == 1 else 0
+				best[n["id"]] = run
+				l2_forced = maxi(l2_forced, run)
+	t.assert_true(l2_shape, "12 rows, at least start_min starting spots (200 seeds)")
+	t.assert_true(l2_links, "every stop below the top links only into the next row, at least once")
+	t.assert_true(l2_reach, "every stop above the first row can be reached")
+	t.assert_true(l2_cross, "no two links between the same rows cross")
+	t.assert_true(l2_pinch, "no middle row of one stop that every route is forced through")
+	t.assert_true(l2_forced <= 6, "no route runs more than a few rows with one way on (worst %d)" % l2_forced)
 	var rng_a := RandomNumberGenerator.new()
 	rng_a.seed = 77
 	var rng_b := RandomNumberGenerator.new()

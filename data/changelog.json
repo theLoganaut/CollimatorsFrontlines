@@ -1,5 +1,5 @@
 {
-  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it. A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
+  "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it; {\"label\", \"items\"} with no text is a category heading (Logan, 2026-10-16: New, Gameplay, UI, Balance, Bug Fixes, each entry \"Name - short description\"). A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
   "current": "0.2.2",
   "releases": [
     {
@@ -13,32 +13,135 @@
       },
       "items": [
         {
-          "label": "New:",
-          "text": "a Feedback button on every screen (it sends where you are, and the fight so far), and a Join the Discord! sign in the War Room."
+          "label": "New",
+          "items": [
+            {
+              "label": "Feedback Button",
+              "text": "- on every screen to capture opinions and bugs, with where you are and the fight so far."
+            },
+            {
+              "label": "Join the Discord",
+              "text": "- a sign in the War Room takes you straight there."
+            },
+            {
+              "label": "Patch Notes",
+              "text": "- this button on the War Room's top bar opens these notes any time."
+            },
+            {
+              "label": "Screenshots",
+              "text": "- F9 saves one, straight to your Steam library too."
+            }
+          ]
         },
         {
-          "label": "Training:",
-          "text": "a simulated mission at the Shipyard, clearer steps (where cards come from, how a fight is won, what a destroyed part means), and a Skip button in the corner."
+          "label": "Gameplay",
+          "items": [
+            {
+              "label": "Smarter Routes",
+              "text": "- map paths branch more evenly, with fewer long forced stretches."
+            },
+            {
+              "label": "Training Mission",
+              "text": "- rebuilt to show you around as you play:",
+              "items": [
+                "A quick tour of the War Room, so you know every station there is to visit.",
+                "Map stops, heat, damage and hits are shown with the icons you'll see in game.",
+                "Reactors, hardpoints, protocols, intents and keywords each explained on the real thing.",
+                "Then play out your first turn your own way."
+              ]
+            },
+            {
+              "label": "High Five",
+              "text": "- counts your attacks right on its badge."
+            }
+          ]
         },
         {
-          "label": "Balance:",
-          "text": "repair bays heal at most 75 HP, Reroute can't turn a status into Disabled any more, Jackal's starting parts hit harder and Redline's Redline Burst a little softer."
+          "label": "UI",
+          "items": [
+            {
+              "label": "New Look",
+              "text": "- a new font, sharper text and smoother card edges."
+            },
+            {
+              "label": "Card Faces",
+              "text": "- heat sits in a flame, and damage shows as hits × damage per hit."
+            },
+            {
+              "label": "Enemies on the Ground",
+              "text": "- with their health, badges, intents and name stacked above them."
+            },
+            {
+              "label": "Enemy Cards",
+              "text": "- right-click an enemy part to see its cards."
+            },
+            {
+              "label": "Intent Source",
+              "text": "- hovering an enemy intent also outlines the part it comes from."
+            },
+            {
+              "label": "Badge Row",
+              "text": "- passives, statuses and protocols in one row, in the order they landed."
+            },
+            {
+              "label": "Details Box",
+              "text": "- fits without scrolling, and hovering a part lights its share of the health bar."
+            },
+            {
+              "label": "Status Timers",
+              "text": "- every status says how long it lasts."
+            },
+            {
+              "label": "War Table",
+              "text": "- shorter mission briefings and quicker deployment orders."
+            },
+            {
+              "label": "Show Mech",
+              "text": "- salvage opens your whole mech and Cargo."
+            }
+          ]
         },
         {
-          "label": "Combat:",
-          "text": "High Five counts your attacks on its badge, Replay says it repeats your last hardpoint card, and every status says how long it lasts."
+          "label": "Balance",
+          "items": [
+            {
+              "label": "Repair Bays",
+              "text": "- heal at most 75 HP."
+            },
+            {
+              "label": "Starting Kits",
+              "text": "- Jackal hits harder, Redline Burst a little softer."
+            },
+            {
+              "label": "Reroute",
+              "text": "- can't turn a status into Disabled any more."
+            }
+          ]
         },
         {
-          "label": "Salvage:",
-          "text": "Show Mech now opens your whole mech and Cargo, with every part's cards on hover."
-        },
-        {
-          "label": "Protocols:",
-          "text": "every protocol now does exactly what its card says. Coordinated Strike fires again (drop it on an enemy part), Loaded Dice can't be parried or dodged, Overlay no longer also does Zero Lock's job (it can be redirected, and later hits can miss), Heat Transfer only moves Heat you have, Bleed Off waits for a linked part to pay, Recall works alongside a Standby card, and Echo can take an enemy's Standby."
-        },
-        {
-          "label": "Fixes:",
-          "text": "an enemy overheating no longer looks like damage to you, reactor passives light up their part, and the settings screen fits in release builds."
+          "label": "Bug Fixes",
+          "items": [
+            {
+              "label": "Protocols",
+              "text": "- every protocol does exactly what its card says (Coordinated Strike fires again, Loaded Dice can't be parried or dodged, and more)."
+            },
+            {
+              "label": "Replay",
+              "text": "- says it repeats your last hardpoint card."
+            },
+            {
+              "label": "Enemy Overheats",
+              "text": "- no longer look like damage to you."
+            },
+            {
+              "label": "Reactor Passives",
+              "text": "- light up their part."
+            },
+            {
+              "label": "Settings",
+              "text": "- fit the screen in release builds."
+            }
+          ]
         }
       ]
     },

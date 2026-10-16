@@ -16,6 +16,9 @@ var user_id: int = 0
 var user_name: String = ""
 ## Why Steam isn't available ("" when it is), for logs and crash reports.
 var status: String = ""
+## Steam Cloud syncs the saves (Auto-Cloud, tools/steam/STEAMWORKS.md): on
+## for this account and this app. Set at launch; logged in the crash trail.
+var cloud_on: bool = false
 
 var _steam: Object = null
 
@@ -37,6 +40,10 @@ func _ready() -> void:
 	user_name = _steam.getPersonaName()
 	status = "" if available else "Steam user not logged on"
 	CrashLog.crumb("Steam: app %d, %s" % [app_id, user_name if available else status])
+	if available:
+		cloud_on = _steam.isCloudEnabledForAccount() and _steam.isCloudEnabledForApp()
+		CrashLog.crumb("Steam Cloud: %s (account %s, app %s)" % ["on" if cloud_on else "off",
+			_steam.isCloudEnabledForAccount(), _steam.isCloudEnabledForApp()])
 	# achievements earned before Steam knew about them (or offline) catch up
 	unlock_achievements(Profile.achievements.keys())
 	if available:

@@ -160,6 +160,7 @@ func build_map() -> void:
 		"boss_id": location.get("boss", "anchor"),
 		"elite_escort_from_row": int(mission.get("elite_escort_from_row", 4)),
 		"max_shops": int(mission.get("max_shops", 0)), # 0 = no cap (older saves' missions)
+		"layout": int(mission.get("map_layout", 1)), # older saves' missions: the layout they were made on
 		"odds": _map_odds(),
 	}
 	map = MapGenerator.generate(map_rng, ramp, opts)

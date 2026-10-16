@@ -37,7 +37,8 @@ const PLAYER_IMAGE_OFFSCREEN := 0.05
 const HAND_VISIBLE_HEIGHT := 133.0
 const HAND_GAP_MARGIN := 6.0 # space between the player mech image and the nearest card
 const COLUMN_GAP := 20.0 # between the enemy row and the log / description box / turn panel
-const DESCRIPTION_MAX_SIZE := Vector2(420, 360)
+const DESCRIPTION_MAX_WIDTH := 420.0
+const HAND_OVERHANG := 60.0 # how far the fanned cards' tops rise above hand_y
 const SPEED_GAP := 10.0 # between the speed buttons and the settings button
 const ENEMY_TURN_START_DELAY := 0.4
 const ENEMY_AFTER_HIT_DELAY := 0.7
@@ -103,6 +104,8 @@ var _generation: int = 0 # bumped on restart so a running enemy-turn coroutine s
 var _targeted_grid: ChassisGridUI = null
 var _acting_panel: EnemyPanel = null
 var _reveal_running: bool = false
+## Training is explaining the reveal: clicks are for its box, not a skip.
+var _reveal_paused: bool = false
 var _reveal_nodes: Array[Node] = [] # cards/captions on screen during the reveal
 var _reveal_dim: ColorRect = null
 var _picker: PanelContainer = null # Reroute's status choice
@@ -162,7 +165,23 @@ func _record_so_far() -> Dictionary:
 	FightRecord.finish(rec, combat, over if over != "" else "in progress")
 	return rec
 
+## Tutorial.advanced, relayed through the scene so an await on it ends
+## with the scene instead of resuming on a freed one.
+signal _training_advanced
+
+## A pause that belongs to the scene: if the scene is freed first, the await
+## waiting on it just ends (a SceneTree timer would resume it on a gone instance).
+func _wait(seconds: float) -> Signal:
+	var t := Timer.new()
+	t.one_shot = true
+	t.wait_time = maxf(seconds, 0.001)
+	t.timeout.connect(t.queue_free)
+	add_child(t)
+	t.start()
+	return t.timeout
+
 func _ready() -> void:
+	Tutorial.advanced.connect(_training_advanced.emit)
 	UIState.drop_handler = _handle_card_drop
 	PlaytestReport.current_fight = _record_so_far
 	Gamepad.handler = self
@@ -301,6 +320,7 @@ func _build_ui_and_start() -> void:
 	add_child(log_button)
 
 	description_box = DescriptionBox.new()
+	description_box.z_index = 30 # over the turn panel and resting cards it may cover while it shows
 	add_child(description_box)
 
 	turn_panel = TurnPanel.new()
@@ -395,7 +415,7 @@ func _layout() -> void:
 	# centers at 1/4, 2/4, 3/4 of the screen width, the outer ones dropped
 	# lower than the middle (by a share of the smallest panel's height).
 	var n := enemy_panels.size()
-	var feet := play_field.feet_points(n)
+	var feet := play_field.feet_points(n, _seed)
 	if feet.size() == n:
 		for i in range(n):
 			enemy_panels[i].position = feet[i] - enemy_panels[i].feet_offset()
@@ -411,6 +431,12 @@ func _layout() -> void:
 			var image_center_x: float = screen.x * float(i + 1) / float(n + 1)
 			var y: float = row_y + side_drop * absf(from_center) / half_span
 			enemy_panels[i].position = Vector2(image_center_x - enemy_panels[i].image_center_offset().x, y)
+	# A tall stack (a boss's intents and passives) never runs into the top
+	# bar: its name stays under the top-right buttons, the enemy standing a
+	# little lower if it has to.
+	var enemy_top: float = SIDE_MARGIN + SettingsButton.BUTTON_SIZE.y + 8.0
+	for panel in enemy_panels:
+		panel.position.y = maxf(panel.position.y, enemy_top)
 	var enemy_bottom: float = 0.0
 	for panel in enemy_panels:
 		enemy_bottom = maxf(enemy_bottom, panel.position.y + panel.panel_size.y)
@@ -433,17 +459,18 @@ func _layout() -> void:
 	hand_tray.right_gap = player_right - screen.x / 2.0 + HAND_GAP_MARGIN
 	hand_tray.relayout()
 
-	# Side column, between the enemy row and the hand: log on the left;
-	# description box and turn panel to the right of the player mech.
+	# Side column, between the enemy row and the hand: log on the left,
+	# turn panel on the right.
 	var column_top: float = enemy_bottom + COLUMN_GAP
-	var column_h: float = minf(hand_y - COLUMN_GAP / 2.0 - column_top, DESCRIPTION_MAX_SIZE.y)
 	log_button.position = Vector2(SIDE_MARGIN, column_top)
 	combat_log.position = Vector2(SIDE_MARGIN, column_top + log_button.size.y + 6.0)
 	turn_panel.position = Vector2(screen.x - TurnPanel.PANEL_SIZE.x - SIDE_MARGIN, column_top)
-	var desc_x: float = player_right + SIDE_MARGIN
-	var desc_w: float = minf(turn_panel.position.x - SIDE_MARGIN - desc_x, DESCRIPTION_MAX_SIZE.x)
-	description_box.position = Vector2(desc_x, column_top)
-	description_box.set_box_size(Vector2(desc_w, column_h))
+	# Description box: beside the player mech on the side away from the
+	# mouse, standing on the hand's top edge and as tall as its text, up to
+	# under the top-right buttons.
+	var desc_w: float = minf(DESCRIPTION_MAX_WIDTH, minf(image_left, screen.x - player_right) - SIDE_MARGIN * 2.0)
+	var desc_top: float = SIDE_MARGIN + SettingsButton.BUTTON_SIZE.y + SIDE_MARGIN
+	description_box.set_area(SIDE_MARGIN, screen.x - SIDE_MARGIN - desc_w, desc_w, desc_top, hand_y - HAND_OVERHANG)
 
 ## This fight's background (data/backgrounds.json): one of the run
 ## location's for the fight's tier (its strongest enemy), picked per fight.
@@ -483,7 +510,7 @@ func _run_passive_reveal(gen: int) -> void:
 	_reveal_dim.modulate.a = 0.0
 	add_child(_reveal_dim)
 	_reveal_dim.create_tween().tween_property(_reveal_dim, "modulate:a", 1.0, REVEAL_START_DELAY)
-	await get_tree().create_timer(REVEAL_START_DELAY, false).timeout
+	await _wait(REVEAL_START_DELAY)
 	var groups: Array = [{"mech": player_mech, "row": player_panel.passive_row, "grid": player_panel.grid, "panel": null, "node": player_panel}]
 	for panel in enemy_panels:
 		groups.append({"mech": panel.mech, "row": panel.passive_row, "grid": panel.grid, "panel": panel, "node": panel})
@@ -512,6 +539,7 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 	lit.z_index = REVEAL_Z + 1 # above the dim backdrop
 	grid.spotlight = true
 	if panel != null:
+		panel.show_full() # its name and health rise; its badge row appears for the passives to land in
 		panel.set_acting(true)
 	var screen: Vector2 = get_viewport_rect().size
 	var center := Vector2(screen.x / 2.0, screen.y * REVEAL_CENTER_Y)
@@ -538,7 +566,7 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 
 	# The caption goes under where the cards actually came to rest (measured,
 	# scale included), once they're there.
-	await get_tree().create_timer(REVEAL_IN, false).timeout
+	await _wait(REVEAL_IN)
 	if not _reveal_active(gen):
 		return
 	var span := cards[0].get_global_rect()
@@ -546,20 +574,28 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 		span = span.merge(c.get_global_rect())
 	var caption := _reveal_caption("%s · passive%s" % [_label_for(g["mech"]), "s" if n > 1 else ""], span.get_center().x, span.end.y + 14.0)
 	caption.create_tween().tween_property(caption, "modulate:a", 1.0, 0.15)
+	# Training stops on the first passives shown to explain them.
+	if Tutorial.holds("reveal"):
+		_reveal_paused = true
+		Tutorial.reached("reveal", {"passives": cards, "row": row})
+		while Tutorial.holds("reveal") and _reveal_active(gen):
+			await _training_advanced
+		_reveal_paused = false
+		if not _reveal_active(gen):
+			return
 
-	await get_tree().create_timer(REVEAL_HOLD, false).timeout
+	await _wait(REVEAL_HOLD)
 	if not _reveal_active(gen):
 		return
 	for i in range(n):
-		var icon := row.icon_for(comps[i])
-		var dest: Vector2 = icon.get_global_rect().get_center() - CardUI.BASE_SIZE / 2.0
+		var dest: Vector2 = row.slot_center_global(comps[i]) - CardUI.BASE_SIZE / 2.0
 		var tw := cards[i].create_tween().set_parallel(true)
 		tw.tween_property(cards[i], "global_position", dest, REVEAL_OUT).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 		tw.tween_property(cards[i], "scale", Vector2(0.12, 0.12), REVEAL_OUT).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 		tw.tween_property(cards[i], "modulate:a", 0.3, REVEAL_OUT).set_ease(Tween.EASE_IN)
 	caption.create_tween().tween_property(caption, "modulate:a", 0.0, REVEAL_OUT)
 
-	await get_tree().create_timer(REVEAL_OUT, false).timeout
+	await _wait(REVEAL_OUT)
 	if not _reveal_active(gen):
 		return
 	for i in range(n):
@@ -572,7 +608,7 @@ func _reveal_group(gen: int, g: Dictionary, comps: Array[ComponentData]) -> void
 	grid.spotlight = false
 	if panel != null:
 		panel.set_acting(false)
-	await get_tree().create_timer(REVEAL_AFTER, false).timeout
+	await _wait(REVEAL_AFTER)
 
 ## The reveal's caption: a holo glass plate under the cards (Logan,
 ## 2026-10-02: above them, as bare text, it was hard to read) naming whose
@@ -606,6 +642,7 @@ func _end_passive_reveal() -> void:
 	if not _reveal_running:
 		return
 	_reveal_running = false
+	_reveal_paused = false
 	for node in _reveal_nodes:
 		if is_instance_valid(node):
 			node.queue_free()
@@ -619,6 +656,7 @@ func _end_passive_reveal() -> void:
 	player_panel.grid.spotlight = false
 	for panel in enemy_panels:
 		panel.z_index = 0
+		panel.show_full()
 		panel.passive_row.reveal_all()
 		panel.grid.spotlight = false
 		panel.set_acting(false)
@@ -641,9 +679,17 @@ func _end_passive_reveal() -> void:
 		_replay_drive(_generation)
 		return
 	Tutorial.reached("combat", {"player": player_panel, "hand": hand_tray, "heat": player_panel._heat_box,
+		"hardpoint_card": _hand_card.bind(ComponentData.CATEGORY_HARDPOINT),
+		"protocol_card": _hand_card.bind(ComponentData.CATEGORY_PROTOCOL),
+		"first_card": _hand_card.bind(""),
+		"first_intent": _first_intent,
+		"intent_part": _intent_part_rect,
+		"description": description_box,
+		"enemy_part": _enemy_part_spot,
+		"keyword": func(): return CardUI.raised().keyword_rect() if CardUI.raised() != null else Rect2(),
 		"intents": enemy_panels[0]._intent_row if not enemy_panels.is_empty() else null,
 		"enemy": enemy_panels[0] if not enemy_panels.is_empty() else null, "end_turn": turn_panel,
-		"keep_clear": [turn_panel, settings_button, speed_controls, map_button, log_button]}) # never over a button
+		"keep_clear": [turn_panel, settings_button, speed_controls, map_button, log_button, description_box.shown_rect, hand_tray]}) # never over a button
 	if _in_run():
 		for line in RunState.run.apply_fight_start_effects(player_mech, enemy_mechs):
 			combat_log.log_line(line)
@@ -695,15 +741,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_on_end_turn_pressed()
 
-## A click (anywhere but the speed/settings buttons) or Space/Enter skips
+## Right-click shows / hides a hovered enemy part's cards. A click
+## (anywhere but the speed/settings buttons) or Space/Enter skips
 ## the reveal. Esc while aiming cancels the aim (before the settings menu
 ## sees it).
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and not _reveal_running:
+		# an enemy part's cards on show: a left or right click anywhere puts them away
+		if event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] and _enemy_cards != null and is_instance_valid(_enemy_cards):
+			_hide_enemy_cards()
+			get_viewport().set_input_as_handled()
+			return
+		if event.button_index == MOUSE_BUTTON_RIGHT and (PassiveRow.unpin_any() or _toggle_enemy_cards()):
+			get_viewport().set_input_as_handled()
+			return
 	if _aim_card != null and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		get_viewport().set_input_as_handled()
 		_cancel_aim()
 		return
-	if not _reveal_running:
+	if not _reveal_running or _reveal_paused:
 		return
 	var skip := false
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1096,7 +1152,7 @@ func _play_hits(gen: int, reticle: TargetingReticle) -> bool:
 				hit_fx.running_total(grid.component_center_global(target), total, mech == player_mech)
 		if h["hits_left"] <= 0:
 			break
-		await get_tree().create_timer(hit_gap(card), false).timeout
+		await _wait(hit_gap(card))
 		if gen != _generation:
 			return false
 	return true
@@ -1292,7 +1348,7 @@ func _run_enemy_turn(gen: int) -> void:
 	var alive_before := player_mech.non_destroyed_components()
 	UIState.input_locked = true
 	player_panel.grid.spotlight = true # show which of your parts each attack lands on
-	await get_tree().create_timer(ENEMY_TURN_START_DELAY, false).timeout
+	await _wait(ENEMY_TURN_START_DELAY)
 	while gen == _generation:
 		var action := combat.next_enemy_action()
 		if action.is_empty():
@@ -1304,14 +1360,14 @@ func _run_enemy_turn(gen: int) -> void:
 			var target_pos := player_panel.grid.component_center_global(target)
 			await enemy_reticle.trace_to(target_pos, player_panel.image_global_rect())
 		else:
-			await get_tree().create_timer(ENEMY_AFTER_HIT_DELAY, false).timeout # a protocol primes
+			await _wait(ENEMY_AFTER_HIT_DELAY) # a protocol primes
 		if gen != _generation:
 			return
 		combat.begin_enemy_attack(action)
 		if not await _play_hits(gen, enemy_reticle):
 			return
 		combat.finish_attack() # -> _on_enemy_action: log
-		await get_tree().create_timer(ENEMY_AFTER_HIT_DELAY, false).timeout
+		await _wait(ENEMY_AFTER_HIT_DELAY)
 	if gen != _generation:
 		return
 	_set_acting_panel(null)
@@ -1435,7 +1491,7 @@ func _enemy_blows_up(panel: EnemyPanel) -> void:
 		hit_fx.sparks(at, colors[i], 22 + i * 4, 1.3 + 0.15 * i)
 		if i == 2:
 			Audio.play("hit_heavy", 0.15)
-		await get_tree().create_timer(0.09, false).timeout
+		await _wait(0.09)
 		if gen != _generation:
 			return
 	hit_fx.sparks(r.get_center(), Color.WHITE, 40, 2.0)
@@ -1466,16 +1522,86 @@ func _toggle_log() -> void:
 
 func _refresh_intents() -> void:
 	for panel in enemy_panels:
-		var theme: String = combat.enemy_theme.get(panel.mech, "") if combat.is_player_turn() else ""
-		panel.set_intents(combat.upcoming_enemy_actions(panel.mech), combat.enemy_will_overheat(panel.mech), combat.enemy_venting(panel.mech), theme)
+		panel.set_intents(combat.upcoming_enemy_actions(panel.mech), combat.enemy_will_overheat(panel.mech), combat.enemy_venting(panel.mech))
 
 ## Card ↔ part (Logan, 2026-09-30): hovering a card outlines the part that
 ## grants it; hovering one of your parts lifts its cards in the hand.
 func _on_card_hover(card: CardData) -> void:
 	if card != null and UIState.dragging_card == null:
 		Audio.play("hover", 0.05, -6.0)
+		var ui := hand_tray.card_ui_for(card) if hand_tray != null else null
+		if ui != null and ui.has_keyword() and Tutorial.holds("combat"):
+			_keyword_dwell(card)
 	if player_panel != null and is_instance_valid(player_panel):
 		player_panel.grid.set_linked(player_mech.get_component(card.owner_component_id) if card != null else null)
+
+## Training explains keywords once a card that has one has been looked at
+## (hovered a moment, not picked up): a card grabbed straight away to attack
+## just plays (Logan, 2026-10-16: the keyword box popped up mid-drag).
+const KEYWORD_DWELL := 0.5
+
+func _keyword_dwell(card: CardData) -> void:
+	await _wait(KEYWORD_DWELL)
+	if UIState.hovered_card == card and UIState.dragging_card == null:
+		Tutorial.event("keyword_card_hovered")
+
+## Training's first enemy intent (the leftmost icon with a card), or null.
+func _first_intent() -> IntentIcon:
+	if enemy_panels.is_empty():
+		return null
+	var best: IntentIcon = null
+	for c in enemy_panels[0]._intent_row.get_children():
+		if c is IntentIcon and not c.intent.is_empty() and c.visible and (best == null or c.position.x < best.position.x):
+			best = c
+	return best
+
+## Training shows an enemy hardpoint as if hovered (PartSpot), or null if none stands.
+var _part_spot: PartSpot = null
+
+func _enemy_part_spot() -> PartSpot:
+	if enemy_panels.is_empty():
+		return null
+	var panel: EnemyPanel = enemy_panels[0]
+	for c in panel.mech.components:
+		if c.category == ComponentData.CATEGORY_HARDPOINT and not c.destroyed:
+			if _part_spot == null or _part_spot.component != c:
+				_part_spot = PartSpot.new(panel.grid, panel.mech, c)
+			return _part_spot
+	return null
+
+## One part shown hovered: outlined on its grid and described in the box.
+class PartSpot extends RefCounted:
+	var grid: ChassisGridUI
+	var mech: MechData
+	var component: ComponentData
+	func _init(g: ChassisGridUI, m: MechData, c: ComponentData) -> void:
+		grid = g
+		mech = m
+		component = c
+	func spot_rects() -> Array[Rect2]:
+		return grid.component_rects_global(component) if is_instance_valid(grid) else ([] as Array[Rect2])
+	## Shown again once the pilot's own hover has moved off everything.
+	func relight() -> void:
+		if UIState.hovered_component == null and UIState.dragging_card == null and is_instance_valid(grid) and not component.destroyed:
+			UIState.set_hovered(component, mech)
+	func set_spotlit(on: bool) -> void:
+		if not is_instance_valid(grid):
+			return
+		grid.set_linked(component if on else null)
+		if on:
+			UIState.set_hovered(component, mech)
+		else:
+			UIState.clear_hovered(component)
+
+## Training's pick from the hand: the leftmost card still in it, of
+## `category` ("" = any), or null.
+func _hand_card(category: String) -> CardUI:
+	if hand_tray == null:
+		return null
+	for c in hand_tray.ordered_cards():
+		if not c.gone and (category == "" or c.category() == category):
+			return c
+	return null
 
 var _passive_grid: ChassisGridUI = null
 
@@ -1490,23 +1616,61 @@ func _on_part_hover(component: ComponentData, mech: MechData) -> void:
 			_passive_grid.set_linked(component)
 	if hand_tray != null and is_instance_valid(hand_tray):
 		hand_tray.set_linked_part(component if mech == player_mech and not UIState.hovered_passive else null)
-	_show_enemy_cards(component if mech != null and mech != player_mech and not UIState.hovered_passive else null, mech)
+	# its HP lit on its mech's health bar (Logan, 2026-10-16)
+	if player_panel != null and is_instance_valid(player_panel):
+		player_panel.highlight_hp(_hp_behind(component, mech) if mech == player_mech else 0)
+	for panel in enemy_panels:
+		panel.highlight_hp(_hp_behind(component, mech) if mech == panel.mech else 0)
+	_hovered_enemy_part = component if mech != null and mech != player_mech and not UIState.hovered_passive else null
+	_hovered_enemy_mech = mech if _hovered_enemy_part != null else null
 
-const ENEMY_CARD_SCALE := 0.8
+## A part's HP on its mech's bar, plus every part damage aimed at it has to
+## go through first (Plated Housing facing it, a Redirect Spike, and theirs
+## in turn): the HP that stands between an attack on it and the part.
+func _hp_behind(component: ComponentData, mech: MechData) -> int:
+	if component == null or mech == null or component.destroyed:
+		return 0
+	var total := component.current_hp
+	var seen := [component]
+	var cover := mech.cover_for(component)
+	while cover != null and not seen.has(cover):
+		total += cover.current_hp
+		seen.append(cover)
+		cover = mech.cover_for(cover)
+	return total
+
+## The enemy part under the mouse (right-click shows its cards).
+var _hovered_enemy_part: ComponentData = null
+var _hovered_enemy_mech: MechData = null
 var _enemy_cards: Control = null
 
-## Hovering an enemy part lays its cards out under that enemy, as cards
-## (Logan, 2026-10-13): marked THIS TURN when they're in its plan (the
-## intents), CHARGING when charged up, SPENT once played this turn, greyed
-## when the part can't act. Display only: the mouse passes through.
-func _show_enemy_cards(component: ComponentData, mech: MechData) -> void:
+## Right-click shows the hovered enemy part's cards (Logan, 2026-10-16:
+## not on hover, and in the middle of the screen at a hovered hand card's
+## size, over a dim); with them up, a left or right click anywhere puts them
+## away (_input). True when the click was used.
+func _toggle_enemy_cards() -> bool:
 	if _enemy_cards != null and is_instance_valid(_enemy_cards):
-		_enemy_cards.queue_free()
+		_hide_enemy_cards()
+		return true
+	if _hovered_enemy_part == null or _hovered_enemy_part.destroyed or _hovered_enemy_part.cards.is_empty():
+		return false
+	_show_enemy_cards(_hovered_enemy_part, _hovered_enemy_mech)
+	return true
+
+func _hide_enemy_cards() -> void:
+	if _enemy_cards != null and is_instance_valid(_enemy_cards):
+		var strip := _enemy_cards
+		var tw := strip.create_tween()
+		tw.tween_property(strip, "modulate:a", 0.0, 0.1)
+		tw.tween_callback(strip.queue_free)
 	_enemy_cards = null
-	if component == null or component.destroyed or component.cards.is_empty() or combat == null or UIState.dragging_card != null:
-		return
-	var panel := _panel_for(mech)
-	if panel == null:
+
+## An enemy part's cards, centered on the screen over a dim: marked THIS
+## TURN when they're in its plan (the intents), CHARGING when charged up,
+## SPENT once played this turn, greyed when the part can't act. Display
+## only, but a status or keyword in their text opens its rule under the row.
+func _show_enemy_cards(component: ComponentData, mech: MechData) -> void:
+	if combat == null or UIState.dragging_card != null:
 		return
 	var planned := {}
 	for a in combat.upcoming_enemy_actions(mech):
@@ -1514,37 +1678,47 @@ func _show_enemy_cards(component: ComponentData, mech: MechData) -> void:
 			planned[a["card"]] = "CHARGING" if a.get("charged", false) or a.get("charge", false) else "THIS TURN"
 	var strip := Control.new()
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	strip.z_index = 40
+	strip.z_index = 60 # over a raised hand card
 	add_child(strip)
 	_enemy_cards = strip
-	var w := CardUI.BASE_SIZE.x * ENEMY_CARD_SCALE
-	var gap := 8.0
-	var total := component.cards.size() * w + (component.cards.size() - 1) * gap
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.5)
+	dim.size = get_viewport_rect().size
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.add_child(dim)
+	var s := CardUI.HOVER_SCALE
+	var card_size := CardUI.BASE_SIZE * s
+	var gap := 16.0
+	var n := component.cards.size()
+	var total := n * card_size.x + (n - 1) * gap
 	var screen := get_viewport_rect().size
-	var x := clampf(panel.image_global_rect().get_center().x - total / 2.0, 8.0, screen.x - total - 8.0)
-	var y := panel.intents_global_bottom() + 22.0
-	for i in range(component.cards.size()):
+	var x0 := (screen.x - total) / 2.0
+	var y := (screen.y - card_size.y) / 2.0
+	for i in range(n):
 		var card: CardData = component.cards[i]
 		var ui := CardUI.new()
 		strip.add_child(ui)
 		ui.setup(card, component.category, null, component)
-		ui.make_display()
+		ui.make_display(true)
 		ui.set_state(card.heat_cost, false, not component.is_usable(), combat.is_spent(card))
-		ui.scale = Vector2(ENEMY_CARD_SCALE, ENEMY_CARD_SCALE)
+		ui.hint_below = Vector2(x0 + i * (card_size.x + gap) + 24.0, y + card_size.y + 4.0)
+		ui.scale = Vector2(s, s)
 		ui.pivot_offset = Vector2.ZERO
-		ui.position = Vector2(x + i * (w + gap), y)
+		ui.position = Vector2(x0 + i * (card_size.x + gap), y)
 		var tag: String = planned.get(card, "")
 		if tag != "":
-			var l := UIKit.label(tag, 11, Palette.WARNING if tag == "THIS TURN" else Palette.LINK)
+			var l := UIKit.label(tag, 13, Palette.WARNING if tag == "THIS TURN" else Palette.LINK)
 			l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			l.position = ui.position + Vector2(0, -18)
+			l.position = ui.position + Vector2(0, -22)
 			strip.add_child(l)
 			var edge := ColorRect.new() # a yellow edge on the planned card
 			edge.color = Color(Palette.WARNING if tag == "THIS TURN" else Palette.LINK, 0.9)
 			edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			edge.position = ui.position + Vector2(0, -3)
-			edge.size = Vector2(w, 3)
+			edge.size = Vector2(card_size.x, 3)
 			strip.add_child(edge)
+	strip.modulate.a = 0.0
+	strip.create_tween().tween_property(strip, "modulate:a", 1.0, 0.1)
 
 ## Hovering an enemy intent outlines the part of your mech it's aimed at.
 func _on_intent_hover(intent: Dictionary) -> void:
@@ -1552,6 +1726,29 @@ func _on_intent_hover(intent: Dictionary) -> void:
 		return
 	var target: ComponentData = intent.get("target", null)
 	player_panel.grid.set_targeted(target if target != null and not target.destroyed else null)
+	# and the enemy part whose card it is, outlined on its own mech (Logan, 2026-10-16)
+	if _intent_grid != null and is_instance_valid(_intent_grid):
+		_intent_grid.set_linked(null)
+	_intent_grid = null
+	var mech = intent.get("mech")
+	var card = intent.get("card")
+	if mech is MechData and card is CardData:
+		var source: ComponentData = mech.get_component(card.owner_component_id)
+		_intent_grid = _grid_for(mech)
+		if _intent_grid != null and source != null:
+			_intent_grid.set_linked(source)
+
+## The hovered intent's part on screen, one rect round all its cells (Rect2() if none).
+func _intent_part_rect() -> Rect2:
+	if _intent_grid == null or not is_instance_valid(_intent_grid) or _intent_grid.linked == null:
+		return Rect2()
+	var out := Rect2()
+	for r in _intent_grid.component_rects_global(_intent_grid.linked):
+		out = r if out.size == Vector2.ZERO else out.merge(r)
+	return out
+
+## The enemy grid outlining a hovered intent's part (null: none).
+var _intent_grid: ChassisGridUI = null
 
 ## A hovered status lights the parts holding it: on its own mech (a badge),
 ## or on every mech (a status word in card text).
@@ -1887,7 +2084,7 @@ func _replay_drive(gen: int) -> void:
 			await get_tree().process_frame
 		if gen != _generation:
 			return
-		await get_tree().create_timer(REPLAY_STEP, false).timeout
+		await _wait(REPLAY_STEP)
 		if gen != _generation:
 			return
 		if not await _replay_command(gen, cmd):
@@ -1928,7 +2125,7 @@ func _replay_command(gen: int, cmd: Dictionary) -> bool:
 				_replay_hit = {"mech": mech, "component": comp, "panel": panel}
 				player_reticle.follow(point, 1.0, true)
 				_set_targeting(_replay_hit)
-			await get_tree().create_timer(REPLAY_STEP, false).timeout
+			await _wait(REPLAY_STEP)
 			if gen != _generation:
 				return true
 			if ui != null and is_instance_valid(ui):

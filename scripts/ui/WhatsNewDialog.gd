@@ -198,7 +198,8 @@ func _add_update_head(u: Dictionary) -> void:
 	_list.add_child(line)
 
 ## One bullet: a line of text, or {label, text} with a lit lead-in, and
-## any sub-items indented under it.
+## any sub-items indented under it. {label, items} with no text is a
+## category heading (New, Gameplay, UI...) over its entries.
 func _add_item(item, depth: int) -> void:
 	var lead := ""
 	var text := ""
@@ -209,6 +210,12 @@ func _add_item(item, depth: int) -> void:
 		subs = item.get("items", [])
 	else:
 		text = str(item)
+	if depth == 0 and text == "" and not subs.is_empty():
+		_list.add_child(_gap(4))
+		_list.add_child(UIKit.label(lead.to_upper(), 16, LEAD))
+		for s in subs:
+			_add_item(s, 0)
+		return
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	var indent := Control.new()

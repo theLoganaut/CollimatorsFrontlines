@@ -1,9 +1,10 @@
 {
-  "_note": "Mission types (Logan, 2026-09-27/28). Numbers marked Proposed are Claude's starting values for tuning. rows = stops before the boss. Regular fights come from the location's encounter pools: the first weak_fights from `weak`, then `strong` (max_enemies caps a fight's size). Longer runs (Logan, 2026-09-30): Assault and Rescue 12 rows, Deep Recon 16, a refit after every 3rd row, and a repair bay every path goes through right before the boss (repair_before_boss). max_shops (Logan, 2026-09-30): at most that many autonomous bays on a map (at least one is always there); shops are a detour you choose, Slay-the-Spire style. An event stop also turns out to be a bay 10% of the time (balance.json map.event_shop_chance).",
+  "_note": "Mission types (Logan, 2026-09-27/28). summary: a concise rundown (Logan, 2026-10-16), shown after the mission's name. map_layout: MapGenerator's layout (2: walkers, Logan 2026-10-16; a save from before carries its mission without it, so its map stays layout 1). Numbers marked Proposed are Claude's starting values for tuning. rows = stops before the boss. Regular fights come from the location's encounter pools: the first weak_fights from `weak`, then `strong` (max_enemies caps a fight's size). Longer runs (Logan, 2026-09-30): Assault and Rescue 12 rows, Deep Recon 16, a refit after every 3rd row, and a repair bay every path goes through right before the boss (repair_before_boss). max_shops (Logan, 2026-09-30): at most that many autonomous bays on a map (at least one is always there); shops are a detour you choose, Slay-the-Spire style. An event stop also turns out to be a bay 10% of the time (balance.json map.event_shop_chance).",
   "missions": {
     "assault": {
       "name": "Assault",
-      "summary": "A straight push to the target. Ends in a boss.",
+      "summary": "Straight push to the target. Ends in a boss.",
+      "map_layout": 2,
       "rows": 12,
       "boss": true,
       "refit_after_rows": [
@@ -18,7 +19,8 @@
     },
     "deep_recon": {
       "name": "Deep Recon",
-      "summary": "A longer route. Regular enemies are lighter, elites are tougher, and there's no boss: finishing it disables the next boss's weapons for its first turn.",
+      "summary": "Longer. Lighter enemies, tougher elites. No boss. Disables the boss for one turn at the next location.",
+      "map_layout": 2,
       "rows": 16,
       "weak_fights": 8,
       "max_enemies": 2,
@@ -36,7 +38,8 @@
     },
     "rescue": {
       "name": "Rescue",
-      "summary": "Get in and out fast: the Alert level rises with every turn spent fighting, and higher Alert makes every fight harder. Ends in a boss.",
+      "summary": "In and out fast. Alert rises every turn you fight, and fights get harder with it. Ends in a boss.",
+      "map_layout": 2,
       "rows": 12,
       "boss": true,
       "refit_after_rows": [
@@ -57,7 +60,8 @@
     },
     "training": {
       "name": "Simulated Mission",
-      "summary": "A simulator run: two short fights against a Scrap Warden, with a salvage and a refit between them. Nothing here counts toward your record.",
+      "summary": "Simulator. Two short fights vs a Scrap Warden, a salvage and a refit. Doesn't count toward your record.",
+      "map_layout": 2,
       "location": "shipyard",
       "location_description": "The Shipyard, as the simulator remembers it: the cranes and dry docks are holograms, the enemy is a recording, and nothing you lose here is lost for real.",
       "rows": 2,

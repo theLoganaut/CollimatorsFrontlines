@@ -48,6 +48,9 @@ var _ghost_tween: Tween
 var _heal_to: float = -1.0 # a heal's new HP, shown green until the fill catches up
 var _flash: float = 0.0
 var _flash_color: Color = Color.WHITE
+## The hovered part's share of the HP (and what's in front of it), in yellow at the fill's end.
+var _highlight: int = 0
+const HIGHLIGHT := Color(1.0, 0.84, 0.25)
 var _loss: int = 0 # previewed sure HP loss (0 = none)
 var _loss_max: int = 0 # and the most it could be
 var _t: float = 0.0
@@ -103,6 +106,14 @@ func set_hp(p_current: int, p_max: int) -> void:
 		_tween.kill()
 	_tween = create_tween()
 	_tween.tween_method(_set_shown, _shown, float(current), ANIM_SECONDS).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+## Lights `amount` HP at the end of the fill in yellow: what a hovered part
+## adds to this bar (0 clears it).
+func set_highlight(amount: int) -> void:
+	amount = clampi(amount, 0, current)
+	if amount != _highlight:
+		_highlight = amount
+		queue_redraw()
 
 ## Shows a previewed HP loss: `amount` for sure, up to `most` (0 clears it).
 func set_preview_loss(amount: int, most: int = -1) -> void:
@@ -169,6 +180,11 @@ func _draw() -> void:
 			_gradient(Rect2(w * line_frac, 0, w * (frac - line_frac), h), RED_TOP, RED_BOTTOM)
 		# a faint sheen along the top edge
 		draw_rect(Rect2(0, 1, w * frac, maxf(1.0, h * 0.2)), Color(1, 1, 1, 0.06), true)
+	if _highlight > 0 and frac > 0.0:
+		var from: float = clampf(float(current - _highlight) / float(max_value), 0.0, frac)
+		var hr := Rect2(w * from, 0, w * (frac - from), h)
+		draw_rect(hr, Color(HIGHLIGHT, 0.55), true)
+		draw_rect(hr, HIGHLIGHT, false, 2.0)
 	if _loss_max > 0 and frac > 0.0:
 		var sure: float = clampf(float(current - _loss) / float(max_value), 0.0, frac)
 		var most: float = clampf(float(current - _loss_max) / float(max_value), 0.0, sure)

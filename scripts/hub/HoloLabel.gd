@@ -5,6 +5,9 @@ extends Control
 ## out from the emitter, then the panel unfolds from the beam's end, so the
 ## label always comes from the same spot whatever part of the station the
 ## mouse is on. Covers the whole room; draws nothing and takes no clicks.
+## A label growing "up" that wouldn't fit under the top of `bounds` grows
+## "down" from `below` instead (a War Table pin near the far edge). An empty
+## line is a half-line gap; center_tag centers the tag chip.
 
 const HOLO := GlassPanel.HOLO
 const PAD := Vector2(12, 9)
@@ -25,6 +28,10 @@ var _title: String = ""
 var _lines: Array = []
 var _tag: String = ""
 var _tag_color: Color = HOLO
+var _below: Vector2 = Vector2.INF # where a flipped "up" label hangs from
+## The tag chip centered under the text (else at its left).
+var center_tag: bool = false
+const GAP_LINE := 0.5 # an empty line's height, in lines
 var _t: float = 0.0       # 0 = hidden, 1 = fully open
 var _open: bool = false
 var _time: float = 0.0
@@ -36,7 +43,7 @@ func _ready() -> void:
 
 ## Opens the label for a station: anchor in this node's coordinates, the
 ## direction its panel grows, a title, detail lines and an optional tag.
-func show_for(anchor: Vector2, dir: String, title: String, lines: Array, tag: String = "", tag_color: Color = HOLO) -> void:
+func show_for(anchor: Vector2, dir: String, title: String, lines: Array, tag: String = "", tag_color: Color = HOLO, below: Vector2 = Vector2.INF) -> void:
 	# the same label again only follows its anchor (a War Table pin moves as
 	# the terrain turns with the mouse); a new one unfolds from scratch
 	var same := _open and title == _title
@@ -46,6 +53,7 @@ func show_for(anchor: Vector2, dir: String, title: String, lines: Array, tag: St
 	_lines = lines
 	_tag = tag
 	_tag_color = tag_color
+	_below = below
 	_layout()
 	_open = true
 	if not same:
@@ -62,10 +70,17 @@ func _layout() -> void:
 		w = maxf(w, font.get_string_size(str(l), HORIZONTAL_ALIGNMENT_LEFT, -1, LINE_SIZE).x)
 	if _tag != "":
 		w = maxf(w, font.get_string_size(_tag, HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_SIZE).x + 10.0)
-	var h := PAD.y * 2.0 + TITLE_SIZE + 4.0 + _lines.size() * (LINE_SIZE + 4.0) + (TAG_SIZE + 10.0 if _tag != "" else 0.0)
+	var h := PAD.y * 2.0 + TITLE_SIZE + 4.0 + _lines_h() + (TAG_SIZE + 10.0 if _tag != "" else 0.0)
 	var sz := Vector2(maxf(MIN_W, w + PAD.x * 2.0), h)
 	var diag := GAP * 0.7
-	match _dir:
+	var dir := _dir
+	if dir == "up" and _below != Vector2.INF and _anchor.y - GAP - sz.y < bounds.position.y:
+		dir = "down"
+		_anchor = _below
+	match dir:
+		"down":
+			_attach = _anchor + Vector2(0, GAP)
+			_panel = Rect2(_attach - Vector2(sz.x / 2.0, 0), sz)
 		"up_right":
 			_attach = _anchor + Vector2(diag, -diag)
 			_panel = Rect2(_attach - Vector2(0, sz.y), sz)
@@ -81,6 +96,13 @@ func _layout() -> void:
 	# keep it on screen; the beam then bends to wherever the panel landed
 	_panel.position = _panel.position.clamp(bounds.position, bounds.end - _panel.size)
 	_attach = _attach.clamp(_panel.position, _panel.end)
+
+## The detail lines' height (an empty line is a short gap).
+func _lines_h() -> float:
+	var h := 0.0
+	for l in _lines:
+		h += (LINE_SIZE + 4.0) * (GAP_LINE if str(l) == "" else 1.0)
+	return h
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -125,11 +147,15 @@ func _draw() -> void:
 	draw_string(font, pos + Vector2(0, TITLE_SIZE), _title.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, Color(Color("dffcf8"), ta))
 	pos.y += TITLE_SIZE + 4.0
 	for l in _lines:
+		if str(l) == "":
+			pos.y += (LINE_SIZE + 4.0) * GAP_LINE
+			continue
 		draw_string(font, pos + Vector2(0, LINE_SIZE), str(l), HORIZONTAL_ALIGNMENT_LEFT, -1, LINE_SIZE, Color(Color("b9d8d4"), ta))
 		pos.y += LINE_SIZE + 4.0
 	if _tag != "":
 		var tw := font.get_string_size(_tag, HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_SIZE).x
-		var chip := Rect2(pos + Vector2(0, 4), Vector2(tw + 10.0, TAG_SIZE + 5.0))
+		var chip_x := (p.size.x - (tw + 10.0)) / 2.0 - PAD.x if center_tag else 0.0
+		var chip := Rect2(pos + Vector2(chip_x, 4), Vector2(tw + 10.0, TAG_SIZE + 5.0))
 		draw_rect(chip, Color(_tag_color, 0.22 * ta), true)
 		draw_rect(chip, Color(_tag_color, 0.8 * ta), false, 1.0)
 		draw_string(font, chip.position + Vector2(5, TAG_SIZE + 1.0), _tag, HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_SIZE, Color(_tag_color, ta))

@@ -23,8 +23,23 @@ extends RefCounted
 ## branch, and separate lanes are then bridged until every node belongs to
 ## one connected map, so paths can always cross over somewhere.
 ##
-## The numbers (row sizes, branch chance, the odds of each stop kind) are
-## in data/balance.json ("map").
+## Layout 2 (Logan, 2026-10-16: routes were either a web where every start
+## reaches everything or a forced lane, a stop apart): Slay-the-Spire style
+## walkers. The map has `columns` columns; `paths` walkers start on the
+## bottom row (at least start_min different spots) and climb a row at a
+## time, each step to the column left, ahead or right, never crossing a link
+## already laid. The stops are the cells walked on, the links the steps
+## taken, so routes fork and merge all the way up. A layout with a middle row
+## of one stop (everyone forced through it) is rolled again. Then a stop with
+## one way on gets a second (to a stop beside its first, never crossing) at
+## `walk_branch_chance`, and wherever a route would still run more than
+## `max_forced` rows with one way on, it gets one: to a stop beside, or else
+## to a new stop beside its lane that leads on into the row after. The mission
+## picks the layout (`map_layout`, saved with the run): saves from before
+## keep layout 1, the map they were made on.
+##
+## The numbers (row sizes, branch chance, columns, walkers, the odds of each
+## stop kind) are in data/balance.json ("map").
 
 static func _n(key: String, fallback: float) -> float:
 	return Balance.get_num("map", key, fallback)
@@ -39,7 +54,9 @@ static func generate(rng: RandomNumberGenerator, enemy_ramp: Array, opts: Dictio
 	var ramp_rows := enemy_ramp.size()
 	map.row_count = ramp_rows
 	var rows: Array = [] # Array of Array[int] (node ids, left to right)
-	for r in range(ramp_rows):
+	if int(opts.get("layout", 1)) >= 2:
+		rows = _walk_layout(map, rng, enemy_ramp)
+	for r in range(ramp_rows if rows.is_empty() else 0):
 		var count := rng.randi_range(int(_n("start_min", 3)) if r == 0 else int(_n("min_per_row", 2)), int(_n("max_per_row", 4)))
 		var ids: Array[int] = []
 		for i in range(count):
@@ -51,8 +68,9 @@ static func generate(rng: RandomNumberGenerator, enemy_ramp: Array, opts: Dictio
 			map.nodes.append(node)
 			ids.append(node["id"])
 		rows.append(ids)
-	for r in range(ramp_rows - 1):
-		_link_rows(map, rows[r], rows[r + 1], rng)
+	if int(opts.get("layout", 1)) < 2:
+		for r in range(ramp_rows - 1):
+			_link_rows(map, rows[r], rows[r + 1], rng)
 	_bridge_lanes(map, rows, rng)
 	_assign_kinds(map, rng, not (opts.get("elites", []) as Array).is_empty() or not opts.has("elites"), opts.get("odds", {}))
 	if int(opts.get("max_shops", 0)) > 0:
@@ -77,6 +95,145 @@ static func generate(rng: RandomNumberGenerator, enemy_ramp: Array, opts: Dictio
 		map.row_count = boss_row + 1
 	_assign_enemies(map, rng, enemy_ramp, opts)
 	return map
+
+## Layout 2: walkers climbing a grid of columns (see the top). Fills
+## map.nodes and returns the rows (node ids, left to right).
+static func _walk_layout(map: RunMap, rng: RandomNumberGenerator, enemy_ramp: Array) -> Array:
+	var cols := int(_n("columns", 5))
+	var walkers := int(_n("paths", 5))
+	var starts_min := mini(int(_n("start_min", 3)), cols)
+	var rows_n := enemy_ramp.size()
+	var cells := {}  # Vector2i(col, row) -> true
+	var steps := {}  # row -> [[from col, to col], ...]
+	for _try in range(20):
+		cells.clear()
+		steps.clear()
+		var order: Array = range(cols)
+		_shuffle(order, rng)
+		for w in range(walkers):
+			var col: int = order[w] if w < starts_min else rng.randi_range(0, cols - 1)
+			cells[Vector2i(col, 0)] = true
+			for r in range(rows_n - 1):
+				var row_steps: Array = steps.get(r, [])
+				var options: Array = []
+				for to in [col - 1, col, col + 1]:
+					if to >= 0 and to < cols and not _step_crosses(row_steps, col, to):
+						options.append(to)
+				var nxt: int = options[rng.randi_range(0, options.size() - 1)] if not options.is_empty() else col
+				if not row_steps.has([col, nxt]):
+					row_steps.append([col, nxt])
+				steps[r] = row_steps
+				col = nxt
+				cells[Vector2i(col, r + 1)] = true
+		var pinched := false
+		for r in range(1, rows_n - 1):
+			if range(cols).filter(func(c): return cells.has(Vector2i(c, r))).size() < 2:
+				pinched = true
+		if not pinched:
+			break
+	_branch_walks(cells, steps, cols, rows_n, rng)
+	var rows: Array = []
+	var id_at := {}
+	for r in range(rows_n):
+		var ids: Array[int] = []
+		for c in range(cols):
+			if not cells.has(Vector2i(c, r)):
+				continue
+			var jitter := rng.randf_range(-0.15, 0.15) / float(cols)
+			var node := {
+				"id": map.nodes.size(), "row": r, "x": (float(c) + 0.5) / float(cols) + jitter,
+				"next": [], "kind": RunMap.KIND_FIGHT, "enemy_count": int(enemy_ramp[r]), "enemies": [],
+			}
+			map.nodes.append(node)
+			ids.append(node["id"])
+			id_at[Vector2i(c, r)] = node["id"]
+		rows.append(ids)
+	for r in steps:
+		for s in steps[r]:
+			_add_link(map, id_at[Vector2i(s[0], r)], id_at[Vector2i(s[1], r + 1)], {})
+	return rows
+
+## Second ways on (see the top): by chance, then wherever a route would run
+## more than max_forced rows with one way on, from the top down.
+static func _branch_walks(cells: Dictionary, steps: Dictionary, cols: int, rows_n: int, rng: RandomNumberGenerator) -> void:
+	var chance := _n("walk_branch_chance", 0.35)
+	var cap := int(_n("max_forced", 2))
+	for r in range(rows_n - 1):
+		for c in range(cols):
+			if cells.has(Vector2i(c, r)) and _outs(steps, r, c).size() == 1 and rng.randf() < chance:
+				_branch(cells, steps, r, c, rng)
+	var forced := {} # Vector2i -> rows in a row with one way on, from here up
+	for r in range(rows_n - 2, -1, -1):
+		for c in range(cols):
+			if not cells.has(Vector2i(c, r)):
+				continue
+			var outs := _outs(steps, r, c)
+			if outs.size() == 1:
+				var run := 1 + int(forced.get(Vector2i(outs[0], r + 1), 0))
+				if run > cap and (_branch(cells, steps, r, c, rng) or _branch_new(cells, steps, cols, rows_n, r, c, rng)):
+					run = 0
+				forced[Vector2i(c, r)] = run
+			else:
+				forced[Vector2i(c, r)] = 0
+
+## The columns a stop at (c, r) links to.
+static func _outs(steps: Dictionary, r: int, c: int) -> Array:
+	return (steps.get(r, []) as Array).filter(func(s): return s[0] == c).map(func(s): return s[1])
+
+## Adds a link from (c, r) to a stop beside its current one in the next row,
+## if one is there and the link crosses none. True if it added one.
+static func _branch(cells: Dictionary, steps: Dictionary, r: int, c: int, rng: RandomNumberGenerator) -> bool:
+	var row_steps: Array = steps.get(r, [])
+	var have := _outs(steps, r, c)
+	var options: Array = []
+	for to in [c - 1, c, c + 1]:
+		if cells.has(Vector2i(to, r + 1)) and not have.has(to) and not _step_crosses(row_steps, c, to):
+			options.append(to)
+	if options.is_empty():
+		return false
+	row_steps.append([c, options[rng.randi_range(0, options.size() - 1)]])
+	steps[r] = row_steps
+	return true
+
+## A new stop beside where (c, r) goes, linked from it and on to a stop in
+## the row after (all without crossing). True if it fit.
+static func _branch_new(cells: Dictionary, steps: Dictionary, cols: int, rows_n: int, r: int, c: int, rng: RandomNumberGenerator) -> bool:
+	if r + 2 >= rows_n:
+		return false
+	var row_steps: Array = steps.get(r, [])
+	var up_steps: Array = steps.get(r + 1, [])
+	var sides: Array = [c - 1, c + 1]
+	_shuffle(sides, rng)
+	for to in sides:
+		if to < 0 or to >= cols or cells.has(Vector2i(to, r + 1)) or _step_crosses(row_steps, c, to):
+			continue
+		var onward: Array = []
+		for t2 in [to - 1, to, to + 1]:
+			if cells.has(Vector2i(t2, r + 2)) and not _step_crosses(up_steps, to, t2):
+				onward.append(t2)
+		if onward.is_empty():
+			continue
+		cells[Vector2i(to, r + 1)] = true
+		row_steps.append([c, to])
+		steps[r] = row_steps
+		up_steps.append([to, onward[rng.randi_range(0, onward.size() - 1)]])
+		steps[r + 1] = up_steps
+		return true
+	return false
+
+## Whether a step from column a to b crosses one already laid between the same rows.
+static func _step_crosses(row_steps: Array, a: int, b: int) -> bool:
+	for s in row_steps:
+		if (s[0] < a and s[1] > b) or (s[0] > a and s[1] < b):
+			return true
+	return false
+
+static func _shuffle(arr: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(arr.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = arr[i]
+		arr[i] = arr[j]
+		arr[j] = tmp
 
 static func _assign_kinds(map: RunMap, rng: RandomNumberGenerator, elites_allowed: bool, odds: Dictionary = {}) -> void:
 	var odd := func(key: String, fallback: float) -> float: return float(odds.get(key, _n(key, fallback)))

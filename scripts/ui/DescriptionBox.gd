@@ -15,12 +15,25 @@ extends Control
 ## buttons and bars explain themselves here (UIState.describe_on_hover)
 ## instead of in tooltips. While a part is hovered, the mouse wheel scrolls
 ## the box, wherever the mouse is.
+##
+## Logan, 2026-10-16: no scrolling if it can be helped, at the same font
+## sizes. It's wide, grows upward from its bottom edge to fit what it says
+## (up to the area CombatScene gives it, set_area), and opens on the side of
+## the screen away from the mouse, so it never covers what's hovered. It
+## ignores the mouse (the wheel still scrolls it when it overflows).
 
 const PADDING := 12.0
-const THUMB := Vector2(64, 56) # the part's shape, top right
+const THUMB := Vector2(150, 150) # the part's shape, top right (Logan, 2026-10-16: big, it fills the empty right side)
 
 ## Set before adding to the tree (CombatScene sizes it to the space it has).
 var box_size := Vector2(380, 290)
+## Where it may open (set_area): its x on either side, its bottom edge and
+## its tallest height.
+var _left_x := 0.0
+var _right_x := 0.0
+var _bottom := 0.0
+var _max_h := 0.0
+const MIN_H := 60.0
 
 var _title_label: Label
 var _hp_label: Label
@@ -44,7 +57,7 @@ const FADE_SPEED := 8.0 # alpha per second
 func _ready() -> void:
 	custom_minimum_size = box_size
 	size = box_size
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_children()
 	UIState.hover_changed.connect(_refresh.unbind(2))
 	UIState.hovered_card_changed.connect(_refresh.unbind(1))
@@ -63,13 +76,14 @@ func _process(delta: float) -> void:
 	if a != modulate.a:
 		modulate.a = a
 	visible = a > 0.0
+	if visible:
+		_fit()
 
-## The wheel scrolls the box while a part is hovered (the box itself
-## scrolls on its own when the mouse is over it).
+## The wheel scrolls the box while a part is hovered, if it overflows.
 func _input(event: InputEvent) -> void:
 	if not visible or _shown_component == null or not (event is InputEventMouseButton) or not event.pressed:
 		return
-	if get_global_rect().has_point(get_global_mouse_position()):
+	if _scroll.get_v_scroll_bar().max_value <= _scroll.size.y:
 		return
 	var step := 0
 	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -79,6 +93,45 @@ func _input(event: InputEvent) -> void:
 	if step != 0:
 		_scroll.scroll_vertical += step
 		get_viewport().set_input_as_handled()
+
+## Where it may open: x on the left or right side (away from the mouse),
+## `width`, and between `top` and `bottom` (it sits on the bottom and grows up).
+func set_area(left_x: float, right_x: float, width: float, top: float, bottom: float) -> void:
+	_left_x = left_x
+	_right_x = right_x
+	_bottom = bottom
+	_max_h = maxf(bottom - top, MIN_H)
+	set_box_size(Vector2(width, size.y))
+	_fit()
+	_pick_side()
+
+## Opposite the mouse: on the right unless the mouse is on the right half.
+func _pick_side() -> void:
+	if _bottom <= 0.0:
+		return
+	var right_half := get_global_mouse_position().x > get_viewport_rect().size.x / 2.0
+	position.x = _left_x if right_half else _right_x
+
+## As tall as its text (between MIN_H and the area's height), bottom fixed.
+func _fit() -> void:
+	if _bottom <= 0.0:
+		return
+	var least := THUMB.y + PADDING * 2.0 if _thumb_part != null else MIN_H
+	var h := clampf(maxf(_vbox.get_combined_minimum_size().y + PADDING * 2.0, least), MIN_H, _max_h)
+	if h != size.y:
+		custom_minimum_size.y = h
+		size.y = h
+		_scroll.size.y = h - PADDING * 2.0
+		queue_redraw()
+	position.y = _bottom - h
+
+## Where it is or is about to be on screen while it has something to say
+## (Rect2() if not), even before it has faded in (the training coach keeps clear of it).
+func shown_rect() -> Rect2:
+	if not _has_content:
+		return Rect2()
+	_fit()
+	return get_global_rect()
 
 ## Resize after it's already built (the screen changed shape).
 func set_box_size(v: Vector2) -> void:
@@ -104,6 +157,7 @@ func _build_children() -> void:
 	_scroll.position = Vector2(PADDING, PADDING)
 	_scroll.size = Vector2(box_size.x - PADDING * 2.0, box_size.y - PADDING * 2.0)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_scroll)
 	_vbox = VBoxContainer.new()
 	_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -150,6 +204,8 @@ func refresh() -> void:
 	_refresh()
 
 func _refresh() -> void:
+	if modulate.a <= 0.0:
+		_pick_side() # not while it's showing: hovering across the middle shouldn't flip it
 	if not UIState.hovered_intent.is_empty():
 		_show_intent(UIState.hovered_intent)
 		_set_look(Palette.DANGER, null)
@@ -162,6 +218,11 @@ func _refresh() -> void:
 		_has_content = true
 		return
 	var component := UIState.hovered_component
+	if component == null:
+		# nothing to say: fade out still showing what it said (Logan,
+		# 2026-10-16: an intent's box flicked to a blank one as it went)
+		_has_content = false
+		return
 	_set_look(Palette.category_color(component.category) if component != null else GlassPanel.HOLO, component)
 	var has_component := component != null
 	var passive_view := has_component and UIState.hovered_passive
@@ -174,8 +235,9 @@ func _refresh() -> void:
 	_hp_label.visible = has_component
 	if not has_component:
 		_effect_label.visible = false
-	_statuses_header.visible = has_component and not passive_view
-	_statuses_label.visible = has_component and not passive_view
+	# no statuses: no section (it only said "None")
+	_statuses_header.visible = has_component and not passive_view and not component.statuses.is_empty()
+	_statuses_label.visible = _statuses_header.visible
 	_cards_header.visible = has_component and not passive_view
 	_cards_label.visible = has_component and not passive_view
 
@@ -259,21 +321,22 @@ func _set_look(accent: Color, part: ComponentData) -> void:
 	_title_pad(THUMB.x + 6.0 if part != null else 0.0)
 	queue_redraw()
 
-## Right margin on the title and HP lines so they wrap before the corner art.
+## Right margin on the lines beside the corner art (all but the glossary,
+## which runs under it) so they wrap before it.
 func _title_pad(px: float) -> void:
-	for l in [_title_label, _hp_label]:
+	for l in [_title_label, _hp_label, _effect_label, _statuses_header, _statuses_label, _cards_header, _cards_label]:
 		var st := StyleBoxEmpty.new()
 		st.content_margin_right = px
 		l.add_theme_stylebox_override("normal", st)
 
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size)
-	draw_rect(r, Color(0.015, 0.03, 0.04, 0.55), true)
+	draw_rect(r, Color(0.015, 0.03, 0.04, 0.9), true) # opaque enough to hide what it covers
 	GlassPanel.draw_glass(self, r, 1.0, _accent, 9.0, 0.9)
 	if _thumb_part != null:
 		var box := Rect2(Vector2(size.x - THUMB.x - PADDING, PADDING), THUMB)
 		draw_circle(box.get_center(), THUMB.x * 0.45, Color(_accent, 0.08))
-		PartArt.draw_shape(self, box, _thumb_part, 1.0, 22.0)
+		PartArt.draw_shape(self, box, _thumb_part, 1.0, 48.0)
 
 ## A button or bar on the combat screen explaining itself.
 func _show_hint(hint: Dictionary) -> void:

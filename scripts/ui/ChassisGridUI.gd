@@ -263,6 +263,13 @@ func flash(component: ComponentData) -> void:
 	for cell_ui in _cells_by_component.get(component, []):
 		cell_ui.flash()
 
+## The screen rects of the component's cells.
+func component_rects_global(component: ComponentData) -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	for cell_ui in _cells_by_component.get(component, []):
+		out.append(cell_ui.get_global_rect())
+	return out
+
 ## Global center of the component's cell nearest its centroid — a point
 ## that's always on the part itself, even for a non-contiguous one.
 func component_center_global(component: ComponentData) -> Vector2:

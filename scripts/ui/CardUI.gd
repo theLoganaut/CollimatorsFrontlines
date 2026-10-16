@@ -67,9 +67,11 @@ var _component: ComponentData = null # the part that grants it (for its art)
 var _hover_tween: Tween
 
 var _cost_label: Label
-var _dmg_label: Label
 var _name_label: Label
 var _effect_label: RichTextLabel
+## Where a hovered keyword's rule opens (global; INF: above the card). A
+## right-clicked enemy part's cards put it under the whole row.
+var hint_below: Vector2 = Vector2.INF
 ## A primed protocol will be used up by this card: a soft purple glow.
 var protocol_glow: bool = false
 
@@ -96,7 +98,7 @@ func setup(p_card: CardData, p_category: String, p_hand_tray: Control, p_compone
 
 func _build_children() -> void:
 	_cost_label = Label.new()
-	_cost_label.position = Vector2(4, 4)
+	_cost_label.position = Vector2(4, 8) # in the flame's body (FLAME_AT)
 	_cost_label.size = Vector2(24, 22)
 	_cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -104,15 +106,6 @@ func _build_children() -> void:
 	_cost_label.add_theme_color_override("font_color", Palette.TEXT)
 	_cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_cost_label)
-
-	_dmg_label = Label.new()
-	_dmg_label.add_theme_font_size_override("font_size", 13)
-	_dmg_label.add_theme_color_override("font_color", Palette.HARDPOINT)
-	_dmg_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dmg_label.size = Vector2(80, 20)
-	_dmg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_dmg_label.position = Vector2(BASE_SIZE.x - 86, 5)
-	add_child(_dmg_label)
 
 	_name_label = Label.new()
 	_name_label.position = Vector2(8, 30)
@@ -138,7 +131,10 @@ func _build_children() -> void:
 	_effect_label.meta_hover_started.connect(func(meta):
 		var e := StatusGlossary.lookup(str(meta))
 		if not e.is_empty() and UIState.dragging_card == null:
-			HoloHint.open(self, [e], [], true))
+			if hint_below != Vector2.INF:
+				HoloHint.open(self, [e], [], false, hint_below)
+			else:
+				HoloHint.open(self, [e], [], true))
 	_effect_label.meta_hover_ended.connect(func(_meta): HoloHint.close(self))
 	add_child(_effect_label)
 
@@ -146,7 +142,6 @@ func _refresh() -> void:
 	if card == null:
 		return
 	_cost_label.text = str(card.heat_cost if _shown_cost == -9999 else _shown_cost)
-	_dmg_label.text = card.damage_label()
 	_name_label.text = card.name
 	var lines: Array[String] = []
 	lines.append_array(card.status_lines())
@@ -159,10 +154,11 @@ func _refresh() -> void:
 
 ## Display-only: shown, never hovered, dragged or part of the hand (an
 ## enemy part's cards, CombatScene._show_enemy_cards).
-func make_display() -> void:
+## `keywords`: its statuses and keywords still open their rules on hover.
+func make_display(keywords: bool = false) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _effect_label != null:
-		_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_effect_label.mouse_filter = Control.MOUSE_FILTER_PASS if keywords else Control.MOUSE_FILTER_IGNORE
 
 ## Display-only face for a component's passive (the opening reveal): no
 ## cost or damage, "PASSIVE" in the cost corner, the passive's text as the
@@ -179,7 +175,6 @@ func show_passive(component: ComponentData) -> void:
 	_cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_cost_label.add_theme_font_size_override("font_size", 11)
 	_cost_label.add_theme_color_override("font_color", Palette.category_color(_category))
-	_dmg_label.text = ""
 	_name_label.text = component.name
 	_effect_label.text = StatusGlossary.annotate(component.passive_text())
 	_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -236,12 +231,11 @@ func _draw() -> void:
 		draw_rect(rect, Color("eefcfa"), false, 3.0)
 	else:
 		draw_rect(rect, Color(accent, 0.9), false, 1.5)
-	if card != null: # the heat cost's chip
-		var c := Vector2(16, 15)
-		draw_circle(c, 12.0, Color(0.02, 0.05, 0.06, 0.95))
-		draw_circle(c, 12.0, Color(Palette.HARDPOINT, 0.22))
-		draw_arc(c, 12.0, 0.0, TAU, 24, Palette.HARDPOINT, 1.5, true)
-	draw_line(Vector2(8, 28), Vector2(size.x - 8, 28), Color(accent, 0.35), 1.0)
+	if card != null: # the heat cost, in a flame (Logan, 2026-10-16: it's heat)
+		draw_glyph(self, flame_shape(FLAME_AT, 1.0), 0.22, 1.5)
+		draw_colored_polygon(flame_shape(FLAME_AT + Vector2(0, 2), 0.6), Color(Palette.HARDPOINT, 0.16)) # a smaller flame inside
+		_draw_damage()
+	draw_line(Vector2(32 if card != null else 8, 28), Vector2(size.x - 8, 28), Color(accent, 0.35), 1.0) # (clear of the flame)
 	if hotkey > 0 and not _spent: # its number key, bottom right
 		var kc := Vector2(size.x - 13, size.y - 13)
 		draw_circle(kc, 9.0, Color(0.02, 0.05, 0.06, 0.9))
@@ -257,6 +251,101 @@ func _draw() -> void:
 		var band := Rect2(0, size.y * 0.42, size.x, 24)
 		draw_rect(band, Color(0, 0, 0, 0.75), true)
 		draw_string(font, Vector2(0, band.position.y + 17), "SPENT", HORIZONTAL_ALIGNMENT_CENTER, size.x, 14, Palette.TEXT)
+
+## The damage, top right (Logan, 2026-10-16: "2×5–6" confused players): a
+## reticle holding the hit count, "×", then an impact burst holding the
+## damage per hit. One hit: just the burst.
+const BURST_AT := Vector2(BASE_SIZE.x - 30.0, 14.0)
+const BURST_R := Vector2(24.0, 13.0) # the spikes' reach, across and up
+const RETICLE_R := 9.5
+
+func _draw_damage() -> void:
+	if card == null or card.hits <= 0:
+		return
+	var font := get_theme_default_font()
+	var col := Palette.HARDPOINT
+	draw_glyph(self, burst_shape(BURST_AT, BURST_R), 0.2, 1.5)
+	_centered(font, card.per_hit_label(), BURST_AT, 11, Palette.TEXT)
+	if card.hits == 1:
+		return
+	var times_x := BURST_AT.x - BURST_R.x - 6.0
+	_centered(font, "×", Vector2(times_x, BURST_AT.y), 12, col)
+	var c := Vector2(times_x - 6.0 - RETICLE_R - 3.0, BURST_AT.y)
+	draw_reticle(self, c, 1.5)
+	_centered(font, str(card.hits), c, 11, Palette.TEXT)
+
+## The card face's glyphs (heat flame, damage burst), also drawn by the
+## training coach's inline icons: a dark fill, a `fill_alpha` tint and a
+## closed outline `width` wide.
+static func draw_glyph(canvas: CanvasItem, outline: PackedVector2Array, fill_alpha: float, width: float) -> void:
+	canvas.draw_colored_polygon(outline, GLYPH_DARK)
+	canvas.draw_colored_polygon(outline, Color(Palette.HARDPOINT, fill_alpha))
+	outline.append(outline[0])
+	canvas.draw_polyline(outline, Palette.HARDPOINT, width, true)
+
+## The hit-count reticle: a ring with crosshair ticks through it.
+static func draw_reticle(canvas: CanvasItem, at: Vector2, width: float) -> void:
+	canvas.draw_circle(at, RETICLE_R, GLYPH_DARK)
+	canvas.draw_arc(at, RETICLE_R, 0.0, TAU, 28, Palette.HARDPOINT, width, true)
+	for d in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]: # the crosshair's ticks, through the ring
+		canvas.draw_line(at + d * (RETICLE_R - 3.0), at + d * (RETICLE_R + 3.5), Palette.HARDPOINT, width, true)
+
+const GLYPH_DARK := Color(0.02, 0.05, 0.06, 0.95)
+
+## `text` centered on `at` (a dark outline so it reads over the shapes).
+func _centered(font: Font, text: String, at: Vector2, font_size: int, color: Color) -> void:
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var base := at + Vector2(-w / 2.0, font.get_ascent(font_size) / 2.0 - 1.0)
+	draw_string_outline(font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 3, Color(0, 0, 0, 0.8))
+	draw_string(font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+## An impact burst around `at`: spikes reaching `r` (across, up), a fixed
+## uneven pattern so every card's burst looks the same.
+static func burst_shape(at: Vector2, r: Vector2) -> PackedVector2Array:
+	const SPIKES := [1.0, 0.85, 1.0, 0.9, 0.8, 1.0, 0.92, 1.0, 0.82, 0.95, 1.0, 0.88]
+	var pts := PackedVector2Array()
+	var n := SPIKES.size()
+	for i in range(n * 2):
+		var a := TAU * float(i) / float(n * 2) - PI / 2.0
+		var k: float = SPIKES[i / 2] if i % 2 == 0 else 0.72
+		pts.append(at + Vector2(cos(a) * r.x, sin(a) * r.y) * k)
+	return pts
+
+## Where the heat cost's flame stands: the middle of its round body.
+const FLAME_AT := Vector2(16, 19)
+
+## A flame's outline around `at` (its round body's middle), `k` its size
+## (Logan, 2026-10-16, from his sketch): a round body with three tongues on
+## top, a tall one in the middle leaning right and a short one either side.
+## In units of the body's radius (9 px at k = 1), y down.
+const FLAME_PATH := [
+	# [to, control]: quadratic curves from the body's right shoulder round
+	[Vector2(-0.6, -1.25), Vector2(-1.0, -0.8)],    # up the left side to the left tongue's tip
+	[Vector2(-0.4, -0.78), Vector2(-0.46, -1.02)],  # down into the left notch
+	[Vector2(0.14, -1.85), Vector2(-0.38, -1.55)],  # up the middle tongue to its tip
+	[Vector2(0.36, -0.82), Vector2(-0.04, -1.22)],  # down its right edge to the right notch
+	[Vector2(0.7, -1.12), Vector2(0.58, -0.86)],    # up to the right tongue's tip
+	[Vector2(0.98, -0.2), Vector2(1.06, -0.72)],    # down to the body's right shoulder
+]
+
+static func flame_shape(at: Vector2, k: float) -> PackedVector2Array:
+	var r := 9.0 * k
+	var pts := PackedVector2Array()
+	var a0 := -0.2
+	var a1 := PI + 0.2
+	for i in range(17): # the round body, right shoulder down and round to the left
+		var a := lerpf(a0, a1, float(i) / 16.0)
+		pts.append(at + Vector2(cos(a), sin(a)) * r)
+	var from := Vector2(cos(a1), sin(a1))
+	for seg in FLAME_PATH:
+		var to: Vector2 = seg[0]
+		var ctrl: Vector2 = seg[1]
+		for i in range(1, 7):
+			var s := float(i) / 6.0
+			pts.append(at + from.lerp(ctrl, s).lerp(ctrl.lerp(to, s), s) * r)
+		from = to
+	pts.remove_at(pts.size() - 1) # the last point is the first one again
+	return pts
 
 # ---------- hover ----------
 
@@ -339,7 +428,7 @@ func _hand_off() -> void:
 func _apply_hover_visual() -> void:
 	if _dragging:
 		return
-	var up := (_hovering or selected) and UIState.dragging_card == null
+	var up := (_hovering or selected or spotlit) and UIState.dragging_card == null
 	if _hover_tween != null:
 		_hover_tween.kill()
 	_hover_tween = create_tween().set_parallel(true)
@@ -356,6 +445,53 @@ func set_linked(on: bool) -> void:
 	linked = on
 	_apply_hover_visual()
 	queue_redraw()
+
+## Training shows this card as if hovered (Tutorial "hover" steps): raised,
+## with its text in the description box.
+var spotlit: bool = false
+
+func set_spotlit(on: bool) -> void:
+	if spotlit == on:
+		return
+	spotlit = on
+	if card != null:
+		if on:
+			UIState.set_hovered_card(card)
+		else:
+			UIState.clear_hovered_card(card)
+	_apply_hover_visual()
+
+## The card the mouse has raised, or null.
+static func raised() -> CardUI:
+	return _lifted if _lifted != null and is_instance_valid(_lifted) and _lifted._hovering else null
+
+func category() -> String:
+	return _category
+
+## Whether its text names a status or keyword (tinted, with its rule on hover).
+func has_keyword() -> bool:
+	return _effect_label != null and _effect_label.text.contains("[url=")
+
+## Where its text's first status or keyword is, on screen (Rect2() if none).
+## Card text is plain words plus the tinted links, so the shown text is the
+## same string with the tags stripped.
+func keyword_rect() -> Rect2:
+	if not has_keyword():
+		return Rect2()
+	var m := RegEx.create_from_string("\\[url=[^\\]]*\\]([^\\[]+)\\[/url\\]").search(_effect_label.text)
+	var shown := _effect_label.get_parsed_text()
+	var before := RegEx.create_from_string("\\[[^\\]]*\\]").sub(_effect_label.text.substr(0, m.get_start()).replace("[lb]", "<"), "", true)
+	var at := before.length()
+	var word := m.get_string(1)
+	var line := _effect_label.get_character_line(at)
+	var start := _effect_label.get_line_range(line).x
+	var font := _effect_label.get_theme_font("normal_font")
+	var fs := _effect_label.get_theme_font_size("normal_font_size")
+	var x := font.get_string_size(shown.substr(start, at - start), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var w := font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var local := Rect2(x, _effect_label.get_line_offset(line), w, _effect_label.get_line_height(line))
+	var xf := _effect_label.get_global_transform()
+	return Rect2(xf * local.position, local.size * xf.get_scale())
 
 func set_selected(on: bool) -> void:
 	if selected == on:
@@ -401,7 +537,7 @@ func apply_rest() -> void:
 	rotation_degrees = rest_rotation
 	scale = Vector2.ONE
 	z_index = rest_z
-	if _hovering or selected:
+	if _hovering or selected or spotlit:
 		_apply_hover_visual()
 
 # ---------- drag ----------

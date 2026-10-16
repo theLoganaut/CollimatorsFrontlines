@@ -53,13 +53,6 @@ func _build_children() -> void:
 	_health_bar.threshold = mech.defeat_hp_threshold()
 	add_child(_health_bar)
 
-	passive_row = PassiveRow.new()
-	passive_row.numbers_below = false # the row sits over the health bar: stacks show above it
-	passive_row.part_statuses = true # Shock on your weapon, Burn, Disabled...: a badge each, as for enemies
-	passive_row.position = Vector2(IMAGE_X, -PassiveIcon.ICON_SIZE.y - PASSIVE_GAP)
-	add_child(passive_row)
-	passive_row.setup(mech, IMAGE_SIZE.x)
-
 
 	_heat_box = HeatBox.new()
 	_heat_box.font_size = 24
@@ -100,6 +93,16 @@ func _build_children() -> void:
 	grid.position = image_pos + (IMAGE_SIZE - grid.size) / 2.0
 	add_child(grid)
 
+	# The badge row last, over the grid: its overflow opens over the health
+	# bar (which steps aside meanwhile) and the top of the image.
+	passive_row = PassiveRow.new()
+	passive_row.numbers_below = false # the row sits over the health bar: stacks show above it
+	passive_row.part_statuses = true # Shock on your weapon, Burn, Disabled...: a badge each, as for enemies
+	passive_row.position = Vector2(IMAGE_X, -PassiveIcon.ICON_SIZE.y - PASSIVE_GAP)
+	add_child(passive_row)
+	passive_row.setup(mech, IMAGE_SIZE.x)
+	passive_row.expanded_changed.connect(func(on: bool): _health_bar.visible = not on)
+
 func refresh() -> void:
 	if mech == null:
 		return
@@ -127,6 +130,10 @@ func _refresh_preview() -> void:
 	if HeatRules.is_overheated(projected, mech.heat_capacity()) and mech.heat_check_timing != MechData.HEAT_CHECK_END_OF_TURN:
 		_health_bar.set_preview_loss(HeatRules.backlash_for(mech))
 		_set_warning(true)
+
+## A hovered part's HP lit on the health bar (0 clears it).
+func highlight_hp(amount: int) -> void:
+	_health_bar.set_highlight(amount)
 
 ## The primed protocol's badge on the passive row: [title, text] for its
 ## hover, or [] to hide it.

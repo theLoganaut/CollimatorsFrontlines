@@ -54,8 +54,14 @@ movie_writer/mjpeg_quality=0.95
 
 3d/physics_engine="Jolt Physics"
 
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+theme/custom_font="res://assets/fonts/VT323-Scaled.ttf"
+
 [rendering]
 
+anti_aliasing/quality/msaa_2d=2
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true

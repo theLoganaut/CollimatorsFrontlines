@@ -52,6 +52,7 @@ func _ready() -> void:
 	_overlay.draw.connect(_draw_overlay)
 	add_child(_overlay)
 	_label = HoloLabel.new()
+	_label.center_tag = true
 	add_child(_label)
 	_rng.seed = 7
 	resized.connect(_layout)
@@ -112,7 +113,10 @@ func _process(delta: float) -> void:
 		f["age"] += delta
 	_flashes = _flashes.filter(func(f): return f["age"] < FLASH_LIFE)
 	if _hovered >= 0:
-		_label.show_for(_symbol_pos(_hovered) + Vector2(0, -SYMBOL - 4.0), "up", _markers[_hovered]["location"].get("name", ""), _hover_lines(_hovered), "CLICK TO PLAN THE DROP", Palette.LINK)
+		# above the pin; below its foot when it's too near the far edge for that
+		var m: Dictionary = _markers[_hovered]
+		_label.show_for(_symbol_pos(_hovered) + Vector2(0, -SYMBOL - 4.0), "up", "%s - %s" % [m["location"].get("name", ""), m["mission"].get("name", "")],
+			_hover_lines(_hovered), "CLICK TO START MISSION", Palette.LINK, _ground_pos(_hovered) + Vector2(0, 6.0))
 	_overlay.modulate.a = _overlay_a
 	_overlay.queue_redraw()
 
@@ -178,10 +182,12 @@ func _hover_lines(i: int) -> Array:
 	var loc: Dictionary = _markers[i]["location"]
 	var mission: Dictionary = _markers[i]["mission"]
 	var stops := int(mission.get("rows", 7)) + (1 if mission.get("boss", false) else 0)
-	var lines: Array = ["%s  ·  %d encounters  ·  grid %s" % [str(mission.get("name", "")).to_upper(), stops, WarMap.grid_ref(_markers[i]["uv"])]]
-	lines.append_array(_wrap(str(mission.get("summary", "")), 52))
+	# Logan, 2026-10-16: a concise rundown, the mission type's, then (a gap) the place's
+	var lines: Array = ["%d encounters  ·  grid %s" % [stops, WarMap.grid_ref(_markers[i]["uv"])], ""]
+	lines.append_array(_wrap("%s: %s" % [mission.get("name", ""), mission.get("summary", "")], 52))
 	var desc := str(mission.get("location_description", loc.get("description", "")))
 	if desc != "" and not desc.begins_with("["):
+		lines.append("")
 		lines.append_array(_wrap(desc, 52))
 	return lines
 

@@ -1,11 +1,13 @@
 class_name EnemyPanel
 extends Control
-## One enemy slot (UI & Screens sketch): its status badges → a name bar
-## centered above the mech image → the mech image with its part grid laid
-## over it → a health bar exactly as wide as the image, with the heat box to
-## the image's left, bottom-aligned with the health bar → its intents → its
-## passive badges (Logan, 2026-10-02: statuses over the name, what it'll do
-## right under its health). The status row sits above the panel's origin.
+## One enemy slot, everything above the sprite so its feet can stand on the
+## floor (Logan, 2026-10-16), from the sprite up: the mech image with its
+## part grid laid over it → a health bar exactly as wide as the image, with
+## the heat box to its left, bottoms aligned → its badge row (passives,
+## statuses, a primed protocol; PassiveRow) → its intents → its name bar.
+## As the fight opens the name sits where the badges go, right over the
+## health bar; once its passives are revealed it rises to the top and the
+## badges and intents appear under it (show_full).
 ## The grid is faint at rest and fully visible while the mouse is on it, an
 ## attack card's crosshair is over this panel, or its passives are being
 ## revealed (see ChassisGridUI).
@@ -15,8 +17,8 @@ extends Control
 ## using image_center_offset().
 ##
 ## The image shows the enemy's sprite (MechArt). Elites are drawn bigger than
-## regulars and bosses bigger still, and everything under the image (health
-## bar, passives, intents) follows its size.
+## regulars and bosses bigger still, and the rows above the image (health
+## bar, passives, intents) follow its width.
 
 const IMAGE_SIZE := Vector2(180, 160) # a regular's
 const TIER_SCALE := {"elite": 1.15, "boss": 1.3}
@@ -24,18 +26,21 @@ const HEAT_BOX_SIZE := Vector2(44, 32)
 const HEAT_GAP := 6.0
 const IMAGE_X := HEAT_BOX_SIZE.x + HEAT_GAP
 const NAME_BAR_H := 24.0
-const IMAGE_Y := NAME_BAR_H + 6.0
 const HP_BAR_H := 20.0
 const INTENT_GAP := 12.0 # room for the little order chevrons between icons
 const CELL_SIZE := 28.0
 
 var mech: MechData
 var display_name: String = ""
-## This enemy's image size (IMAGE_SIZE scaled by its tier) and the rows under it.
+## This enemy's image size (IMAGE_SIZE scaled by its tier) and the rows above it.
 var image_size: Vector2 = IMAGE_SIZE
-var hp_bar_y: float
-var intent_y: float # what this enemy plans to do next turn, in order, under its health bar
+var intent_y: float # what this enemy plans to do next turn, in order, under its name
 var passive_y: float
+var hp_bar_y: float
+var image_y: float
+## Before the reveal: the name and health bar sit right on the image.
+var _compact_shift: float = 0.0
+var _full: bool = true
 var panel_size: Vector2
 var grid: ChassisGridUI
 
@@ -48,14 +53,12 @@ var _heat_box: HeatBox
 var _health_bar: HealthBar
 var _defeated_label: Label
 var _intent_row: Control
-var _theme: String = ""
+## Its passives, statuses (its own and its parts') and a primed protocol.
 var passive_row: PassiveRow
-## Its statuses (its own and its parts') and a primed protocol, above the name.
-var status_row: PassiveRow
 var defeat_played: bool = false
 
 func image_center_offset() -> Vector2:
-	return Vector2(IMAGE_X + image_size.x / 2.0, IMAGE_Y + image_size.y / 2.0)
+	return Vector2(IMAGE_X + image_size.x / 2.0, image_y + image_size.y / 2.0)
 
 ## Where this enemy's feet are from the panel's origin: the lowest pixel of
 ## its sprite (the image's bottom without art), centered. The sprite is
@@ -64,20 +67,22 @@ func feet_offset() -> Vector2:
 	var bottom := image_size.y
 	if _sprite != null:
 		bottom -= MechArt.bottom_inset(_sprite.texture) * image_size.y
-	return Vector2(IMAGE_X + image_size.x / 2.0, IMAGE_Y + bottom)
+	return Vector2(IMAGE_X + image_size.x / 2.0, image_y + bottom)
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	# its rect reaches over its neighbours' rows: only its children take the mouse
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func setup(p_mech: MechData, p_display_name: String) -> void:
 	mech = p_mech
 	display_name = p_display_name
 	image_size = (IMAGE_SIZE * float(TIER_SCALE.get(mech.tier, 1.0))).round()
-	hp_bar_y = IMAGE_Y + image_size.y + 8.0
-	intent_y = hp_bar_y + HP_BAR_H + 6.0
-	passive_y = intent_y + IntentIcon.ICON_SIZE.y + 6.0
-	var bottom := passive_y + PassiveIcon.ICON_SIZE.y if not mech.passive_components().is_empty() else intent_y + IntentIcon.ICON_SIZE.y
-	panel_size = Vector2(IMAGE_X + image_size.x, bottom)
+	intent_y = NAME_BAR_H + 8.0
+	passive_y = intent_y + IntentIcon.ICON_SIZE.y + 6.0 + PassiveRow.NUMBER_ROOM # stack numbers over the badges
+	hp_bar_y = passive_y + PassiveIcon.ICON_SIZE.y + 6.0
+	image_y = hp_bar_y + HP_BAR_H + 8.0
+	_compact_shift = hp_bar_y - 6.0 - NAME_BAR_H # the name, before the reveal: just over the health bar
+	panel_size = Vector2(IMAGE_X + image_size.x, image_y + image_size.y)
 	custom_minimum_size = panel_size
 	size = panel_size
 	_build_children()
@@ -104,7 +109,7 @@ func _build_children() -> void:
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_name_label)
 
-	var image_pos := Vector2(IMAGE_X, IMAGE_Y)
+	var image_pos := Vector2(IMAGE_X, image_y)
 	_image_rect = ColorRect.new()
 	_image_rect.position = image_pos
 	_image_rect.size = image_size
@@ -144,20 +149,6 @@ func _build_children() -> void:
 	_heat_box.size = HEAT_BOX_SIZE
 	_heat_box.position = Vector2(0, hp_bar_y + HP_BAR_H - HEAT_BOX_SIZE.y) # bottoms aligned
 
-	passive_row = PassiveRow.new()
-	passive_row.show_statuses = false
-	passive_row.position = Vector2(IMAGE_X, passive_y)
-	add_child(passive_row)
-	passive_row.setup(mech, image_size.x)
-
-	# Stack numbers go under the badges, between them and the name plate.
-	status_row = PassiveRow.new()
-	status_row.show_passives = false
-	status_row.part_statuses = true
-	status_row.position = Vector2(IMAGE_X, -PassiveIcon.ICON_SIZE.y - 18.0)
-	add_child(status_row)
-	status_row.setup(mech, image_size.x)
-
 	_intent_row = Control.new()
 	_intent_row.position = Vector2(IMAGE_X, intent_y)
 	_intent_row.size = Vector2(image_size.x, IntentIcon.ICON_SIZE.y)
@@ -177,6 +168,41 @@ func _build_children() -> void:
 	_defeated_label.visible = false
 	add_child(_defeated_label)
 
+	# The badge row last, over the grid: its overflow opens over the image.
+	passive_row = PassiveRow.new()
+	passive_row.numbers_below = false
+	passive_row.part_statuses = true # Shock on a weapon...: the grid is faint at rest
+	passive_row.position = Vector2(IMAGE_X, passive_y)
+	add_child(passive_row)
+	passive_row.setup(mech, image_size.x)
+	passive_row.expanded_changed.connect(func(open: bool): _health_bar.visible = not open) # its overflow opens over the bar
+	_set_full(false, false)
+
+## The opening layout (full = false: the name and health bar on the image,
+## no intents or badges) or the fight's.
+func show_full() -> void:
+	_set_full(true, true)
+
+func _set_full(on: bool, animated: bool) -> void:
+	if on == _full:
+		return
+	_full = on
+	var y := 0.0 if on else _compact_shift
+	for node in [_name_bar, _name_label]:
+		if animated and not GameSettings.reduce_motion:
+			node.create_tween().tween_property(node, "position:y", y, 0.35).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+		else:
+			node.position.y = y
+	for node in [_intent_row, passive_row]:
+		if node == passive_row and mech != null and mech.is_defeated():
+			continue
+		if animated:
+			node.modulate.a = 0.0
+			node.visible = true
+			node.create_tween().tween_property(node, "modulate:a", 1.0, 0.3).set_delay(0.2)
+		else:
+			node.visible = on
+
 func refresh() -> void:
 	if mech == null:
 		return
@@ -184,21 +210,20 @@ func refresh() -> void:
 	_health_bar.set_hp(mech.current_hp(), mech.max_hp())
 	grid.refresh_all()
 	passive_row.refresh()
-	status_row.refresh()
 	_defeated_label.visible = mech.is_defeated()
-	status_row.visible = not mech.is_defeated()
+	if mech.is_defeated(): # no statuses or protocol over the wreck
+		passive_row.visible = false
 
-## A primed protocol's badge on the status row ([title, text]; [] hides it).
+## A primed protocol's badge on the badge row ([title, text]; [] hides it).
 func set_protocol(info: Array) -> void:
-	status_row.set_protocol(info)
+	passive_row.set_protocol(info)
 
 ## Shows the upcoming actions ([{card, active, target}], in order) as
-## icons centered under the mech image, plus a flame when the plan will
+## icons centered over the mech image, plus a flame when the plan will
 ## overheat it. Hovering an icon shows what it'll do and to which part.
 ## `venting`: it has nothing to play and spends its turn venting (shown
 ## as its one intent).
-func set_intents(actions: Array, overheat: bool = false, venting: bool = false, theme: String = "") -> void:
-	_theme = theme
+func set_intents(actions: Array, overheat: bool = false, venting: bool = false) -> void:
 	for child in _intent_row.get_children():
 		_intent_row.remove_child(child)
 		child.queue_free()
@@ -238,14 +263,8 @@ func set_intents(actions: Array, overheat: bool = false, venting: bool = false, 
 	_intent_row.queue_redraw()
 
 func _draw_intent_chevrons() -> void:
+	# No theme word ("GUARD", "AFFLICT"...) beside them: the icons say it (Logan, 2026-10-16).
 	var icons := _intent_row.get_children()
-	# This turn's theme (EnemyAI), left of its intents: "GUARD", "CHARGE"...
-	if _theme != "" and not icons.is_empty():
-		var font := ThemeDB.fallback_font
-		var label := _theme.to_upper()
-		var w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x
-		var x: float = (icons[0] as Control).position.x - w - 6.0
-		_intent_row.draw_string(font, Vector2(x, IntentIcon.ICON_SIZE.y / 2.0 + 4.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Palette.TEXT_MUTED)
 	for i in range(icons.size() - 1):
 		if (icons[i + 1] as IntentIcon).kind == IntentIcon.INTENT_OVERHEAT:
 			continue
@@ -253,13 +272,13 @@ func _draw_intent_chevrons() -> void:
 		var y := IntentIcon.ICON_SIZE.y / 2.0
 		_intent_row.draw_polyline(PackedVector2Array([Vector2(x - 2, y - 4), Vector2(x + 2, y), Vector2(x - 2, y + 4)]), Palette.TEXT_MUTED, 1.5, true)
 
+## A hovered part's HP lit on the health bar (0 clears it).
+func highlight_hp(amount: int) -> void:
+	_health_bar.set_highlight(amount)
+
 ## The HP an aimed attack would take off, on the health bar (0 clears it).
 func preview_damage(lo: int, hi: int) -> void:
 	_health_bar.set_preview_loss(lo, hi)
-
-## The bottom of its intent row on screen (what sits lowest on the panel).
-func intents_global_bottom() -> float:
-	return _intent_row.get_global_rect().end.y
 
 func image_global_rect() -> Rect2:
 	return _image_rect.get_global_rect()

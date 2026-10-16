@@ -73,8 +73,11 @@ func _fill(entries: Array, lines: Array) -> void:
 		var l := _text("[color=#%s]%s[/color]" % [(line[1] as Color).to_html(false), str(line[0]).replace("[", "[lb]")])
 		_vbox.add_child(l)
 	for e in entries:
-		var col: Color = e["color"]
-		_vbox.add_child(_text("[color=#%s][b]%s[/b][/color]  %s" % [col.lightened(0.15).to_html(false), e["label"], str(e["rule"]).replace("[", "[lb]")]))
+		# the name thickened by an outline in its own color, not [b]: the font is
+		# MSDF (project.godot) and Godot's faked bold breaks up on it (Logan,
+		# 2026-10-16: boxes and blots around "Vent"; tools/font_test.gd)
+		var col: String = (e["color"] as Color).lightened(0.15).to_html(false)
+		_vbox.add_child(_text("[color=#%s][outline_size=2][outline_color=#%s]%s[/outline_color][/outline_size][/color]  %s" % [col, col, e["label"], str(e["rule"]).replace("[", "[lb]")]))
 	_panel.visible = true
 	_panel.reset_size()
 	_place()

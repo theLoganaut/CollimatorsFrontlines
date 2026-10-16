@@ -12,21 +12,38 @@ extends CanvasLayer
 
 const TRAINING_MISSION := "training"
 
-## [point, target name(s) ("" = none; "a+b" rings both), text, wait ("next" or an event)].
+## [point, target name(s) ("" = none; "a+b" rings both), text, wait ("next" or an event), options].
 ## The first sentence is the step's topic (lit in the box), so it says what the step is about.
+## Text marks: {y}…{/y} lit, {r}…{/r} red (either one replaces the lit first sentence),
+## {plain} nothing lit, {icon:<name>} an inline icon (TutorialIcons). Empty text: no box
+## (the step just waits). A wait starting "?" is optional: the next step's wait also passes it.
+## Options: "hover" (the target of that name is shown hovered: a hand card, an intent,
+## an enemy part; the step is skipped if there's none), "side" ("right": the box keeps
+## to that half of the screen), "button" (the Next button's label).
 const STEPS := [
-	["war_room", "table", "Every mission starts at the War Table. Welcome aboard, pilot: click the table.", "table_opened"],
+	# a quick tour of the War Room first (Logan, 2026-10-16: pilots didn't know there was more to click than the table)
+	["war_room", "hangar", "Welcome aboard, pilot: let me show you around. {y}This is the Hangar.{/y} Pick your mech and its starting loadout here before a mission.", "next"],
+	["war_room", "directives", "Directives are three daily goals. Complete them on missions to earn Chips.", "next"],
+	["war_room", "pilot_log", "The Pilot Log keeps your stats, mission history and achievements, plus recordings of your fights to watch back.", "next"],
+	["war_room", "memorial_wall", "The Memorial Wall holds the corrupted Collimators you've faced.", "next"],
+	["war_room", "info_bay", "The Info Bay lets you browse every part and status in the game. You can replay this training from there, too.", "next"],
+	["war_room", "livery_bay", "The Livery Bay sells paint schemes for your mechs, paid in Chips.", "next"],
+	["war_room", "discord", "That sign opens our Discord. Meet other pilots, report bugs and see what's coming.", "next"],
+	["war_room", "table", "Every mission starts at the War Table. Click the table.", "table_opened"],
 	["sector_map", "map", "This is a simulated mission at the Shipyard. Real missions offer three locations to choose from; for training there's just this one. Click it.", "location_opened"],
 	["popup", "launch", "Launch to drop in. Your HP and any parts you lose carry through the whole mission.", "launched"],
-	["location_map", "starts", "This is your route through the location. One stop per row, bottom to top: fights, repair bays, shops and events. Click the lit stop.", "node_chosen"],
+	["location_map", "starts", "This is your route through the location. One stop per row, bottom to top: fights {icon:fight}, repair bays {icon:repair}, shops {icon:shop} and events {icon:event}. Click the lit stop.", "node_chosen"],
+	["reveal", "passives+row", "Reactors give you passives that are automatically played and are shown by allies and enemies at the start of the battle. They move to the blue icons above your health bar.", "next"],
 	["combat", "player", "This is your mech, built from parts. Each colored block is one part with its own HP, and enemy attacks hit parts, not the whole mech.", "next"],
-	["combat", "player+hand", "Your cards come from your parts. Hardpoints (orange) are weapons: they give attack cards. Protocols (purple) are weapon augments: prime one and it powers up your next attack. Reactors (teal) are passives: always on, no cards.", "next"],
-	["combat", "hand", "This is your hand: every card your parts give you. Hover a card to see the part it comes from. Each card plays once a turn and comes back next turn.", "next"],
-	["combat", "heat", "Cards cost Heat. Go over your max and you overheat: it damages your parts and ends your turn.", "next"],
-	["combat", "intents", "These icons are what the enemy plans to do next. Hover one to see the card and which of your parts it's aiming at.", "next"],
-	["combat", "hand+enemy", "You win by destroying all of an enemy's hardpoints: with no weapons left, it explodes or retreats. Drag an attack card from your hand onto one of its parts.", "card_played"],
-	["combat", "enemy", "A part at 0 HP is destroyed. Its cards and passive are gone, and it stays wrecked for the rest of the mission. The same goes for yours: lose all your hardpoints and you're out.", "next"],
-	["combat", "end_turn", "Press End Turn when you're done. The enemy acts, then your heat vents for your next turn.", "turn_ended"],
+	["combat", "hardpoint_card", "Hardpoints are Orange, which give cards that cost Heat {icon:heat} and do damage {icon:damage} a number of times {icon:shots}.", "next", {"hover": "hardpoint_card"}],
+	["combat", "protocol_card", "Protocols are Purple, they give free cards that augment the game in some manner. Only one protocol affects the next play at a time.", "next", {"hover": "protocol_card"}],
+	["combat", "heat", "{y}Cards cost heat{/y}, Overheating {r}damages{/r} your mech in proportion to your current health and ends your turn.", "next"],
+	["combat", "first_intent+description+intent_part", "These are the enemy Intents. Hover over one to see the card and its aim.", "next", {"hover": "first_intent"}],
+	["combat", "first_card+enemy", "{y}To win, destroy all the enemy's Hardpoints. With no weapons left it explodes or retreats.{/y} Drag a card from your hand to an enemy part to attack now.", "?keyword_card_hovered", {"hover": "enemy_part", "side": "right"}],
+	["combat", "keyword", "{plain}Cards may have Keywords. Hover over the keyword now to view its description. When applied to a part, they show on the augments bar above your health.", "card_played"],
+	["combat", "enemy", "Any part that reaches 0 health is destroyed for the mission, permanently. Any cards and passives for it are gone.", "next"],
+	["combat", "", "Play the rest of your turn now if you like, then click End Turn when you feel you're done with the turn.", "next", {"button": "Continue"}],
+	["combat", "", "", "turn_ended"],
 	["combat", "", "That's the whole loop. Finish it off.", "next"],
 	["reward", "reward", "Salvage comes after every win. Your scraps are already banked. Pick a category, then one part for your Cargo (or skip it for a few scraps), then Continue.", "reward_done"],
 	["refit", "mech", "A refit lets you rebuild your mech. Click a part to pick it up, then click where it goes. R or right-click rotates it. Lit squares show where it fits.", "next"],
@@ -37,6 +54,8 @@ const STEPS := [
 ]
 
 signal finished()
+## Training moved on a step.
+signal advanced()
 ## The War Room got (or changed) its name.
 signal base_named()
 
@@ -44,6 +63,7 @@ var active: bool = false
 var step: int = 0
 var _point: String = ""
 var _targets: Dictionary = {}
+var _screen_targets: Dictionary = {} # what the screen last passed to reached() (notes and offers clear _targets)
 var _offer: bool = false
 ## Asking for the War Room's name (the box shows a text field instead of Next).
 var _naming: bool = false
@@ -95,6 +115,10 @@ func _ready() -> void:
 	_box.draw.connect(func(): GlassPanel.draw_frame(_box, Rect2(Vector2.ZERO, _box.size)))
 	_root.add_child(_box)
 	get_viewport().size_changed.connect(func(): _place_skip())
+	# a card picked up lets go of what a step shows hovered; a drag that
+	# didn't play shows it again
+	UIState.drag_started.connect(func(_c): _set_spotlight(null))
+	UIState.drag_ended.connect(func(): if active and _root.visible: _refresh_spot())
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 14)
 	_box.add_child(h)
@@ -220,7 +244,7 @@ func offer() -> void:
 func _accept_offer() -> void:
 	_offer = false
 	start()
-	reached("war_room", _targets)
+	reached("war_room", _screen_targets if _point == "war_room" else {})
 
 func start() -> void:
 	active = true
@@ -229,12 +253,14 @@ func start() -> void:
 	_skip_corner.visible = true
 
 func skip() -> void:
+	_set_spotlight(null)
 	_offer = false
 	active = false
 	Profile.tutorial_done = true
 	Profile.save()
 	_root.visible = false
 	_skip_corner.visible = false
+	advanced.emit()
 	finished.emit()
 
 func is_training_run(run: RunData) -> bool:
@@ -246,6 +272,7 @@ func is_training_run(run: RunData) -> bool:
 func reached(point: String, targets: Dictionary) -> void:
 	_point = point
 	_targets = targets
+	_screen_targets = targets
 	if not active:
 		if not _offer and not _naming and not _hinting:
 			_root.visible = false
@@ -261,34 +288,96 @@ func reached(point: String, targets: Dictionary) -> void:
 func event(name: String) -> void:
 	if not active or step >= STEPS.size():
 		return
-	if STEPS[step][3] != name:
+	var wait: String = STEPS[step][3]
+	if wait.trim_prefix("?") == name:
+		step += 1
+	elif wait.begins_with("?") and step + 1 < STEPS.size() and STEPS[step + 1][3] == name:
+		step += 2
+	else:
 		return
-	step += 1
+	advanced.emit()
 	if step >= STEPS.size():
-		active = false
-		Profile.tutorial_done = true
-		Profile.save()
-		_root.visible = false
-		_skip_corner.visible = false
-		finished.emit()
+		_finish()
 		return
 	_refresh()
 
+func _finish() -> void:
+	_set_spotlight(null)
+	active = false
+	Profile.tutorial_done = true
+	Profile.save()
+	_root.visible = false
+	_skip_corner.visible = false
+	finished.emit()
+
+## Training is on, being offered, or asking for the base's name: the War
+## Room's own Operator line waits.
+func busy() -> bool:
+	return active or _offer or _naming
+
+## Whether training is on a step at `point` (a screen waits there for it to move on).
+func holds(point: String) -> bool:
+	return active and step < STEPS.size() and STEPS[step][0] == point
+
 func _refresh() -> void:
 	var s: Array = STEPS[step]
+	var opts: Dictionary = s[4] if s.size() > 4 else {}
 	if s[0] != _point:
+		_set_spotlight(null)
 		_root.visible = false
 		return
-	_show(s[2], s[1], s[3] == "next")
+	var spot: Object = null
+	if opts.has("hover"):
+		var found := _rects_of(_targets.get(opts["hover"], null))
+		spot = _spot_of(_targets.get(opts["hover"], null))
+		if spot == null or found.is_empty(): # nothing to show (no protocol in this kit): on to the next step
+			step += 1
+			if step >= STEPS.size():
+				_finish()
+			else:
+				_refresh()
+			return
+	_set_spotlight(spot)
+	if s[2] == "":
+		_root.visible = false
+		return
+	_show(s[2], s[1], s[3] == "next", opts.get("button", ""))
 
-func _show(text: String, target: String, wait_next: bool) -> void:
+func _refresh_spot() -> void:
+	if step >= STEPS.size() or STEPS[step][0] != _point:
+		return
+	var s: Array = STEPS[step]
+	if s.size() > 4 and s[4].has("hover"):
+		_set_spotlight(_spot_of(_targets.get(s[4]["hover"], null)))
+
+## What a "hover" step shows hovered (null: none): anything with set_spotlit(on).
+var _spot: Object = null
+## A "hover" step is showing something (kept apart from _spot: a freed one reads as null).
+var _spot_on: bool = false
+
+func _set_spotlight(c: Object) -> void:
+	if c != null and _spot == c:
+		return
+	if _spot != null and is_instance_valid(_spot) and _spot.has_method("set_spotlit"):
+		_spot.set_spotlit(false)
+	_spot = c
+	_spot_on = c != null
+	if _spot != null and _spot.has_method("set_spotlit"):
+		_spot.set_spotlit(true)
+
+static func _spot_of(t) -> Object:
+	if t is Callable:
+		t = t.call()
+	return t if t is Object and is_instance_valid(t) and t.has_method("set_spotlit") else null
+
+func _show(text: String, target: String, wait_next: bool, button: String = "") -> void:
 	_root.visible = true
-	_text.text = _topic(text) if active and not _hinting else _escape(text)
+	_set_text(text, active and not _hinting)
 	_text.visible_ratio = 0.0
 	_name_row.visible = _naming
 	_start_btn.visible = _offer and not _naming
 	_next_btn.visible = not _offer and not _naming and wait_next
-	_next_btn.text = "Got it" if _hinting or step >= STEPS.size() - 1 or text.ends_with("off.") else "Next"
+	_next_btn.text = button if button != "" else ("Got it" if _hinting or step >= STEPS.size() - 1 or text.ends_with("off.") else "Next")
 	_skip_btn.visible = _offer and not _naming
 	_place_skip()
 	# The offer and the name hold the screen. Training steps never do: the
@@ -304,16 +393,78 @@ func _show(text: String, target: String, wait_next: bool) -> void:
 ## Whether this step waits on "Next" (a darker dim) rather than an action.
 var _hold: bool = false
 
-## The step's first sentence (its topic) lit, the rest as is.
-static func _topic(text: String) -> String:
-	var m := RegEx.create_from_string("^(.+?[.!?])(\\s|$)").search(text)
-	if m == null:
-		return _escape(text)
-	var head := m.get_string(1)
-	return "[color=#%s]%s[/color]%s" % [Palette.LINK.to_html(false), _escape(head), _escape(text.substr(head.length()))]
+## Fills the box's text. `lit`: a training step, so its first sentence (its
+## topic) is lit, unless the text marks its own colors (see STEPS).
+func _set_text(text: String, lit: bool) -> void:
+	_text.clear()
+	var marked := text.contains("{y}") or text.contains("{r}") or text.begins_with("{plain}")
+	text = text.trim_prefix("{plain}")
+	if lit and not marked:
+		var m := RegEx.create_from_string("^(.+?[.!?])(\\s|$)").search(text)
+		if m != null:
+			text = "{y}%s{/y}%s" % [m.get_string(1), text.substr(m.get_string(1).length())]
+	var at := 0
+	for m in RegEx.create_from_string("\\{(y|r|/y|/r|icon:\\w+)\\}").search_all(text):
+		_text.add_text(text.substr(at, m.get_start() - at))
+		var tag := m.get_string(1)
+		match tag:
+			"y": _text.push_color(Palette.LINK)
+			"r": _text.push_color(Palette.DANGER)
+			"/y", "/r": _text.pop()
+			_:
+				var icon: Array = _icon(tag.trim_prefix("icon:"))
+				if not icon.is_empty():
+					_text.add_image(icon[0], int(icon[1].x), int(icon[1].y))
+		at = m.get_end()
+	_text.add_text(text.substr(at))
 
-static func _escape(s: String) -> String:
-	return s.replace("[", "[lb]")
+# ---------- inline icons ----------
+
+## The game's own icons (drawn in code, not images), each rendered once
+## into a texture the box's text can show: [texture, display size].
+var _icons: Dictionary = {}
+const ICON_SCALE := 2.0 # rendered at twice the size shown, so they stay crisp
+
+func _icon(name: String) -> Array:
+	if _icons.has(name):
+		return _icons[name]
+	var size := Vector2.ZERO
+	var art: Control
+	if name in [RunMap.KIND_FIGHT, RunMap.KIND_ELITE, RunMap.KIND_BOSS, RunMap.KIND_REPAIR, RunMap.KIND_SHOP, RunMap.KIND_EVENT]:
+		var node := MapNodeUI.new() # a map stop's badge, as on the location map
+		node.setup(-1, name, 0, MapNodeUI.State.AVAILABLE)
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		node.position = Vector2(MapNodeUI.RADIUS + 6.0 - MapNodeUI.SIZE.x / 2.0, 4.0) # the badge's center in the middle
+		art = Control.new()
+		art.add_child(node)
+		size = Vector2(MapNodeUI.RADIUS + 6.0, MapNodeUI.RADIUS + 6.0) * 2.0
+	else:
+		match name: # the card face's heat flame, damage burst and hit-count reticle
+			"heat": size = Vector2(22, 30)
+			"damage", "shots": size = Vector2(28, 28)
+			_: return []
+		art = Control.new()
+		art.draw.connect(func(): _draw_card_icon(art, name, size / 2.0 + (Vector2(0, 4) if name == "heat" else Vector2.ZERO)))
+	var vp := SubViewport.new()
+	vp.transparent_bg = true
+	vp.disable_3d = true
+	vp.size = Vector2i(size * ICON_SCALE)
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	art.scale = Vector2(ICON_SCALE, ICON_SCALE)
+	vp.add_child(art)
+	add_child(vp)
+	var shown := size * (0.46 if art.get_child_count() > 0 else 0.7)
+	_icons[name] = [vp.get_texture(), shown]
+	return _icons[name]
+
+static func _draw_card_icon(c: Control, name: String, at: Vector2) -> void:
+	match name:
+		"heat":
+			CardUI.draw_glyph(c, CardUI.flame_shape(at, 1.2), 0.35, 2.0)
+		"damage":
+			CardUI.draw_glyph(c, CardUI.burst_shape(at, Vector2(13, 13)), 0.35, 2.0)
+		"shots":
+			CardUI.draw_reticle(c, at, 2.0)
 
 func _place_skip() -> void:
 	var screen: Vector2 = _root.get_viewport_rect().size
@@ -326,10 +477,18 @@ static func _rects_of(t) -> Array[Rect2]:
 	var list: Array = t if typeof(t) == TYPE_ARRAY else ([t] if t != null else [])
 	var out: Array[Rect2] = []
 	for c in list:
+		if c is Callable: # looked up as it's drawn (a hand card, a hovered card's keyword)
+			c = c.call()
+			if typeof(c) == TYPE_ARRAY:
+				out.append_array(_rects_of(c))
+				continue
 		if typeof(c) == TYPE_RECT2:
-			out.append(c)
-		elif c is Control and is_instance_valid(c) and c.is_visible_in_tree():
+			if c.size != Vector2.ZERO:
+				out.append(c)
+		elif is_instance_valid(c) and c is Control and c.is_visible_in_tree():
 			out.append((c as Control).get_global_rect())
+		elif is_instance_valid(c) and c is Object and c.has_method("spot_rects"): # a part shown hovered
+			out.append_array(c.spot_rects())
 	return out
 
 ## The ringed rects, in screen space (empty if there's nothing to ring).
@@ -339,7 +498,7 @@ func _target_rects() -> Array[Rect2]:
 		return out
 	for name in _current_target.split("+"):
 		for r in _rects_of(_targets.get(name, null)):
-			out.append(r.grow(8.0))
+			out.append(r.grow(4.0 if name == "keyword" else 8.0)) # a word: a snug ring
 	return out
 
 ## All ringed rects merged into one (empty Rect2 if none).
@@ -369,6 +528,10 @@ func _place_box() -> void:
 	_placed = false
 	_spoken_at = -1.0
 	_box.modulate.a = 0.0
+	if _spot_on: # what a "hover" step just opened (the Description Box) settles to its size first
+		await get_tree().create_timer(0.25, true, false, true).timeout
+		if gen != _place_gen:
+			return
 	var screen: Vector2 = _root.get_viewport_rect().size
 	var ring := _target_rects()
 	var merged := _target_rect()
@@ -386,6 +549,8 @@ func _place_box() -> void:
 			for o in _rects_of(_targets[key]):
 				if merged.size == Vector2.ZERO or not o.encloses(merged):
 					soft.append(o)
+	var opts: Dictionary = STEPS[step][4] if active and not _hinting and step < STEPS.size() and STEPS[step].size() > 4 else {}
+	var side: String = opts.get("side", "")
 	var anchor := merged.get_center() if merged.size != Vector2.ZERO else Vector2(screen.x / 2.0, screen.y * 0.45)
 	var best_cost := INF
 	var best_pos := Vector2.ZERO
@@ -405,6 +570,8 @@ func _place_box() -> void:
 			for o in soft:
 				cost += box.intersection(o).get_area() * 5.0
 			cost += box.get_center().distance_to(anchor)
+			if side == "right" and box.position.x < screen.x / 2.0:
+				cost += 1e7 # the step wants it on the right
 			if w != BOX_WIDTHS[0]:
 				cost += 60.0 # the standard width, unless another one clears more
 			if cost < best_cost:
@@ -427,7 +594,7 @@ func _speak() -> void:
 		_talk.kill()
 	_face.talking = true
 	_talk = create_tween()
-	_talk.tween_property(_text, "visible_ratio", 1.0, clampf(_text.text.length() / 60.0, 0.4, 2.2))
+	_talk.tween_property(_text, "visible_ratio", 1.0, clampf(_text.get_total_character_count() / 60.0, 0.4, 2.2))
 	_talk.tween_callback(func():
 		_face.talking = false
 		_spoken_at = _t)
@@ -455,10 +622,20 @@ func _candidates(screen: Vector2, bs: Vector2, r: Rect2) -> Array[Vector2]:
 	return kept
 
 func _process(delta: float) -> void:
+	if _spot_on and is_instance_valid(_spot) and _spot.has_method("relight"):
+		_spot.relight()
+	if _spot_on: # the hand was dealt again, the intents redrawn: show the new card hovered
+		var s: Array = STEPS[step] if active and step < STEPS.size() else []
+		var now := _spot_of(_targets.get(s[4]["hover"], null)) if s.size() > 4 and s[4].has("hover") else null
+		if now != null and now != _spot:
+			_set_spotlight(now)
 	if _root.visible:
 		_t += delta
 		_dim.queue_redraw()
 		if _placed:
+			if UIState.dragging_card != null and _fades: # out of the way while a card is aimed
+				_box.modulate.a = move_toward(_box.modulate.a, 0.12, delta * 6.0)
+				return
 			var faded := _fades and _spoken_at >= 0.0 and _t - _spoken_at >= FADE_DELAY \
 				and not _box.get_global_rect().has_point(_box.get_global_mouse_position())
 			_box.modulate.a = move_toward(_box.modulate.a, FADED_ALPHA if faded else 1.0, delta * 3.0)

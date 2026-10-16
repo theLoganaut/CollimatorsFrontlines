@@ -207,7 +207,12 @@ func _ready() -> void:
 		(func(): WhatsNewDialog.open(get_tree())).call_deferred() # pops up once after an update
 	if Profile.runs == 0 and not Profile.tutorial_done:
 		WhatsNewDialog.mark_read() # a new pilot didn't update from anything
-	Tutorial.reached("war_room", {"table": table})
+	if _operator_held():
+		_operator.visible = false
+	Tutorial.finished.connect(_on_base_named) # training skipped or done: his line can play
+	var spots := _stations.duplicate() # each station, for training's tour of the room
+	spots["table"] = table
+	Tutorial.reached("war_room", spots)
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -466,6 +471,18 @@ func _build_top_bar() -> void:
 	_top_bar.clickable_title(func(): if not Tutorial.active: Tutorial.ask_base_name(), "Rename the base")
 	var row := _top_bar.row
 	_on_base_named()
+	# the update notes and roadmap (WhatsNewDialog; Logan, 2026-10-16: the
+	# version stamp alone was too easy to miss)
+	var notes := GlassPanel.button("Patch Notes", 12, false, Palette.LINK)
+	notes.custom_minimum_size = Vector2(110, TopBar.CHIP_H)
+	notes.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	notes.focus_mode = Control.FOCUS_NONE
+	notes.tooltip_text = "What's new in this update, and what's coming next"
+	notes.pressed.connect(func():
+		if not Tutorial.active:
+			Audio.play("ui")
+			WhatsNewDialog.open(get_tree()))
+	row.add_child(notes)
 	row.add_child(FeedbackDialog.button())
 	row.add_child(UIKit.spacer())
 	row.add_child(TopBar.chip(_bar_label("%s Chips" % HubScreen._thousands(Profile.chips), 14, Palette.SCRAPS), Palette.SCRAPS))
@@ -474,9 +491,14 @@ func _build_top_bar() -> void:
 	_settings_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_settings_button)
 
+## One Operator at a time (Logan, 2026-10-16): his War Room line waits while
+## training is offered or under way, coached by the Tutorial's own box.
+func _operator_held() -> bool:
+	return Tutorial.busy() or (not Profile.tutorial_done and not SaveGame.has_save())
+
 func _on_base_named() -> void:
 	_top_bar.set_title(Profile.base_name if Profile.base_name.strip_edges() != "" else "Home Base")
-	if _operator != null and not _operator.visible and not _operator_dismissed and not _zoomed:
+	if _operator != null and not _operator.visible and not _operator_dismissed and not _zoomed and not _operator_held():
 		_operator.visible = true # held back while the base was being named
 		_operator_talk()
 
@@ -571,7 +593,7 @@ func _zoom_out() -> void:
 	_back_button.visible = false
 	_daily_button.visible = false
 	var screen: Vector2 = get_viewport_rect().size
-	_operator.visible = not _operator_dismissed
+	_operator.visible = not _operator_dismissed and not _operator_held()
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(room, "scale", Vector2.ONE, ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(room, "position", ((screen - BASE) / 2.0).floor(), ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)

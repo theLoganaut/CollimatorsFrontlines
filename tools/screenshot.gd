@@ -110,7 +110,7 @@ func _ready() -> void:
 				await get_tree().create_timer(1.0).timeout
 				Tutorial._name_edit.text = args[3]
 				Tutorial._name_edit.text_submitted.emit(args[3])
-		elif Tutorial.has_method("skip"):
+		elif Tutorial.has_method("skip") and not Tutorial.active: # (--tutorial: the coach's step stays up)
 			Tutorial._root.visible = false
 		if what == "continue" and SaveGame.has_save():
 			wr.popup.open_continue(SaveGame.summary())
@@ -130,6 +130,29 @@ func _ready() -> void:
 		wr2._zoom_in()
 		await get_tree().create_timer(2.5).timeout
 		wr2._on_location_chosen(GameData.sector(args[3] if args.size() > 3 else "shipyard"))
+		await get_tree().create_timer(wait).timeout
+		get_viewport().get_texture().get_image().save_png(out)
+		print("saved ", out)
+		get_tree().quit()
+		return
+	if what == "table_hover": # the War Table, zoomed in, the mouse on a location's pin ("top" / "bottom": the highest / lowest on the map)
+		var wr3: Node = load(SceneRouter.WAR_ROOM).instantiate()
+		get_tree().root.add_child.call_deferred(wr3)
+		get_tree().set_deferred("current_scene", wr3)
+		await get_tree().create_timer(1.0).timeout
+		Tutorial._root.visible = false
+		wr3._zoom_in()
+		await get_tree().create_timer(3.0).timeout
+		var view: SectorMapView = wr3.find_children("*", "SectorMapView", true, false)[0]
+		var rects: Array = view.marker_rects()
+		var pick := 0
+		for i in range(rects.size()):
+			var lower: bool = rects[i].position.y > rects[pick].position.y
+			if (lower if (args.size() > 3 and args[3] == "bottom") else not lower):
+				pick = i
+		var at: Vector2 = view.get_global_transform() * view._symbol_pos(pick)
+		await _mouse_move(at)
+		await _mouse_move(at + Vector2(1, 0))
 		await get_tree().create_timer(wait).timeout
 		get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
@@ -200,6 +223,17 @@ func _ready() -> void:
 			RunState.last_run = run
 			RunState.run = null
 			scene = RunState.DEBRIEF
+		"orders_done", "orders_go": # the deployment orders signed off on the location map (orders_go: and To the map pressed)
+			DeploymentOrders.offer(run)
+			for o in DeploymentOrders.all():
+				var trial := RunData.new(GameData.sector(location_id), GameData.player_mech("bastion"), 12345, mission)
+				trial.orders = {"offer": [o["id"]], "chosen": ""}
+				DeploymentOrders.choose(trial, o["id"])
+				if not trial.orders_pending() and trial.phase == RunData.PHASE_MAP:
+					run.orders["offer"] = [o["id"]]
+					DeploymentOrders.choose(run, o["id"])
+					break
+			scene = RunState.PHASE_SCENES[RunData.PHASE_MAP]
 		"refit", "refit_drag":
 			run.phase = RunData.PHASE_REFIT
 			run.cargo.add(run.new_part("autocannon"))
@@ -243,6 +277,10 @@ func _ready() -> void:
 	if what == "combat":
 		_play_one_card()
 		await get_tree().create_timer(2.5).timeout
+	if what == "orders_go": # press To the map: the panel drops away and the stops pop up
+		var panel: OrdersPanel = get_tree().current_scene.find_children("*", "OrdersPanel", true, false)[0]
+		panel.done.emit()
+		await get_tree().create_timer(0.3).timeout
 	if what == "combat_map" or what == "event_map": # the location map over the fight / the stop
 		LocationMapScreen.peek(get_tree().current_scene)
 		await get_tree().create_timer(2.0).timeout
@@ -262,8 +300,24 @@ func _ready() -> void:
 				CardResolver.add_status_to(cs.combat.player_mech, parts[i], sts[i % sts.size()], 1 + i % 3, true)
 				if i + 1 < parts.size() and i % 2 == 0:
 					CardResolver.add_status_to(cs.combat.player_mech, parts[i], sts[(i + 5) % sts.size()], 1, true)
+			# and the first enemy too, past its row's room (the "…")
+			var foe: MechData = cs.combat.enemies[0]
+			for i in range(sts.size()):
+				CardResolver.add_status_to(foe, foe.non_destroyed_components()[i % foe.non_destroyed_components().size()], sts[i], 1 + i % 3, true)
 			cs._refresh_all_panels()
 			await _mouse_move(cs.player_panel.grid.get_global_rect().get_center())
+			var row: PassiveRow = cs.player_panel.passive_row
+			if not row._more_badge.visible:
+				row = cs._panel_for(foe).passive_row
+			var more: Control = row._more_badge
+			if "--more" in OS.get_cmdline_user_args() and more.visible: # hover a "…" (the player's, else the enemy's: the overflow opens)
+				await _mouse_move(more.get_global_rect().get_center())
+				if "--pin" in OS.get_cmdline_user_args(): # right-click it, then hover a badge in the overflow
+					await _mouse(more.get_global_rect().get_center(), 1, MOUSE_BUTTON_RIGHT)
+					await _mouse(more.get_global_rect().get_center(), 0, MOUSE_BUTTON_RIGHT)
+					var hidden: Array = row._more.get_children()
+					if not hidden.is_empty():
+						await _mouse_move(hidden[0].get_global_rect().get_center())
 		cs._refresh_all_panels()
 		if "--explain" in OS.get_cmdline_user_args(): # the Operator's first-time note (this one saves the profile)
 			cs._explain_a_status()
@@ -283,7 +337,7 @@ func _ready() -> void:
 			if not is_instance_valid(dlg) or dlg._status.text.begins_with("Sent") or dlg._status.text.begins_with("Couldn"):
 				break
 		print("combat_feedback: ", dlg._status.text if is_instance_valid(dlg) else "closed")
-	if what == "combat_enemy_cards": # the mouse on an enemy part with cards: its cards laid out under it
+	if what == "combat_enemy_cards": # the mouse on an enemy part with cards, then a right-click: its cards in the middle
 		var ecs := get_tree().current_scene
 		while not ecs.combat.is_player_turn() or UIState.input_locked:
 			await get_tree().create_timer(0.2).timeout
@@ -293,7 +347,17 @@ func _ready() -> void:
 			if c.cards.size() > (part.cards.size() if part != null else 0):
 				part = c
 		var grid: ChassisGridUI = ecs._panel_for(foe).grid
-		await _mouse_move(grid.component_center_global(part))
+		var at := grid.component_center_global(part)
+		await _mouse_move(at)
+		await get_tree().create_timer(0.3).timeout
+		if not "--hover-only" in OS.get_cmdline_user_args(): # --hover-only: just the hover (the description box)
+			await _mouse(at, 1, MOUSE_BUTTON_RIGHT)
+			await _mouse(at, 0, MOUSE_BUTTON_RIGHT)
+			if "--keyword" in OS.get_cmdline_user_args(): # the mouse on the first card's first word (a status's rule opens under the cards)
+				var shown: Array = ecs._enemy_cards.get_children().filter(func(c): return c is CardUI)
+				if not shown.is_empty():
+					var lbl: Control = shown[0]._effect_label
+					await _mouse_move(lbl.get_global_rect().position + Vector2(10, 8) * shown[0].scale)
 		await get_tree().create_timer(0.8).timeout
 	if what == "combat_hover": # hovers a card in the fan, then sweeps the mouse across it: which card holds the hover?
 		var hcs := get_tree().current_scene
@@ -613,14 +677,14 @@ func _drag_test() -> void:
 func _mouse_move(at: Vector2) -> void:
 	await _mouse(at, -1)
 
-## Moves the mouse to `at` (button -1), or presses (1) / releases (0) the left button there.
-func _mouse(at: Vector2, button: int) -> void:
+## Moves the mouse to `at` (button -1), or presses (1) / releases (0) the left (or `index`) button there.
+func _mouse(at: Vector2, button: int, index: MouseButton = MOUSE_BUTTON_LEFT) -> void:
 	var e: InputEventMouse
 	if button < 0:
 		e = InputEventMouseMotion.new()
 	else:
 		e = InputEventMouseButton.new()
-		e.button_index = MOUSE_BUTTON_LEFT
+		e.button_index = index
 		e.pressed = button == 1
 	var win := get_tree().root.get_final_transform() * at # viewport -> window pixels
 	e.position = win

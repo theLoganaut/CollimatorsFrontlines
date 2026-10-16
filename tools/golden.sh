@@ -9,7 +9,8 @@ cd "$(dirname "$0")/.."
 GODOT=${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}
 N=${2:-6}
 GOLDEN=tests/golden/trace_$N.txt
-OUT=$(mktemp -t golden)
+OUT=$(mktemp -t golden.XXXXXX)
+command -v cygpath > /dev/null && OUT=$(cygpath -m "$OUT") # Git Bash: a path Godot can open
 mkdir -p tests/golden
 "$GODOT" --headless --path . -s tools/balance_sim.gd -- "$N" --orders=none --events=first --variants=none --trace="$OUT" > /dev/null 2>&1
 case "$1" in

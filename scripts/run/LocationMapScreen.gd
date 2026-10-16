@@ -60,6 +60,8 @@ var _hover_id: int = -1
 var _preview: Dictionary = {}
 var _shown: float = 0.0 # markers fade in once the ground has risen
 var _orders: OrdersPanel
+var _built_map: RunMap # the map the stops were drawn from (an order can rebuild run.map)
+var _pop: Dictionary = {} # stop id -> extra badge scale while it pops in
 
 ## Opens the map over the current screen, pausing it until it's closed.
 static func peek(host: Node) -> void:
@@ -85,6 +87,7 @@ func _ready() -> void:
 		SceneRouter.go.call_deferred(SceneRouter.WAR_ROOM)
 		return
 	run = RunState.run
+	_built_map = run.map
 	_path = run.path.duplicate()
 	_offered = run.available_nodes()
 	if peeking and run.current_node_id >= 0 and not _path.has(run.current_node_id):
@@ -133,7 +136,7 @@ func _ready() -> void:
 		_orders.z_index = 300
 		add_child(_orders)
 		_orders.setup(run)
-		_orders.done.connect(func(): if not SceneRouter.is_busy(): RunState.advance())
+		_orders.done.connect(_on_orders_done)
 
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -169,7 +172,7 @@ func _place_nodes() -> void:
 	for n in run.map.nodes:
 		var ui: MapNodeUI = _nodes[n["id"]]
 		var p := _terrain.proj(_uv[n["id"]]) + Vector2(0, -STEM * k)
-		var sk := k * (1.3 if n["kind"] == RunMap.KIND_BOSS else 1.0)
+		var sk := k * (1.3 if n["kind"] == RunMap.KIND_BOSS else 1.0) * float(_pop.get(n["id"], 1.0))
 		ui.scale = Vector2(sk, sk)
 		ui.position = p - Vector2(MapNodeUI.SIZE.x / 2.0, MapNodeUI.RADIUS + 2.0) * sk
 
@@ -407,6 +410,32 @@ func _input(event: InputEvent) -> void:
 	if event.keycode == KEY_ESCAPE or GameSettings.is_key(event, "map"):
 		get_viewport().set_input_as_handled()
 		closed.emit()
+
+## The orders are done. Still on the map: the panel drops away and the
+## stops on offer pop up (no reload). An order that sends you to a refit
+## first moves on as before.
+func _on_orders_done() -> void:
+	if _orders == null or SceneRouter.is_busy():
+		return
+	# Sends you to a refit first, or rebuilt the map (Unmapped Route): reload.
+	if run.phase != RunData.PHASE_MAP or run.map != _built_map:
+		RunState.advance()
+		return
+	SaveGame.save(run)
+	_orders.dismiss()
+	_orders = null
+	_show_default_info()
+	var open: Array = run.available_nodes()
+	for i in range(open.size()):
+		var id: int = open[i]
+		_pop[id] = 0.2
+		var tw := create_tween()
+		tw.tween_interval(0.25 + 0.08 * i)
+		tw.tween_method(func(v: float): _pop[id] = v, 0.2, 1.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		tw.tween_callback(func():
+			_pop.erase(id)
+			Audio.play("holo", 0.04, -8.0))
+	Tutorial.reached("location_map", {"starts": open.map(func(id): return _nodes[id])})
 
 func _on_node_pressed(id: int) -> void:
 	if peeking:

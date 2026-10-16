@@ -1,5 +1,5 @@
 {
-  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` draws weather over the background (PlayField): \"rain\" falls and splashes, \"snow\" floats down and settles, \"dust\" blows in gusts and lifts off the ground, all on the ground from `ground` (the y fraction of the image where the ground starts) down.",
+  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `floor` is the flat ground feet may stand on ({x: [from, to], y: [from, to]} as fractions of the image, `avoid`: [x0, y0, x1, y1] spots on it that aren't, like a hole); each fight stands every enemy near its slot's x, nudged a little sideways and anywhere in that y band, on the floor (Logan, 2026-10-16: a little different each fight). `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` draws weather over the background (PlayField): \"rain\" falls and splashes, \"snow\" floats down and settles, \"dust\" blows in gusts and lifts off the ground, all on the ground from `ground` (the y fraction of the image where the ground starts) down.",
   "backgrounds": [
     {
       "id": "shipyard_regular",
@@ -8,10 +8,11 @@
       "image": "res://assets/backgrounds/shipyard_regular.png",
       "zoom": 1.0,
       "slots": {
-        "1": [[0.5, 0.43]],
-        "2": [[0.39, 0.43], [0.61, 0.44]],
-        "3": [[0.28, 0.44], [0.49, 0.43], [0.7, 0.45]]
+        "1": [[0.5, 0.595]],
+        "2": [[0.39, 0.595], [0.61, 0.605]],
+        "3": [[0.28, 0.605], [0.49, 0.595], [0.7, 0.615]]
       },
+      "floor": {"x": [0.12, 0.88], "y": [0.57, 0.62]},
       "weather": "rain",
       "ground": 0.24
     },
@@ -24,10 +25,11 @@
       "weather": "rain",
       "ground": 0.53,
       "slots": {
-        "1": [[0.5, 0.555]],
-        "2": [[0.41, 0.558], [0.59, 0.558]],
-        "3": [[0.32, 0.563], [0.5, 0.555], [0.68, 0.563]]
-      }
+        "1": [[0.5, 0.676]],
+        "2": [[0.41, 0.679], [0.59, 0.679]],
+        "3": [[0.32, 0.684], [0.5, 0.676], [0.68, 0.684]]
+      },
+      "floor": {"x": [0.2, 0.8], "y": [0.65, 0.7]}
     },
     {
       "id": "shipyard_elite",
@@ -36,10 +38,11 @@
       "image": "res://assets/backgrounds/shipyard_elite.png",
       "zoom": 1.1,
       "slots": {
-        "1": [[0.5, 0.485]],
-        "2": [[0.39, 0.49], [0.61, 0.49]],
-        "3": [[0.3, 0.5], [0.5, 0.485], [0.7, 0.5]]
+        "1": [[0.5, 0.632]],
+        "2": [[0.39, 0.637], [0.61, 0.637]],
+        "3": [[0.3, 0.647], [0.5, 0.632], [0.7, 0.647]]
       },
+      "floor": {"x": [0.28, 0.72], "y": [0.61, 0.655]},
       "weather": "rain",
       "ground": 0.48
     },
@@ -52,10 +55,11 @@
       "weather": "rain",
       "ground": 0.57,
       "slots": {
-        "1": [[0.5, 0.6]],
-        "2": [[0.42, 0.6], [0.58, 0.6]],
-        "3": [[0.345, 0.605], [0.5, 0.6], [0.655, 0.605]]
-      }
+        "1": [[0.5, 0.711]],
+        "2": [[0.42, 0.711], [0.58, 0.711]],
+        "3": [[0.345, 0.716], [0.5, 0.711], [0.655, 0.716]]
+      },
+      "floor": {"x": [0.3, 0.7], "y": [0.69, 0.73]}
     },
     {
       "id": "shipyard_boss",
@@ -64,8 +68,9 @@
       "image": "res://assets/backgrounds/shipyard_boss.png",
       "zoom": 1.12,
       "slots": {
-        "1": [[0.5, 0.505]]
+        "1": [[0.5, 0.638]]
       },
+      "floor": {"x": [0.4, 0.6], "y": [0.62, 0.66]},
       "weather": "rain",
       "ground": 0.5
     },
@@ -76,8 +81,9 @@
       "image": "res://assets/backgrounds/shipyard_boss_alt.png",
       "zoom": 1.0,
       "slots": {
-        "1": [[0.5, 0.43]]
+        "1": [[0.5, 0.595]]
       },
+      "floor": {"x": [0.44, 0.56], "y": [0.58, 0.62]},
       "weather": "rain",
       "ground": 0.38
     },
@@ -90,10 +96,11 @@
       "weather": "snow",
       "ground": 0.3,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.595]],
+        "2": [[0.388, 0.595], [0.612, 0.595]],
+        "3": [[0.28, 0.603], [0.5, 0.595], [0.72, 0.603]]
+      },
+      "floor": {"x": [0.25, 0.78], "y": [0.575, 0.62]}
     },
     {
       "id": "data_archives_regular_alt",
@@ -104,10 +111,11 @@
       "weather": "snow",
       "ground": 0.4,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.595]],
+        "2": [[0.388, 0.595], [0.612, 0.595]],
+        "3": [[0.28, 0.603], [0.5, 0.595], [0.72, 0.603]]
+      },
+      "floor": {"x": [0.15, 0.85], "y": [0.575, 0.62]}
     },
     {
       "id": "data_archives_elite",
@@ -118,10 +126,11 @@
       "weather": "snow",
       "ground": 0.35,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.595]],
+        "2": [[0.388, 0.595], [0.612, 0.595]],
+        "3": [[0.28, 0.603], [0.5, 0.595], [0.72, 0.603]]
+      },
+      "floor": {"x": [0.28, 0.72], "y": [0.625, 0.655], "avoid": [[0.49, 0.57, 0.67, 0.63]]}
     },
     {
       "id": "data_archives_elite_alt",
@@ -132,10 +141,11 @@
       "weather": "snow",
       "ground": 0.3,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.595]],
+        "2": [[0.388, 0.595], [0.612, 0.595]],
+        "3": [[0.28, 0.603], [0.5, 0.595], [0.72, 0.603]]
+      },
+      "floor": {"x": [0.2, 0.8], "y": [0.575, 0.62]}
     },
     {
       "id": "data_archives_boss",
@@ -146,8 +156,9 @@
       "weather": "snow",
       "ground": 0.4,
       "slots": {
-        "1": [[0.5, 0.44]]
-      }
+        "1": [[0.5, 0.595]]
+      },
+      "floor": {"x": [0.42, 0.54], "y": [0.575, 0.62]}
     },
     {
       "id": "data_archives_boss_alt",
@@ -158,8 +169,9 @@
       "weather": "snow",
       "ground": 0.4,
       "slots": {
-        "1": [[0.5, 0.44]]
-      }
+        "1": [[0.5, 0.595]]
+      },
+      "floor": {"x": [0.42, 0.58], "y": [0.575, 0.62]}
     },
     {
       "id": "mining_grounds_regular",
@@ -170,10 +182,11 @@
       "weather": "dust",
       "ground": 0.3,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.58]],
+        "2": [[0.388, 0.58], [0.612, 0.58]],
+        "3": [[0.28, 0.588], [0.5, 0.58], [0.72, 0.588]]
+      },
+      "floor": {"x": [0.24, 0.78], "y": [0.555, 0.605]}
     },
     {
       "id": "mining_grounds_regular_alt",
@@ -184,10 +197,11 @@
       "weather": "dust",
       "ground": 0.38,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.4, 0.44], [0.6, 0.44]],
-        "3": [[0.32, 0.448], [0.5, 0.44], [0.68, 0.448]]
-      }
+        "1": [[0.5, 0.58]],
+        "2": [[0.4, 0.58], [0.6, 0.58]],
+        "3": [[0.32, 0.588], [0.5, 0.58], [0.68, 0.588]]
+      },
+      "floor": {"x": [0.3, 0.7], "y": [0.555, 0.605]}
     },
     {
       "id": "mining_grounds_elite",
@@ -198,10 +212,11 @@
       "weather": "dust",
       "ground": 0.38,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.4, 0.44], [0.6, 0.44]],
-        "3": [[0.32, 0.448], [0.5, 0.44], [0.68, 0.448]]
-      }
+        "1": [[0.5, 0.62]],
+        "2": [[0.4, 0.62], [0.6, 0.62]],
+        "3": [[0.32, 0.628], [0.5, 0.62], [0.68, 0.628]]
+      },
+      "floor": {"x": [0.3, 0.7], "y": [0.6, 0.65]}
     },
     {
       "id": "mining_grounds_elite_alt",
@@ -212,10 +227,11 @@
       "weather": "dust",
       "ground": 0.35,
       "slots": {
-        "1": [[0.5, 0.44]],
-        "2": [[0.388, 0.44], [0.612, 0.44]],
-        "3": [[0.28, 0.448], [0.5, 0.44], [0.72, 0.448]]
-      }
+        "1": [[0.5, 0.58]],
+        "2": [[0.388, 0.58], [0.612, 0.58]],
+        "3": [[0.28, 0.588], [0.5, 0.58], [0.72, 0.588]]
+      },
+      "floor": {"x": [0.22, 0.78], "y": [0.555, 0.605]}
     },
     {
       "id": "mining_grounds_boss",
@@ -226,8 +242,9 @@
       "weather": "dust",
       "ground": 0.42,
       "slots": {
-        "1": [[0.5, 0.44]]
-      }
+        "1": [[0.5, 0.62]]
+      },
+      "floor": {"x": [0.42, 0.58], "y": [0.6, 0.64]}
     },
     {
       "id": "mining_grounds_boss_alt",
@@ -238,8 +255,9 @@
       "weather": "dust",
       "ground": 0.45,
       "slots": {
-        "1": [[0.5, 0.44]]
-      }
+        "1": [[0.5, 0.60]]
+      },
+      "floor": {"x": [0.4, 0.6], "y": [0.58, 0.62]}
     }
   ]
 }

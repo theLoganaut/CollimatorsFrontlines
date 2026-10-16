@@ -51,16 +51,49 @@ func image_rect() -> Rect2:
 	var rect_size := tex_size * s
 	return Rect2(Vector2((size.x - rect_size.x) / 2.0, size.y - rect_size.y), rect_size)
 
+## How far an enemy may stand from its slot's x, as a fraction of the image.
+const FLOOR_NUDGE_X := 0.025
+
 ## Where n enemies' feet stand, left to right ([] = no background, or no
-## slots for n enemies).
-func feet_points(n: int) -> Array[Vector2]:
+## slots for n enemies). With a `floor`, each stands near its slot's x and
+## anywhere in the floor's y band, off its `avoid` spots, picked from `seed`
+## (the fight's: the same fight, replayed, stands them the same).
+func feet_points(n: int, seed: int = 0) -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	if _texture == null:
 		return out
 	var rect := image_rect()
-	for p in background.get("slots", {}).get(str(n), []):
-		out.append(rect.position + Vector2(p[0], p[1]) * rect.size)
+	var slots: Array = background.get("slots", {}).get(str(n), [])
+	var floor: Dictionary = background.get("floor", {})
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed, n, background.get("id", "")])
+	for p in slots:
+		var at := Vector2(p[0], p[1])
+		if not floor.is_empty():
+			at = _floor_spot(floor, float(p[0]), rng)
+		out.append(rect.position + at * rect.size)
 	return out
+
+## A spot on the floor near x: a few tries to miss its `avoid` spots, else
+## the first one that does along the band, else x on the band's middle.
+func _floor_spot(floor: Dictionary, x: float, rng: RandomNumberGenerator) -> Vector2:
+	var fx: Array = floor.get("x", [0.0, 1.0])
+	var fy: Array = floor.get("y", [0.5, 0.5])
+	for i in range(16):
+		var spot := Vector2(clampf(x + rng.randf_range(-FLOOR_NUDGE_X, FLOOR_NUDGE_X), fx[0], fx[1]), rng.randf_range(fy[0], fy[1]))
+		if not _avoided(floor, spot):
+			return spot
+	for k in range(11):
+		var spot := Vector2(clampf(x, fx[0], fx[1]), lerpf(fy[0], fy[1], k / 10.0))
+		if not _avoided(floor, spot):
+			return spot
+	return Vector2(clampf(x, fx[0], fx[1]), (fy[0] + fy[1]) / 2.0)
+
+func _avoided(floor: Dictionary, spot: Vector2) -> bool:
+	for r in floor.get("avoid", []):
+		if spot.x >= r[0] and spot.x <= r[2] and spot.y >= r[1] and spot.y <= r[3]:
+			return true
+	return false
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Palette.BG, true)

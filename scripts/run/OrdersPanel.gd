@@ -7,11 +7,14 @@ extends Control
 ## the chassis, or choose a component to strip out or transmute. "Hide"
 ## drops the panel to a tab so the map can be looked over (the map's stops
 ## wait until the orders are done); the tab or a click on a stop brings it
-## back. Once done, the Operator signs off and the run moves on.
+## back. Once done, the Operator signs off on a smaller panel, centered;
+## its button drops the panel off the bottom of the screen (dismiss) and
+## the map's stops pop up, with no reload (Logan, 2026-10-16).
 
 signal done()
 
 const W := 760.0
+const DONE_W := 460.0 # the sign-off: just the Operator's line, the order and the button
 const CARD := Vector2(230, 150)
 const GRID_CELL := 32.0
 
@@ -27,6 +30,7 @@ var _tab: Button
 var _talk: Tween
 var _notes: Array[String] = []
 var _hover_label: Label
+var _column: VBoxContainer
 
 func setup(p_run: RunData) -> void:
 	run = p_run
@@ -46,6 +50,7 @@ func setup(p_run: RunData) -> void:
 	v.add_theme_constant_override("separation", 12)
 	v.custom_minimum_size = Vector2(W, 0)
 	_box.add_child(v)
+	_column = v
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 14)
 	v.add_child(head)
@@ -101,7 +106,7 @@ func _place() -> void:
 		return
 	var screen := get_viewport_rect().size
 	_box.reset_size()
-	_box.position = ((screen - _box.size) / 2.0 + Vector2(0, 16)).floor()
+	_box.position = ((screen - _box.size) / 2.0).floor()
 	_box.position.y = maxf(56.0, _box.position.y)
 	_tab.position = Vector2(floorf((screen.x - _tab.custom_minimum_size.x) / 2.0), screen.y - 60.0)
 
@@ -123,6 +128,7 @@ func _warn(text: String) -> void:
 ## Rebuilds the body for where the orders are now.
 func _refresh() -> void:
 	for c in _body.get_children():
+		_body.remove_child(c) # now, so the box measures only what's next
 		c.queue_free()
 	_hover_label = null
 	_message.text = ""
@@ -277,6 +283,7 @@ func _build_choose_part(step: Dictionary) -> void:
 # ---------- signing off ----------
 
 func _build_done() -> void:
+	_column.custom_minimum_size.x = DONE_W
 	var chosen: String = run.orders["chosen"]
 	_say("%s, confirmed. Good hunting, pilot." % DeploymentOrders.title(chosen))
 	var summary := UIKit.label(DeploymentOrders.text(chosen), 13, Color("b9d8d4"), true)
@@ -286,8 +293,20 @@ func _build_done() -> void:
 	var row := HBoxContainer.new()
 	row.add_child(UIKit.spacer())
 	var go := GlassPanel.button("To the refit" if run.phase == RunData.PHASE_REFIT else "To the map", 14, true, Palette.HARDPOINT)
+	go.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	go.custom_minimum_size = Vector2(180, 40)
 	go.pressed.connect(func(): done.emit())
 	row.add_child(go)
+	row.add_child(UIKit.spacer())
 	_body.add_child(row)
 	_hide_btn.visible = false
+
+## Drops the panel off the bottom of the screen and lifts the dim, then
+## frees itself.
+func dismiss() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_box, "position:y", get_viewport_rect().size.y + 20.0, 0.35).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(_dim, "modulate:a", 0.0, 0.3)
+	tw.chain().tween_callback(queue_free)

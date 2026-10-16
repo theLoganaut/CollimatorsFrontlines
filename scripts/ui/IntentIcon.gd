@@ -53,6 +53,15 @@ func _ready() -> void:
 	mouse_exited.connect(func(): UIState.clear_hovered_intent(intent))
 	tree_exiting.connect(func(): UIState.clear_hovered_intent(intent))
 
+## Training shows this intent as if hovered (its card in the Description Box).
+func set_spotlit(on: bool) -> void:
+	if intent.is_empty():
+		return
+	if on:
+		UIState.set_hovered_intent(intent)
+	else:
+		UIState.clear_hovered_intent(intent)
+
 func setup(p_kind: String, p_active: bool) -> void:
 	kind = p_kind
 	active = p_active

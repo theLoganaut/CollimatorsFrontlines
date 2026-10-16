@@ -55,10 +55,14 @@ func intent() -> String:
 			return INTENT_STATUS
 	return INTENT_BUFF
 
+## One hit's damage: "6", or "4–8" for a range.
+func per_hit_label() -> String:
+	return str(damage_min) if damage_min == damage_max else "%d–%d" % [damage_min, damage_max]
+
 func damage_label() -> String:
 	if hits <= 0:
 		return ""
-	var per_hit := str(damage_min) if damage_min == damage_max else "%d–%d" % [damage_min, damage_max]
+	var per_hit := per_hit_label()
 	if hits == 1:
 		return per_hit # a single hit is implied, no "1×"
 	return "%d×%s" % [hits, per_hit]
