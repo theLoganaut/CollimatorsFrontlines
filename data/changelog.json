@@ -140,6 +140,22 @@
             {
               "label": "Settings",
               "text": "- fit the screen in release builds."
+            },
+            {
+              "label": "Crashes",
+              "text": "- fixed a few crashes around combat and deployment orders."
+            },
+            {
+              "label": "Map",
+              "text": "- stops line up with their pins and always match the route you'll get."
+            },
+            {
+              "label": "Defeated Enemies",
+              "text": "- no longer keep their badges."
+            },
+            {
+              "label": "War Room Tour",
+              "text": "- now shows new pilots every station."
             }
           ]
         }

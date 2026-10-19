@@ -46,6 +46,13 @@ func _changelog() -> void:
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	if str(d.get("current", "")) != version:
 		errors.append("changelog.json: current is \"%s\" but project.godot's version is \"%s\"" % [d.get("current", ""), version])
+	# the export presets stamp the same version (the macOS bundle's)
+	var presets := ConfigFile.new()
+	if presets.load("res://export_presets.cfg") == OK:
+		for s in presets.get_sections():
+			for key in ["application/version", "application/short_version", "application/file_version", "application/product_version"]:
+				if s.ends_with(".options") and presets.has_section_key(s, key) and str(presets.get_value(s, key)) not in ["", version]:
+					errors.append("export_presets.cfg [%s] %s is \"%s\" but project.godot's version is \"%s\"" % [s, key, presets.get_value(s, key), version])
 	var releases: Array = d.get("releases", [])
 	if releases.is_empty() or str(releases[0].get("version", "")) != str(d.get("current", "")):
 		errors.append("changelog.json: the newest release isn't the current version")
