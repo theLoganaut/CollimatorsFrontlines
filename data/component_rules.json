@@ -259,7 +259,7 @@
    "on": "attack",
    "grant": {
     "vs_attacking": {
-     "mult": 2
+     "mult": 1.5
     }
    }
   },

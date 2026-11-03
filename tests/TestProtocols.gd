@@ -121,7 +121,7 @@ static func _targeting_computer(t: TestContext) -> void:
 	_plan(cm, e)
 	_self(cm, _card(p, "targeting_computer", "lock_on"))
 	_hit(cm, _gun(p), e, e.get_component("gun"))
-	t.assert_eq(_lost(e.get_component("gun")), 20, "Lock On: \"double damage vs a part attacking this turn\" (10 × 2)")
+	t.assert_eq(_lost(e.get_component("gun")), 15, "Lock On: \"+50% damage vs a part attacking this turn\" (10 × 1.5)")
 	_self(cm, _card(p, "targeting_computer", "lock_on"))
 	_hit(cm, _gun(p), e, e.get_component("plate"))
 	t.assert_eq(_lost(e.get_component("plate")), 10, "Lock On: a part not attacking takes normal damage")

@@ -35,9 +35,7 @@
    {"name": "Paint", "turns": ["afflict", "assault"], "weight": 2, "when": "squad"},
    {"name": "Pick", "turns": ["combo", "assault"], "weight": 2}
   ],
-  "squad_role": "marker",
-  "opener": {"type": "primed", "note": "locked on"},
-  "on_lost": {"targeting_computer": {"targets": "random", "note": "fires blind"}}
+  "squad_role": "marker"
  },
  "arc_sentry": {
   "archetype": "Controller",

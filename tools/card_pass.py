@@ -357,7 +357,7 @@ BATCH2 = {
         proto("Echo", "Take the protocol an enemy has waiting: it's primed for you instead.", {"protocol": "steal"}),
     ],
     "Targeting Computer": [
-        proto("Lock On", "Your next attack: double damage vs a part attacking this turn.", grant({"vs_attacking": {"mult": 2}})),
+        proto("Lock On", "Your next attack: +50% damage vs a part attacking this turn.", grant({"vs_attacking": {"mult": 1.5}})),
         proto("Zero Lock", "Your next attack can't be covered, redirected, dodged or parried, and every hit lands.", grant({"sure_hit": True})),
     ],
     "Munitions Splitter": [

@@ -107,7 +107,7 @@ func set_area(left_x: float, right_x: float, width: float, top: float, bottom: f
 
 ## Opposite the mouse: on the right unless the mouse is on the right half.
 func _pick_side() -> void:
-	if _bottom <= 0.0:
+	if _bottom <= 0.0 or not is_inside_tree(): # an intent icon closing on a screen change refreshes us after we've left the tree
 		return
 	var right_half := get_global_mouse_position().x > get_viewport_rect().size.x / 2.0
 	position.x = _left_x if right_half else _right_x

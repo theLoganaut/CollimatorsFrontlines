@@ -1891,7 +1891,7 @@
      "hits": "0",
      "damage": "",
      "statuses": [],
-     "effect_text": "Your next attack: double damage vs a part attacking this turn."
+     "effect_text": "Your next attack: +50% damage vs a part attacking this turn."
     },
     {
      "id": "zero_lock",

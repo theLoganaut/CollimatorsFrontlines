@@ -152,16 +152,16 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(EnemyAI.choose_target(player, TestFixtures.rng(1), enemy, emp).id, "gun2", "EMP Round goes for the shocked hardpoint, whatever the style")
 
 	t.group("Enemy protocols: primed, then used up by the next attack")
-	var drone := DataLoader.load_mech_from_file("res://data/mechs/needle_drone.json")
+	var drone := DataLoader.load_mech_from_file("res://data/mechs/cipher.json") # the one with a Targeting Computer
 	drone.ai["protocols"] = 1.0
 	var bast := _bastion()
 	var cm := CombatManager.new(bast, [drone] as Array[MechData], 3)
 	cm.start_combat()
 	var plan: Array = cm.enemy_plans[drone]
 	var types := plan.map(func(s): return (s["card"] as CardData).id) # Lock On is a "grant" protocol since the card pass
-	t.assert_true(types.has("lock_on"), "the Needle Drone plans a Lock On")
+	t.assert_true(types.has("lock_on"), "Cipher plans a Lock On")
 	t.assert_true(types.find("lock_on") < plan.size() - 1, "ahead of an attack")
-	t.assert_true(plan.all(func(s): return (s["card"] as CardData).protocol() != "" or s.has("target")), "every attack is planned at a part of yours (shown on hover)")
+	t.assert_true(plan.all(func(s): return (s["card"] as CardData).hits <= 0 or s.has("target")), "every attack is planned at a part of yours (shown on hover)")
 	cm.auto_resolve_enemy_turn = false
 	cm.end_player_turn()
 	var primed_seen := false

@@ -343,7 +343,7 @@ static func _protocols(t: TestContext) -> void:
 	t.assert_eq(p.current_heat, 0, "protocols cost no heat")
 	cm.play_attack_card(p.get_component("g").cards[0], e, e.components[0])
 	var d := e.components[0].max_hp - e.components[0].current_hp
-	t.assert_eq(d, 20, "Lock On: a part that isn't attacking takes normal damage (×2 vs an attacker: TestProtocols)")
+	t.assert_eq(d, 20, "Lock On: a part that isn't attacking takes normal damage (+50% vs an attacker: TestProtocols)")
 	t.assert_eq(cm.primed.size(), 0, "and it's used up")
 
 	t.group("Protocols: one waits at a time; a new one replaces it")

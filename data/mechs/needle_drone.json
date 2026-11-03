@@ -11,9 +11,9 @@
     "cards": "damage",
     "targets": "hardpoints",
     "slip": 0.35,
-    "protocols": 0.6,
+    "protocols": 0.0,
     "guard": 0.5,
-    "_why": "A sniper: Locks On, then picks your weapons apart."
+    "_why": "A sniper: Jams and picks your weapons apart behind Mirror Plating. (Lock On swapped out for Mirror Plating 2026-10-24, Logan: the drones were too tough to fight with it.)"
   },
   "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
   "cells": [
@@ -84,12 +84,12 @@
       "rotation": 0
     },
     {
-      "id": "targeting_computer",
+      "id": "mirror_plating",
       "offset": [
-        1,
+        2,
         0
       ],
-      "rotation": 1
+      "rotation": 0
     }
   ]
 }

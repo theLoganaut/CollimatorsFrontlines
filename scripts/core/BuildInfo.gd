@@ -5,7 +5,9 @@ extends RefCounted
 ## ({"stamp": "2026-10-13 14:02", "commit": "dc7f97b", "feedback_webhook":
 ## the Discord webhook from tools/steam/config.sh}) just for the export
 ## and deletes it after, so a run from the editor or a dev export reads as
-## "dev build".
+## "dev build". trismeg-publish (the Trismeg Launcher's) writes the same file
+## with "version" (git describe, "v0.2.0-14-g2ef350e") and "channel"
+## ("stable" or "beta") as well.
 
 const PATH := "res://build_info.json"
 
@@ -26,9 +28,12 @@ static func info() -> Dictionary:
 static func version() -> String:
 	return str(ProjectSettings.get_setting("application/config/version", ""))
 
-## "v0.2.0 · Build 2026-10-13 14:02 (dc7f97b)", or "v0.2.0 · Dev build".
+## "v0.2.0-14-g2ef350e · Beta" from the launcher, "v0.2.0 · Build 2026-10-13
+## 14:02 (dc7f97b)" from Steam, or "v0.2.0 · Dev build".
 static func label() -> String:
 	var i := info()
+	if i.has("version"):
+		return "%s · %s" % [i.version, str(i.get("channel", "")).capitalize()]
 	var v := "v%s · " % version() if version() != "" else ""
 	if i.is_empty():
 		return v + "Dev build"
