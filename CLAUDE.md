@@ -151,3 +151,7 @@ The hub is an index. Open only the subpage you need (fetch by ID with the Notion
 - Treat Scratchpad → "Thoughts in progress" as undecided. Pages tag items **Decided / Proposed / Open / Shelved / Cut**; only Decided is settled.
 - Godot CLI for headless runs/tests: `/Applications/Godot.app/Contents/MacOS/Godot` on the Mac; on Windows,
   `~/Desktop/Projects/Godot_v4.7-stable_win64_console.exe`.
+
+## Planning
+
+Tasks and notes for this project are in `~/hermes-vault/projects/collimators-frontlines/`. Start at `Collimators Frontlines.md` there, and follow `~/hermes-vault/CLAUDE.md` when reading or changing them.
