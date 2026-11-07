@@ -375,9 +375,17 @@ func _show_intent(intent: Dictionary) -> void:
 	_effect_label.text = "\n".join(lines)
 	_effect_label.visible = true
 	var glossary_lines: Array[String] = []
+	for mark in StatusGlossary.INTENT_MARKS:
+		if intent.get(mark, false):
+			glossary_lines.append("%s — %s" % [StatusGlossary.INTENT_MARKS[mark]["label"], StatusGlossary.INTENT_MARKS[mark]["rule"]])
 	for st in card.statuses:
 		var entry := StatusGlossary.get_entry(st.status)
 		glossary_lines.append("%s — %s" % [entry["label"], entry["rule"]])
+	var keywords := StatusGlossary.keywords_in(card.effect_text)
+	if card.protocol() != "" and not keywords.has(StatusGlossary.KEYWORDS["primed"]):
+		keywords.append(StatusGlossary.KEYWORDS["primed"])
+	for e in keywords:
+		glossary_lines.append("%s — %s" % [e["label"], e["rule"]])
 	_glossary_label.text = "\n".join(glossary_lines)
 	_glossary_header.visible = glossary_lines.size() > 0
 	_glossary_label.visible = glossary_lines.size() > 0

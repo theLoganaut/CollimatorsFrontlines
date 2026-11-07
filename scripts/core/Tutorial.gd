@@ -38,7 +38,7 @@ const STEPS := [
 	["combat", "hardpoint_card", "Hardpoints are Orange, which give cards that cost Heat {icon:heat} and do damage {icon:damage} a number of times {icon:shots}.", "next", {"hover": "hardpoint_card"}],
 	["combat", "protocol_card", "Protocols are Purple, they give free cards that augment the game in some manner. Only one protocol affects the next play at a time.", "next", {"hover": "protocol_card"}],
 	["combat", "heat", "{y}Cards cost heat{/y}, Overheating {r}damages{/r} your mech in proportion to your current health and ends your turn.", "next"],
-	["combat", "first_intent+description+intent_part", "These are the enemy Intents. Hover over one to see the card and its aim.", "next", {"hover": "first_intent"}],
+	["combat", "first_intent+description+intent_part", "These are the enemy Intents: what it will do this turn, in order. Hover over one to see the card and its aim. They change as its parts are hit, and aiming a card at a part marks what that card would change.", "next", {"hover": "first_intent"}],
 	["combat", "first_card+enemy", "{y}To win, destroy all the enemy's Hardpoints. With no weapons left it explodes or retreats.{/y} Drag a card from your hand to an enemy part to attack now.", "?keyword_card_hovered", {"hover": "enemy_part", "side": "right"}],
 	["combat", "keyword", "{plain}Cards may have Keywords. Hover over the keyword now to view its description. When applied to a part, they show on the augments bar above your health.", "card_played"],
 	["combat", "enemy", "Any part that reaches 0 health is destroyed for the mission, permanently. Any cards and passives for it are gone.", "next"],

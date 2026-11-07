@@ -40,6 +40,9 @@ var weakened: bool = false
 var charged: bool = false
 var added: bool = false
 var charging_part: String = ""
+## What the card being aimed at this enemy would do to this step
+## (CombatAttack.preview_plan): "stop", "maybe_stop", "weaken" or "".
+var preview: String = ""
 var _t: float = 0.0
 
 func _ready() -> void:
@@ -76,6 +79,11 @@ func setup(p_kind: String, p_active: bool) -> void:
 	if not active:
 		scale = Vector2.ONE
 	queue_redraw()
+
+func set_preview(mark: String) -> void:
+	if mark != preview:
+		preview = mark
+		queue_redraw()
 
 func _process(delta: float) -> void:
 	_t += delta
@@ -145,6 +153,24 @@ func _draw() -> void:
 	if cancelled:
 		draw_rect(rect, Color(Palette.PANEL_2, 0.6), true)
 		draw_line(Vector2(3, 3), ICON_SIZE - Vector2(3, 3), Palette.DANGER, 2.5, true)
+	_draw_preview(rect)
+
+## The aimed card's effect on this step: a bright ring with the mark it would
+## get, undimmed so it reads as "would", not as already struck out.
+func _draw_preview(rect: Rect2) -> void:
+	match preview:
+		"stop":
+			draw_rect(rect.grow(2.0), Palette.DANGER, false, 2.0)
+			draw_line(Vector2(3, 3), ICON_SIZE - Vector2(3, 3), Palette.DANGER, 2.5, true)
+		"maybe_stop":
+			# a broken slash: the roll decides
+			draw_rect(rect.grow(2.0), Palette.WARNING, false, 2.0)
+			draw_line(Vector2(3, 3), Vector2(10, 10), Palette.WARNING, 2.5, true)
+			draw_line(ICON_SIZE - Vector2(10, 10), ICON_SIZE - Vector2(3, 3), Palette.WARNING, 2.5, true)
+		"weaken":
+			draw_rect(rect.grow(2.0), Palette.PROTOCOL, false, 2.0)
+			var p := Vector2(ICON_SIZE.x - 6, ICON_SIZE.y - 7)
+			draw_colored_polygon(PackedVector2Array([p + Vector2(-4, -4), p + Vector2(4, -4), p + Vector2(0, 3)]), Palette.PROTOCOL)
 
 ## A sword on a diagonal, blade toward the top; `flip` = -1 mirrors it.
 func _draw_sword(m: Vector2, flip: float, c: Color) -> void:

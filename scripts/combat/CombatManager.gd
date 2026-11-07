@@ -196,6 +196,11 @@ func is_game_over() -> bool:
 func preview_attack(card: CardData, defender: MechData, target: ComponentData) -> Dictionary:
 	return CombatAttack.preview(self, card, defender, target)
 
+## The disrupt preview: what `card` would change in `defender`'s shown turn,
+## one mark per upcoming_enemy_actions entry (CombatAttack.preview_plan).
+func preview_plan(card: CardData, defender: MechData, target: ComponentData) -> Array[String]:
+	return CombatAttack.preview_plan(self, card, defender, target)
+
 ## The card whose hits are resolving (a Salvo moves on card by card), or null.
 func pending_card() -> CardData:
 	return _attack.get("card", null)

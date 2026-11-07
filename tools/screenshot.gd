@@ -18,6 +18,9 @@ extends Node
 ## combat_preview primes a protocol, then hovers an attack card that would overheat (the red edge
 ## glow, the backlash on the player's health bar) while aiming it at the
 ## weakest enemy part (the damage on its health bar, the part it destroys).
+## combat_disrupt aims a sure kill at the enemy part with the most shown steps and
+## Disables/Shocks another's for real (the disrupt preview's marks, the struck-out and
+## down-arrow ones), with the first intent hovered (its glossary).
 ## combat_play drives three turns through the combat screen's own handlers
 ## (card drops on enemy parts, End Turn) and prints the command log: a smoke
 ## test of the UI path.
@@ -245,7 +248,7 @@ func _ready() -> void:
 			if args.size() > 4: # a choice already taken (a multi-step event's next step)
 				run.resolve_event(int(args[4]))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_EVENT]
-		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map", "combat_retreat", "combat_feedback", "combat_hover", "combat_enemy_cards":
+		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_disrupt", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map", "combat_retreat", "combat_feedback", "combat_hover", "combat_enemy_cards":
 			run.choose_node(run.available_nodes()[0])
 			scene = RunState.PHASE_SCENES[RunData.PHASE_FIGHT]
 		_:
@@ -406,6 +409,9 @@ func _ready() -> void:
 	if what == "combat_preview":
 		_aim_overheating_card()
 		await get_tree().create_timer(1.2).timeout
+	elif what == "combat_disrupt":
+		await _aim_disrupt()
+		await get_tree().create_timer(1.2).timeout
 	elif what == "combat_play":
 		await _play_turns(3)
 	elif what == "combat_keys":
@@ -488,6 +494,35 @@ func _aim_overheating_card() -> void:
 			cs.enemy_panels[0].refresh()
 			cs._aim_card = card
 			cs._set_targeting({"mech": e, "component": parts[0], "panel": cs.enemy_panels[0]})
+			return
+
+## combat_disrupt: see the top of this file.
+func _aim_disrupt() -> void:
+	var cs := get_tree().current_scene
+	if cs == null or not ("combat" in cs) or cs.combat == null:
+		return
+	var cm: CombatManager = cs.combat
+	var e: MechData = cm.living_enemies()[0]
+	for i in range(40): # the opening reveal plays first
+		if not cm.upcoming_enemy_actions(e).is_empty() and not UIState.input_locked:
+			break
+		await get_tree().create_timer(0.25).timeout
+	var counts := {}
+	for a in cm.upcoming_enemy_actions(e):
+		counts[a["component"]] = int(counts.get(a["component"], 0)) + 1
+	var parts: Array = counts.keys()
+	parts.sort_custom(func(x, y): return counts[x] > counts[y])
+	print("combat_disrupt: ", cm.upcoming_enemy_actions(e).map(func(a): return "%s/%s" % [a["component"].name, a["card"].name]))
+	if parts.size() > 1:
+		parts[1].add_status("shock", 1)
+	cs._refresh_intents()
+	for card in cm.hand_cards():
+		if card.is_attack() and card.hits > 0 and card.damage_max > 0:
+			parts[0].current_hp = mini(parts[0].current_hp, card.damage_min)
+			cs.enemy_panels[0].refresh()
+			cs._aim_card = card
+			cs._set_targeting({"mech": e, "component": parts[0], "panel": cs.enemy_panels[0]})
+			print("combat_disrupt: ", card.name, " at ", parts[0].name, " -> ", cm.preview_plan(card, e, parts[0]))
 			return
 
 ## combat_play: each turn drops every affordable card through the screen's

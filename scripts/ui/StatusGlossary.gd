@@ -90,6 +90,17 @@ const KEYWORDS := {
 	"reclaim": {"label": "Reclaim", "rule": "Heals your most damaged part for that share of the damage dealt."},
 	"linked": {"label": "Linked", "rule": "The parts this part's link arrows point at on the grid (hover the part to see its arrows)."},
 	"overheat": {"label": "Overheat", "pattern": "Overheat(?:ing|s|ed)?", "rule": "Going over Max Heat: backlash damage (15% of max HP) spread across your parts, and the turn ends."},
+	"attacking": {"label": "Attacking", "pattern": "attacking this turn", "rule": "An enemy part with an attack in this turn's Intents that can still fire. On your mech, a part that attacked on your last turn."},
+	"adjacent": {"label": "Adjacent", "pattern": "[Aa]djacent", "rule": "Touching that part on its mech's grid."},
+	"cover": {"label": "Cover", "pattern": "[Cc]over(?:ed|s)?", "rule": "Another part takes this part's hits instead of it."},
+	"primed": {"label": "Primed", "pattern": "[Pp]rimed", "rule": "A protocol waiting for the next play it fits. One waits at a time: priming another replaces it."},
+}
+## What the marks on an enemy's Intent mean (DescriptionBox, on hovering it).
+const INTENT_MARKS := {
+	"cancelled": {"label": "Struck out", "rule": "Its part can't act, so this won't happen."},
+	"weakened": {"label": "Down arrow", "rule": "Its part is Shocked, so this hits a third weaker."},
+	"charged": {"label": "Red frame", "rule": "Charged last turn. It fires free at +50% as this enemy's turn starts, if its part can still act."},
+	"added": {"label": "Plus", "rule": "New this turn: the enemy spent Heat freed by a cancelled card on this."},
 }
 ## Other forms of a status's name in card text ("Double damage vs Frozen").
 const STATUS_FORMS := {"Frozen": "freeze"}

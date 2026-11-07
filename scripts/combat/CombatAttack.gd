@@ -603,6 +603,92 @@ static func passive_mods(cm: CombatManager, mech: MechData, card: CardData, mods
 
 # ---------- preview ----------
 
+## What the player's `card`, aimed at `target`, would change in `defender`'s
+## shown turn (Phase 7's disrupt preview). One mark per entry of
+## upcoming_enemy_actions(defender): "stop" (it won't happen), "maybe_stop"
+## (the roll decides), "weaken" (a third weaker), or "". No side effects and
+## no rng, so aiming can't change a fight or a replay. It reads the aimed part,
+## not the parts a card hits at random, and not the Heat a cancel frees up.
+static func preview_plan(cm: CombatManager, card: CardData, defender: MechData, target: ComponentData) -> Array[String]:
+	var actions := cm.upcoming_enemy_actions(defender)
+	var out: Array[String] = []
+	out.resize(actions.size())
+	if card == null or target == null or target.destroyed or not card.is_attack():
+		return out
+	var effects := _plan_effects(cm, card, defender, target)
+	var used := {} # a Frozen part fires once, then it's Offline (CombatManager._after_use)
+	for i in range(actions.size()):
+		var a: Dictionary = actions[i]
+		var comp: ComponentData = a.get("component", null)
+		var e: Dictionary = effects.get(comp, {})
+		if e.is_empty() or a.get("cancelled", false):
+			continue
+		var shot: CardData = a["card"]
+		if e.get("stop", false) or used.has(comp):
+			out[i] = "stop"
+		elif e.get("maybe", false):
+			out[i] = "maybe_stop"
+		elif e.get("shock", false) and shot.hits > 0 and not a.get("charge", false) and comp.status_stacks("shock") <= 0:
+			out[i] = "weaken"
+		if e.get("freeze", false) and not a.get("charged", false):
+			used[comp] = true
+	return out
+
+## The parts `card` would stop or Shock: {part: {stop, maybe, freeze, shock}}.
+static func _plan_effects(cm: CombatManager, card: CardData, defender: MechData, target: ComponentData) -> Dictionary:
+	var fx := {}
+	var hit := preview(cm, card, defender, target)
+	if not hit.is_empty():
+		if hit["lethal_lo"] and not hit["may_miss"]:
+			fx.get_or_add(hit["part"], {})["stop"] = true
+		elif hit["lethal_hi"]:
+			fx.get_or_add(hit["part"], {})["maybe"] = true
+	card = CombatProtocols.peek_granted(cm, card)
+	var sure := float(card.rule.get("status_chance", 1.0)) >= 1.0
+	var extra := 0
+	var swap := ""
+	if not card.statuses.is_empty():
+		var cat := _peek_primed(cm, "catalyze", card)
+		extra = 0 if cat.is_empty() else int(cat["card"].rule.get("stacks", 2))
+		swap = str(_peek_primed(cm, "reroute", card).get("status", ""))
+	for s in card.statuses:
+		var parts: Array = []
+		if s.target == StatusEffectData.TARGET_ENEMY:
+			parts = [target]
+			if card.rule.get("spread_status", false):
+				parts.append_array(Links.adjacent_parts(defender, target))
+		elif s.target == StatusEffectData.TARGET_ALL_ENEMIES:
+			parts = [target] if card.rule.get("hits_all_enemies", false) else defender.non_destroyed_components()
+		for part in parts:
+			_note_status(fx, defender, part, swap if swap != "" else s.status, s.stacks + extra, sure)
+	var ohs: Dictionary = card.rule.get("on_hit_status", {})
+	if not ohs.is_empty() and (not ohs.get("hardpoint_only", false) or target.category == ComponentData.CATEGORY_HARDPOINT):
+		_note_status(fx, defender, target, ohs["status"], int(ohs["stacks"]), true)
+	var sts: Dictionary = card.rule.get("status_if_target_status", {})
+	if not sts.is_empty() and CardResolver.target_has_status(target, defender, sts["if"]):
+		_note_status(fx, defender, target, sts["status"], int(sts.get("stacks", 1)), true)
+	if not _peek_primed(cm, "knockback", card).is_empty():
+		_note_status(fx, defender, target, "disabled", 1, true)
+	for c in cm.player_mech.living_passives("status_on_attack"):
+		_note_status(fx, defender, target, c.passive.get("status", "shock"), int(c.passive.get("stacks", 1)), float(c.passive.get("chance", 1.0)) >= 1.0)
+	return fx
+
+static func _note_status(fx: Dictionary, defender: MechData, part: ComponentData, status: String, stacks: int, sure: bool) -> void:
+	var reducer := defender.incoming_status_reducer(status)
+	if reducer != null:
+		stacks -= int(reducer.passive.get("amount", 0))
+	if stacks <= 0 or part == null or part.destroyed:
+		return
+	match status:
+		"disabled", "offline":
+			fx.get_or_add(part, {})["stop" if sure else "maybe"] = true
+		"freeze":
+			if sure:
+				fx.get_or_add(part, {})["freeze"] = true
+		"shock":
+			if sure:
+				fx.get_or_add(part, {})["shock"] = true
+
 ## A primed protocol of `type` that would apply to `card`, without using it.
 static func _peek_primed(cm: CombatManager, type: String, card: CardData) -> Dictionary:
 	if card.protocol() != "":

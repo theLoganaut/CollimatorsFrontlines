@@ -252,7 +252,8 @@ func set_intents(actions: Array, overheat: bool = false, venting: bool = false) 
 			_intent_row.add_child(icon)
 			icon.setup(IntentIcon.INTENT_CHARGE, a["active"])
 			continue
-		icon.intent = {"mech": mech, "card": a["card"], "target": a.get("target", null)}
+		icon.intent = {"mech": mech, "card": a["card"], "target": a.get("target", null),
+			"cancelled": icon.cancelled, "weakened": icon.weakened, "charged": icon.charged, "added": icon.added}
 		_intent_row.add_child(icon)
 		icon.setup((a["card"] as CardData).intent(), a["active"])
 	if n > actions.size():
@@ -261,6 +262,13 @@ func set_intents(actions: Array, overheat: bool = false, venting: bool = false) 
 		_intent_row.add_child(warn)
 		warn.setup(IntentIcon.INTENT_OVERHEAT, false)
 	_intent_row.queue_redraw()
+
+## The aimed card's marks on the intents (CombatAttack.preview_plan, in
+## set_intents' order; [] clears them).
+func preview_intents(marks: Array[String]) -> void:
+	var icons := _intent_row.get_children()
+	for i in range(icons.size()):
+		(icons[i] as IntentIcon).set_preview(marks[i] if i < marks.size() else "")
 
 func _draw_intent_chevrons() -> void:
 	# No theme word ("GUARD", "AFFLICT"...) beside them: the icons say it (Logan, 2026-10-16).

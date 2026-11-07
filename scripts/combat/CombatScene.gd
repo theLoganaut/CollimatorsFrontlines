@@ -112,6 +112,7 @@ var _picker: PanelContainer = null # Reroute's status choice
 ## While aiming an attack: the enemy whose health bar shows what it would
 ## take, and whose grid marks the part it would destroy.
 var _preview_panel: EnemyPanel = null
+var _plan_panel: EnemyPanel = null # the enemy whose intents show the aimed card's marks
 ## The screen's edges pulse red while the card in hand would overheat (Logan, 2026-10-02).
 var _overheat_glow: ColorRect = null
 var _glow: float = 0.0 # 0..1, eased toward on/off
@@ -1021,6 +1022,17 @@ func _set_targeting(hit: Dictionary) -> void:
 	if grid != null:
 		grid.set_targeted(hit["component"])
 	_show_damage_preview(hit)
+	_show_plan_preview(hit)
+
+## What the aimed card would change in that enemy's shown turn, marked on its intents.
+func _show_plan_preview(hit: Dictionary) -> void:
+	var card: CardData = _aim_card if _aim_card != null else UIState.dragging_card
+	var panel: EnemyPanel = null if hit.is_empty() or card == null or combat == null else hit["panel"]
+	if _plan_panel != null and _plan_panel != panel and is_instance_valid(_plan_panel):
+		_plan_panel.preview_intents([] as Array[String])
+	_plan_panel = panel
+	if panel != null:
+		panel.preview_intents(combat.preview_plan(card, hit["mech"], hit["component"]))
 
 ## What the aimed attack would do, shown rather than written (Logan,
 ## 2026-10-02: less numbers on screen): the HP it takes off pulses on the
