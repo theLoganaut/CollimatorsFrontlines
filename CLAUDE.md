@@ -17,7 +17,7 @@ fight with no run, used by dev tools.
 lines). `data/component_rules.json` says how each effect plays. Player mechs (`bastion/redline/jackal.json`) name parts by id.
 Parts named "(C) …" in Refit Bay are Claude's drafts (shown without the prefix in game; `claude_draft` in components.json);
 their mechanics are written in `tools/claude_parts.py` (`rules` merges them into component_rules.json). The card rework
-(Notion: Dynamic Turn Rework, Phase 5) keeps its reworked/added cards and rewritten passives in `tools/card_pass.py`
+(Hermes: `Frontlines Dynamic Turn Rework Phase 5 …` notes) keeps its reworked/added cards and rewritten passives in `tools/card_pass.py`
 (`refit` patches a Refit Bay doc, `components` patches components.json + rules; claude_parts.py takes those parts' cards from it). Reactors are passive-only. Weight classes are
 enforced: Light/Medium/Heavy parts only fit that class, General fits all. Missions, sectors (with encounter pools), events,
 directives, liveries and Operator lines are JSON in `data/`. **Every tuning number is in `data/balance.json`**; rerun
@@ -113,30 +113,32 @@ and `ArmoryBrowser` (search, category chips, sort).
 Combat backgrounds are `assets/backgrounds/`, listed per location and tier in `data/backgrounds.json` with where
 enemies' feet stand (`PlayField` draws them, with `Rain` for rainy ones; `CombatScene` stands the enemies on those spots).
 
-## Source of truth: Notion
+## Source of truth: the Hermes vault
 
-**Hub:** https://app.notion.com/p/Collimators-Frontlines-3e783c3998468084af6bd3f5f89f96ab
+Design notes, decisions, change logs and tasks live in the Hermes vault at `~/hermes-vault/projects/collimators-frontlines/`
+(follow `~/hermes-vault/CLAUDE.md` when reading or changing it). **Never use Notion**: the old Notion pages were imported
+into the vault and Notion is no longer kept up.
 
-The hub is an index. Open only the subpage you need (fetch by ID with the Notion tools):
+`notes/Frontlines Game Home.md` is the index. Open only the note you need (all in `notes/`):
 
-| Page | ID | Contents |
-|---|---|---|
-| Game Overview | `3e783c39984681a496e1ed34c22fdb11` | Pitch, pillars, core concepts, glossary |
-| Chassis | `3e783c39984681d988eced9ed68578f4` | Redline / Jackal / Bastion cell maps, max heat, heat-check timing, starting loadouts, frame ring |
-| Components & Cards | `3e783c39984681e29907e0ae0b18b830` | Categories, rarity targets, card anatomy, passives, protocols, per-part rulings; catalog subpages below |
-| ↳ Hardpoints Catalog | `3e783c39984681c68ebcc3a04977d51b` | Generated from components.json |
-| ↳ Reactors Catalog | `3e783c39984681df8adef3a155b9dcd4` | Generated from components.json |
-| ↳ Protocols Catalog | `3e783c39984681aa80f7eec5090050cc` | Generated from components.json |
-| Statuses & Links | `3e783c39984681bba51add32eac87f8e` | Status/state rules, keywords, link and facing-arrow system |
-| Combat Rules | `3e783c39984681869ee2df147f4abb1a` | Round structure, venting, Vent action, overheat, once-per-turn cards, damage, win/lose |
-| Enemies | `3e783c399846819fb6c2c7b37026549d` | Principles (intents, enemy heat), AI profiles, bosses, roster, location pools, win rates |
-| Runs & Progression | `3e783c399846811c9983e2a03e8089bc` | Missions, map, encounters, salvage, Cargo/workbench, refits, repairs, shops, events, deployment orders |
-| Hub & Meta-Progression | `3e783c399846811fa8d1cff263925ace` | War Room stations, Hangar, Operator, Chips, directives, liveries, co-op |
-| Balance Targets | `3e783c39984681cf9a83e34ef26268bd` | Feel targets, HP calibration, current sim results, watch list |
-| UI & Screens | `3e783c39984681e893f9f69f833474f8` | **Chosen combat layout = Logan's sketch** (image on page), card face, intents, settings, screen flow, art |
-| Tech & Tools | `3e783c399846811abcebdaa3f51e0749` | Project setup, data files, tools, Refit Bay, conventions |
-| Change Log | `3fa83c39984681219dfecc7645c982f7` | One subpage per version (0.X.X) with what changed, the version in progress, and the roadmap (the one posted on Discord). **Add every change to the in-progress version's page as it's made** |
-| Scratchpad & Backlog | `3e783c39984681f88fbef6abf2ecefaf` | Logan's in-progress thoughts (not decided); its **Backlog (non-art)** subpage (`3ea83c39984681418305d1e79f381380`) is the open work |
+| Note | Contents |
+|---|---|
+| Frontlines Game Overview | Pitch, pillars, core concepts, glossary |
+| Frontlines Chassis | Redline / Jackal / Bastion cell maps, max heat, heat-check timing, starting loadouts, frame ring |
+| Frontlines Components & Cards | Categories, rarity targets, card anatomy, passives, protocols, per-part rulings |
+| ↳ Frontlines Hardpoints / Reactors / Protocols Catalog | Generated from components.json |
+| Frontlines Statuses & Links | Status/state rules, keywords, link and facing-arrow system |
+| Frontlines Combat Rules | Round structure, venting, Vent action, overheat, once-per-turn cards, damage, win/lose |
+| Frontlines Enemies | Principles (intents, enemy heat), AI profiles, bosses, roster, location pools, win rates |
+| Frontlines Runs & Progression | Missions, map, encounters, salvage, Cargo/workbench, refits, repairs, shops, events, deployment orders |
+| Frontlines Hub & Meta-Progression | War Room stations, Hangar, Operator, Chips, directives, liveries, co-op |
+| Frontlines Balance Targets | Feel targets, HP calibration, current sim results, watch list |
+| Frontlines UI & Screens | **Chosen combat layout = Logan's sketch**, card face, intents, status icons, settings, screen flow, art |
+| Frontlines Tech & Tools | Project setup, data files, tools, Refit Bay, conventions |
+| Frontlines Change Log (+ `Frontlines Change Log 0.X.X`) | One note per version with what changed, the version in progress, and the roadmap. **Add every change to the in-progress version's note as it's made** |
+| Frontlines Dynamic Turn Rework (+ its Phase notes) | The card/turn rework: audit, design framework, rules spec, enemy AI design and build, card batches |
+| Frontlines Scratchpad & Backlog | Logan's in-progress thoughts (not decided); open work is tasks in `tasks/` |
+| Frontlines Decisions to Make | Open questions waiting on Logan |
 
 ## Other sources
 
@@ -147,7 +149,7 @@ The hub is an index. Open only the subpage you need (fetch by ID with the Notion
 ## Working rules
 
 - **Mechs use only Refit Bay parts**, player and enemy alike: components, HP, shapes, cards and effect text copied verbatim. Never make up a part or effect unless Logan explicitly asks.
-- Settled decisions go into the matching Notion topic page, not only into chat or code.
+- Settled decisions go into the matching Hermes note (table above), not only into chat or code. Never Notion.
 - Treat Scratchpad → "Thoughts in progress" as undecided. Pages tag items **Decided / Proposed / Open / Shelved / Cut**; only Decided is settled.
 - Godot CLI for headless runs/tests: `/Applications/Godot.app/Contents/MacOS/Godot` on the Mac; on Windows,
   `~/Desktop/Projects/Godot_v4.7-stable_win64_console.exe`.
