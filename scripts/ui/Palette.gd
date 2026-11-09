@@ -88,8 +88,10 @@ static func draw_status_glyph(ci: CanvasItem, c: Vector2, g: float, status: Stri
 		"burn":
 			ci.draw_colored_polygon(_pts(c, g, [[0.0, -1.0], [0.45, -0.25], [0.7, 0.35], [0.4, 0.9], [-0.4, 0.9], [-0.7, 0.35], [-0.35, -0.1], [-0.1, 0.15]]), col)
 		"absorb":
+			# a bubble: tinted inside, so it isn't just another ring
+			ci.draw_circle(c, g * 0.85, Color(col, 0.35))
 			ci.draw_arc(c, g * 0.85, 0.0, TAU, 18, col, w, true)
-			ci.draw_circle(c + Vector2(-g * 0.3, -g * 0.3), g * 0.2, col)
+			ci.draw_circle(c + Vector2(-g * 0.3, -g * 0.3), g * 0.22, col)
 		"deflect":
 			var shield := _pts(c, g, [[-0.8, -0.85], [0.8, -0.85], [0.8, 0.1], [0.0, 1.0], [-0.8, 0.1], [-0.8, -0.85]])
 			ci.draw_polyline(shield, col, w, true)
@@ -110,8 +112,11 @@ static func draw_status_glyph(ci: CanvasItem, c: Vector2, g: float, status: Stri
 			ci.draw_line(c + Vector2(0, g), c + Vector2(0, -g * 0.6), col, w, true)
 			ci.draw_polyline(_pts(c, g, [[-0.6, -0.2], [0.0, -0.9], [0.6, -0.2]]), col, w, true)
 		"smoke":
-			for p in [[-0.45, 0.2, 0.42], [0.1, -0.15, 0.52], [0.5, 0.25, 0.38]]:
+			# a cloud with a flat base (round puffs alone read as a blob)
+			for p in [[-0.5, 0.25, 0.38], [0.05, -0.1, 0.5], [0.55, 0.3, 0.33]]:
 				ci.draw_circle(c + Vector2(p[0], p[1]) * g, g * p[2], col)
+			ci.draw_rect(Rect2(c + Vector2(-0.5, 0.25) * g, Vector2(1.05, 0.38) * g), col, true)
+			ci.draw_line(c + Vector2(-0.9, 0.85) * g, c + Vector2(0.6, 0.85) * g, col, w * 0.8, true)
 		"destroyed":
 			ci.draw_line(c + Vector2(-0.7, -0.7) * g, c + Vector2(0.7, 0.7) * g, col, w, true)
 			ci.draw_line(c + Vector2(-0.7, 0.7) * g, c + Vector2(0.7, -0.7) * g, col, w, true)

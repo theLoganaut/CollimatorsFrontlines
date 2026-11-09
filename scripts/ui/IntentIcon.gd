@@ -1,8 +1,11 @@
 class_name IntentIcon
 extends Control
 ## One enemy intent symbol: a vague picture of what one planned action will
-## do (CardData.intent()): a sword (attack), crossed swords (heavy attack),
-## a shield (block), a drop (status), an up arrow (buff). The action
+## do (CardData.intent()): a sword (attack), a sword striking sparks (heavy attack),
+## a shield (guard), a skull (afflict: a status on you), a plus (recover /
+## buff itself), a charging battery (charge). None reuses a status glyph
+## (Shock's bolt, Acid's drop, Jam's arrow), so the intent row and the badge
+## row never look alike (2026-11-09). The action
 ## currently resolving pulses. Hovering one shows the card and the part
 ## of your mech it's aimed at (UIState.hovered_intent). An extra warning
 ## icon ("overheat") means the plan takes the enemy past its max heat.
@@ -20,9 +23,9 @@ const TITLES := {INTENT_OVERHEAT: "Overheating", INTENT_VENT: "Venting", INTENT_
 const TOOLTIPS := {
 	CardData.INTENT_ATTACK: "Attack",
 	CardData.INTENT_HEAVY_ATTACK: "Heavy attack",
-	CardData.INTENT_BLOCK: "Block",
-	CardData.INTENT_STATUS: "Status effect",
-	CardData.INTENT_BUFF: "Buff",
+	CardData.INTENT_BLOCK: "Guard",
+	CardData.INTENT_STATUS: "Afflict",
+	CardData.INTENT_BUFF: "Recover",
 	INTENT_OVERHEAT: "What it plans this turn will take it over its max heat: it overheats, the backlash damages its own parts, and its turn ends there.",
 	INTENT_VENT: "It has nothing it can play, so it spends this turn dumping heat.",
 	INTENT_CHARGE: "Charging something big. It fires for free at +50% as its next turn starts, unless you Disable, Freeze or destroy the charging part first.",
@@ -110,19 +113,27 @@ func _draw() -> void:
 	var m := ICON_SIZE / 2.0
 	match kind:
 		INTENT_CHARGE:
-			# a lightning bolt
-			draw_colored_polygon(PackedVector2Array([
-				m + Vector2(2, -10), m + Vector2(-6, 2), m + Vector2(-1, 2), m + Vector2(-3, 10),
-				m + Vector2(6, -2), m + Vector2(1, -2)]), c)
+			# a battery two-thirds full: something is charging
+			var body := Rect2(m + Vector2(-9, -5), Vector2(16, 10))
+			draw_rect(body, c, false, 2.0)
+			draw_rect(Rect2(m + Vector2(7, -2.5), Vector2(2.5, 5)), c, true)
+			for i in range(2):
+				draw_rect(Rect2(body.position + Vector2(2.5 + i * 4.5, 2.5), Vector2(3, 5)), c, true)
 		CardData.INTENT_ATTACK:
 			_draw_sword(m, 1.0, c)
 		CardData.INTENT_HEAVY_ATTACK:
-			_draw_sword(m, 1.0, c)
-			_draw_sword(m, -1.0, c)
+			# a bigger sword striking sparks (crossed swords blurred into an X at this size)
+			draw_sword(self, m + Vector2(-1.5, 1.5), 1.0, c, 1.0)
+			var hit := m + Vector2(7, -8)
+			for d in [Vector2(-1, -0.15), Vector2(-0.45, -1), Vector2(0.35, -1), Vector2(1, -0.2), Vector2(1, 0.45)]:
+				var u: Vector2 = d.normalized()
+				draw_line(hit + u * 2.5, hit + u * 5.0, c.lightened(0.3), 1.5, true)
 		CardData.INTENT_BLOCK:
 			draw_colored_polygon(PackedVector2Array([
-				m + Vector2(-7, -8), m + Vector2(7, -8), m + Vector2(7, 1),
-				m + Vector2(0, 9), m + Vector2(-7, 1)]), c)
+				m + Vector2(-8, -9), m + Vector2(8, -9), m + Vector2(8, 1),
+				m + Vector2(0, 10), m + Vector2(-8, 1)]), c)
+			# a rib down the middle, so it reads as a shield and not a badge
+			draw_line(m + Vector2(0, -6), m + Vector2(0, 6), c.lightened(0.45), 2.0)
 		INTENT_OVERHEAT:
 			# a flame
 			draw_colored_polygon(PackedVector2Array([
@@ -134,13 +145,19 @@ func _draw() -> void:
 			for dx in [-5.0, 0.0, 5.0]:
 				draw_polyline(PackedVector2Array([m + Vector2(dx, 8), m + Vector2(dx - 2, 3), m + Vector2(dx + 2, -2), m + Vector2(dx, -8)]), c, 2.0, true)
 		CardData.INTENT_STATUS:
-			draw_circle(m + Vector2(0, 3), 5.5, c)
-			draw_colored_polygon(PackedVector2Array([
-				m + Vector2(-4.8, 0.5), m + Vector2(0, -9), m + Vector2(4.8, 0.5)]), c)
+			# a skull: it puts something nasty on your parts
+			var bg := Palette.PANEL_2
+			draw_circle(m + Vector2(0, -2), 7.5, c)
+			draw_rect(Rect2(m + Vector2(-4.5, 2), Vector2(9, 7)), c, true)
+			draw_circle(m + Vector2(-3, -2), 2.4, bg)
+			draw_circle(m + Vector2(3, -2), 2.4, bg)
+			draw_colored_polygon(PackedVector2Array([m + Vector2(0, 1), m + Vector2(-1.3, 3.5), m + Vector2(1.3, 3.5)]), bg)
+			for x in [-1.5, 1.5]:
+				draw_line(m + Vector2(x, 6), m + Vector2(x, 9), bg, 1.0)
 		_:
-			draw_colored_polygon(PackedVector2Array([
-				m + Vector2(0, -9), m + Vector2(8, 0), m + Vector2(3, 0), m + Vector2(3, 8),
-				m + Vector2(-3, 8), m + Vector2(-3, 0), m + Vector2(-8, 0)]), c)
+			# a plus: it patches, vents or boosts itself
+			draw_rect(Rect2(m + Vector2(-3, -9), Vector2(6, 18)), c, true)
+			draw_rect(Rect2(m + Vector2(-9, -3), Vector2(18, 6)), c, true)
 
 	if weakened and not cancelled:
 		# a small down arrow: Shock takes a third off its hits
@@ -178,11 +195,15 @@ func _draw_sword(m: Vector2, flip: float, c: Color) -> void:
 
 ## The same sword on any CanvasItem, at any scale (the location map's fight nodes use it).
 static func draw_sword(ci: CanvasItem, m: Vector2, flip: float, c: Color, k: float = 1.0) -> void:
-	var tip := m + Vector2(7 * flip, -8) * k
-	var hilt := m + Vector2(-5 * flip, 6) * k
-	ci.draw_line(hilt, tip, c, 3.0 * k, true)
+	var tip := m + Vector2(8 * flip, -9) * k
+	var hilt := m + Vector2(-6 * flip, 7) * k
 	var dir := (tip - hilt).normalized()
 	var perp := Vector2(-dir.y, dir.x)
-	var guard := hilt + dir * 3.0 * k
-	ci.draw_line(guard - perp * 4.5 * k, guard + perp * 4.5 * k, c, 2.5 * k, true)
-	ci.draw_circle(hilt - dir * 2.5 * k, 2.0 * k, c)
+	var guard := hilt + dir * 4.0 * k
+	var shoulder := tip - dir * 3.5 * k
+	# a filled, pointed blade (a plain line reads as a stick at this size)
+	ci.draw_colored_polygon(PackedVector2Array([guard + perp * 2.0 * k, shoulder + perp * 2.0 * k, tip,
+		shoulder - perp * 2.0 * k, guard - perp * 2.0 * k]), c)
+	ci.draw_line(guard - perp * 5.0 * k, guard + perp * 5.0 * k, c, 2.5 * k, true)
+	ci.draw_line(hilt, guard, c, 2.5 * k, true)
+	ci.draw_circle(hilt - dir * 0.5 * k, 1.8 * k, c)

@@ -331,7 +331,9 @@ class StatusBadge extends Control:
 			for d in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
 				draw_line(m + d * 4.0, m + d * 8.0, c, 1.5)
 			return
-		Palette.draw_status(self, m, 7.5, status)
+		# the glyph alone, as big as the badge allows: a chip inside the frame
+		# left it about 10 px across (2026-11-09)
+		Palette.draw_status_glyph(self, m, s.x * 0.31, status, col.lightened(0.25))
 		var font := get_theme_default_font()
 		var y := s.y + 12.0 if numbers_below else -3.0
 		var text := str(stacks)
