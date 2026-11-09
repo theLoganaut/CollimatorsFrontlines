@@ -63,6 +63,8 @@ const REVEAL_Z := 240
 var combat: CombatManager
 ## A recorded fight to play back (set before changing to this scene; the
 ## Pilot Log does), and where to go once it's over.
+## Dev tools only: with no run, builds the standalone fight ([player, enemies]).
+static var standalone_setup: Callable
 static var replay_record: Dictionary = {}
 static var replay_return: String = SceneRouter.PILOT_LOG
 ## Pause before each replayed command (scaled by game speed).
@@ -220,6 +222,10 @@ func _start_new_combat() -> void:
 		RunState.run.prepare_player_for_fight() # full carry-over: HP and destroyed parts stay
 		player_mech = RunState.run.player_mech
 		enemy_mechs = RunState.run.encounter_enemies()
+	elif standalone_setup.is_valid(): # a dev tool's fight (tools/test_fight.gd), fresh on each Restart
+		var setup: Array = standalone_setup.call()
+		player_mech = setup[0]
+		enemy_mechs.assign(setup[1])
 	else:
 		player_mech = GameData.fresh_bastion()
 		enemy_mechs = [GameData.fresh_scrap_warden(), GameData.fresh_scrap_warden(), GameData.fresh_scrap_warden()]
