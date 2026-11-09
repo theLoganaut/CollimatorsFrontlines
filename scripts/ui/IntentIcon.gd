@@ -148,19 +148,25 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]), Palette.WARNING, 1.5, true)
 			Palette.draw_status_glyph(self, m + Vector2(0, 2.5), 5.0, "burn", Palette.LINK)
 		INTENT_VENT:
-			# a vent grille blasting a plume up and away, mushrooming at its end
-			var g := Rect2(m + Vector2(-11, 3), Vector2(8, 8))
-			draw_rect(g, c, false, 1.5)
-			for i in range(3):
-				var y := g.position.y + 2.0 + i * 2.0
-				draw_line(Vector2(g.position.x + 1.5, y), Vector2(g.end.x - 1.5, y), c, 1.0)
+			# a vent seen at an angle, three steam marks rising off it, and a
+			# cloud outline drifting clear of them (Logan: more empty space)
 			var d := Vector2(1, -1).normalized()
 			var pp := Vector2(-d.y, d.x)
-			var start := m + Vector2(-5, 3)
-			var head := start + d * 10.0
-			draw_colored_polygon(PackedVector2Array([start + pp * 1.2, head + pp * 2.5, head - pp * 2.5, start - pp * 1.2]), c)
-			for p in [[0.0, 0.0, 3.6], [0.0, 4.0, 2.8], [0.0, -4.0, 2.8], [2.5, 0.0, 3.0], [-1.5, 3.5, 2.2], [-1.5, -3.5, 2.2]]:
+			var v := m + Vector2(-6.5, 6.5)
+			var face := PackedVector2Array([v + pp * 5.0 + d * 1.5, v - pp * 5.0 + d * 1.5,
+				v - pp * 5.0 - d * 1.5, v + pp * 5.0 - d * 1.5])
+			face.append(face[0])
+			draw_polyline(face, c, 1.5, true)
+			draw_line(v + pp * 3.5, v - pp * 3.5, c, 1.0)
+			for k in [-3.0, 0.0, 3.0]:
+				var len := 4.5 if k == 0.0 else 3.0
+				draw_line(v + pp * k + d * 4.5, v + pp * k + d * (4.5 + len), c, 1.5, true)
+			var head := v + d * 15.5
+			var puffs := [[0.0, 0.0, 3.4], [0.0, 3.6, 2.6], [0.0, -3.6, 2.6], [2.0, 1.4, 2.6], [2.0, -1.4, 2.6]]
+			for p in puffs:
 				draw_circle(head + d * p[0] + pp * p[1], p[2], c)
+			for p in puffs:
+				draw_circle(head + d * p[0] + pp * p[1], p[2] - 1.5, Palette.PANEL_2)
 		CardData.INTENT_STATUS:
 			# a skull: it puts something nasty on your parts
 			var bg := Palette.PANEL_2
