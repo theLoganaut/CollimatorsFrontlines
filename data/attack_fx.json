@@ -1,0 +1,62 @@
+{
+  "_comment": "Which attack animation each hardpoint plays (AttackFx; sheets in assets/fx, made in PixelLab). A part's animation is the same on the player's mech and an enemy's. Styles: shot, burst, missile, swarm, mortar, spray:<fire|acid|frost|steam>, slash, smash, beam:<electric|laser|heat|nova>. `cards` overrides one card of a part. Agreed with Logan 2026-11-09 (Hermes: Attack animations from PixelLab sprite sheets).",
+  "parts": {
+    "hv_rifle": "shot",
+    "railspike": "shot",
+    "lockdown_cannon": "shot",
+    "thermal_spike_rifle": "shot",
+    "vent_cannon": "shot",
+    "flash_pistol": "shot",
+    "rivet_gun": "shot",
+    "hook_lance": "shot",
+
+    "autocannon": "burst",
+    "twin_linked_autocannon": "burst",
+    "needle_carbine": "burst",
+    "scatter_shot": "burst",
+    "flechette_launcher": "burst",
+    "ricochet_pistols": "burst",
+    "flak_wall": "burst",
+
+    "cluster_rockets": "missile",
+    "hell_dropper": "missile",
+    "swarm_hive": "swarm",
+    "mortar_pod": "mortar",
+    "siege_mortar": "mortar",
+    "cataclysm_mortar": "mortar",
+
+    "firestorm": "spray:fire",
+    "caustic_schism": "spray:acid",
+
+    "ion_blade": "slash",
+    "neon_axe": "slash",
+    "fang_blade": "slash",
+    "plasma_rapier": "slash",
+    "resonance_blade": "slash",
+    "buzzsaw_arm": "slash",
+    "thermal_lance": "slash",
+    "parasite_leech": "slash",
+
+    "impact_hammer": "smash",
+    "demolition_hammer": "smash",
+    "pile_driver": "smash",
+    "colossus_fist": "smash",
+    "grav_anchor": "smash",
+    "grinder_maw": "smash",
+
+    "voltage_spike": "beam:electric",
+    "arc_whip": "beam:electric",
+    "coil_whip": "beam:electric",
+    "arc_thrower": "beam:electric",
+    "tesla_coil_tower": "beam:electric",
+    "laser_drive": "beam:laser",
+    "heat_lance": "beam:heat",
+    "nova_cannon": "beam:nova"
+  },
+  "cards": {
+    "thermal_spike_rifle/cold_snap": "spray:frost",
+    "lockdown_cannon/lockdown": "spray:frost",
+    "lockdown_cannon/containment": "spray:frost",
+    "vent_cannon/blow_off": "spray:steam"
+  }
+}

@@ -101,6 +101,12 @@ var feedback_button: Button
 var map_button: MapButton
 var settings_menu: SettingsMenu
 var hit_fx: HitFx
+## Attack animations (AttackFx): enemy attacks under the player's mech (a
+## shot lands on its front), the player's over it.
+var attack_fx_back: AttackFx
+var attack_fx_front: AttackFx
+var _fx_style := "" # the resolving card's animation (its hits' impacts)
+var _fx_layer: AttackFx
 
 var _generation: int = 0 # bumped on restart so a running enemy-turn coroutine stops
 var _targeted_grid: ChassisGridUI = null
@@ -313,9 +319,13 @@ func _build_ui_and_start() -> void:
 		panel.setup(enemy_mechs[i], enemy_labels[enemy_mechs[i]])
 		enemy_panels.append(panel)
 
+	attack_fx_back = AttackFx.new()
+	add_child(attack_fx_back)
 	player_panel = PlayerMechPanel.new()
 	add_child(player_panel)
 	player_panel.setup(player_mech)
+	attack_fx_front = AttackFx.new()
+	add_child(attack_fx_front)
 
 	combat_log = CombatLog.new()
 	add_child(combat_log)
@@ -1158,7 +1168,9 @@ func _play_hits(gen: int, reticle: TargetingReticle) -> bool:
 		var pt := combat.pending_target()
 		var mech: MechData = pt.get("mech", null)
 		var target: ComponentData = pt.get("comp", null)
-		var h := combat.next_hit() # -> _on_hit_landed: number, flash, shake, HP
+		if not await _launch_attack_fx(card, mech, target, hits):
+			return false
+		var h := combat.next_hit() # -> _on_hit_landed: number, flash, shake, HP, impact animation
 		if h.is_empty():
 			break
 		reticle.fire()
@@ -1170,10 +1182,51 @@ func _play_hits(gen: int, reticle: TargetingReticle) -> bool:
 				hit_fx.running_total(grid.component_center_global(target), total, mech == player_mech)
 		if h["hits_left"] <= 0:
 			break
-		await _wait(hit_gap(card))
+		await _wait(maxf(hit_gap(card) - _fx_travel, 0.04))
 		if gen != _generation:
 			return false
+	_end_attack_fx()
 	return true
+
+var _fx_travel := 0.0 # the last launch's flight time (it comes out of the gap to the next hit)
+
+## The card's attack animation for its next hit (AttackFx): from the firing
+## part to the target part (a card that hits random parts aims at the mech),
+## waiting until it lands. False if the fight restarted meanwhile.
+func _launch_attack_fx(card: CardData, mech: MechData, target: ComponentData, i: int) -> bool:
+	_fx_travel = 0.0
+	var attacker := combat.pending_attacker_mech()
+	var part := combat.pending_attacker_component()
+	_fx_style = AttackFxData.style_for(card, part)
+	_fx_layer = attack_fx_front if attacker == player_mech else attack_fx_back
+	if _fx_style == "" or _fx_layer == null or attacker == null or mech == null:
+		return true
+	var from_grid := _grid_for(attacker)
+	var to_grid := _grid_for(mech)
+	if from_grid == null or to_grid == null:
+		return true
+	var from := from_grid.component_center_global(part)
+	var to := to_grid.global_position + to_grid.size / 2.0
+	if target != null and not card.rule.get("random_part_hits", false):
+		to = to_grid.component_center_global(target)
+	var gen := _generation
+	_fx_travel = _fx_layer.launch(_fx_style, from, to, _fx_scale(attacker), _fx_scale(mech), i)
+	if _fx_travel > 0.0:
+		await _wait(_fx_travel)
+	return gen == _generation
+
+func _end_attack_fx() -> void:
+	if _fx_layer != null:
+		_fx_layer.stop_loops()
+	_fx_style = ""
+
+## A mech's sprite scale on screen (its image over the 128 px art): attack
+## animations are drawn at the scale of the mech they're at.
+func _fx_scale(mech: MechData) -> float:
+	if mech == player_mech:
+		return PlayerMechPanel.IMAGE_SIZE.y / 128.0
+	var panel := _panel_for(mech)
+	return panel.image_size.y / 128.0 if panel != null else 1.0
 
 ## A played card's flight: a copy leaves where the card was and shrinks
 ## into what it acts on (the enemy part, or its own part for a self card),
@@ -1527,6 +1580,8 @@ func _impact(mech: MechData, component: ComponentData, damage: int) -> void:
 		return
 	grid.flash(component)
 	var on_player := mech == player_mech
+	if _fx_style != "" and _fx_layer != null:
+		_fx_layer.land(_fx_style, grid.component_center_global(component), _fx_scale(mech))
 	hit_fx.impact(grid.component_center_global(component), damage, Palette.category_color(component.category), on_player)
 
 func _apply_settings() -> void:

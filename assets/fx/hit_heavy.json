@@ -1,0 +1,313 @@
+{
+ "frames": [
+  {
+   "filename": "frontlines-hit-heavy 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 1.png",
+   "frame": {
+    "x": 65,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 2.png",
+   "frame": {
+    "x": 130,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 3.png",
+   "frame": {
+    "x": 195,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 4.png",
+   "frame": {
+    "x": 0,
+    "y": 71,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 5.png",
+   "frame": {
+    "x": 65,
+    "y": 71,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 6.png",
+   "frame": {
+    "x": 130,
+    "y": 71,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 7.png",
+   "frame": {
+    "x": 195,
+    "y": 71,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 8.png",
+   "frame": {
+    "x": 0,
+    "y": 142,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 9.png",
+   "frame": {
+    "x": 65,
+    "y": 142,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-hit-heavy 10.png",
+   "frame": {
+    "x": 130,
+    "y": 142,
+    "w": 65,
+    "h": 71
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 71
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 71
+   },
+   "pivot": {
+    "x": 0.5384615384615384,
+    "y": 0.4225352112676056
+   },
+   "duration": 63
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "frontlines-hit-heavy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 260,
+   "h": 213
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 35,
+   "y": 30
+  },
+  "frameTags": [
+   {
+    "name": "frontlines-hit-heavy",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

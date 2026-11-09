@@ -1,0 +1,313 @@
+{
+ "frames": [
+  {
+   "filename": "frontlines-smash 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 1.png",
+   "frame": {
+    "x": 104,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 2.png",
+   "frame": {
+    "x": 208,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 3.png",
+   "frame": {
+    "x": 312,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 4.png",
+   "frame": {
+    "x": 0,
+    "y": 104,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 5.png",
+   "frame": {
+    "x": 104,
+    "y": 104,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 6.png",
+   "frame": {
+    "x": 208,
+    "y": 104,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 7.png",
+   "frame": {
+    "x": 312,
+    "y": 104,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 8.png",
+   "frame": {
+    "x": 0,
+    "y": 208,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 9.png",
+   "frame": {
+    "x": 104,
+    "y": 208,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "frontlines-smash 10.png",
+   "frame": {
+    "x": 208,
+    "y": 208,
+    "w": 104,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 104,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 104,
+    "h": 104
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "duration": 63
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "frontlines-smash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 416,
+   "h": 312
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 52,
+   "y": 52
+  },
+  "frameTags": [
+   {
+    "name": "frontlines-smash",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

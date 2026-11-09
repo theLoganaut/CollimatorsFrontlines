@@ -27,6 +27,7 @@ func _initialize() -> void:
 	_directives()
 	_orders()
 	_rules()
+	_attack_fx()
 	_enemy_ai()
 	_balance()
 	_classes()
@@ -254,6 +255,39 @@ func _orders() -> void:
 		for m in re.search_all(str(o.get("text", ""))):
 			if not (bal[id] as Dictionary).has(m.get_string(1)):
 				errors.append("orders.json %s: text uses {%s}, not in balance.json" % [id, m.get_string(1)])
+
+## Attack animations: every hardpoint card that hits has one, every entry
+## names a real part (and card) and style, and every sheet is there.
+func _attack_fx() -> void:
+	var d = _json(AttackFxData.DATA_PATH)
+	if not d is Dictionary:
+		return
+	var parts: Dictionary = d.get("parts", {})
+	for pid in parts:
+		if ComponentLibrary.definition(pid).is_empty():
+			errors.append("attack_fx.json: no part \"%s\" in components.json" % pid)
+		if not AttackFxData.valid_style(parts[pid]):
+			errors.append("attack_fx.json %s: no style \"%s\"" % [pid, parts[pid]])
+	var by_card: Dictionary = d.get("cards", {})
+	for key in by_card:
+		var pid: String = key.get_slice("/", 0)
+		var cid: String = key.get_slice("/", 1)
+		if not ComponentLibrary.definition(pid).get("cards", []).any(func(c): return str(c.get("id", "")) == cid):
+			errors.append("attack_fx.json: no card \"%s\"" % key)
+		if not AttackFxData.valid_style(by_card[key]):
+			errors.append("attack_fx.json %s: no style \"%s\"" % [key, by_card[key]])
+	for id in ComponentLibrary.all_ids():
+		var def := ComponentLibrary.definition(id)
+		var attacks: bool = def.get("cards", []).any(func(c): return str(c.get("hits", "0")) not in ["0", ""] and str(c.get("damage", "")) not in ["0", ""])
+		if attacks and not parts.has(id):
+			errors.append("attack_fx.json: hardpoint %s attacks but has no animation" % id)
+	for sheet_name in AttackFxData.SHEETS:
+		var names: Array = [sheet_name]
+		if AttackFxData.TINTS.has(sheet_name):
+			names = AttackFxData.TINTS[sheet_name].map(func(t): return sheet_name + "_" + t)
+		for n in names:
+			if AttackFxData.sheet(n).is_empty():
+				errors.append("assets/fx/%s.png/.json missing or empty" % n)
 
 func _rules() -> void:
 	var rules = _json("res://data/component_rules.json")

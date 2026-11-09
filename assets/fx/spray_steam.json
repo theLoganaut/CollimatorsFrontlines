@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "frontlines-spray-steam 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 1.png",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 2.png",
+   "frame": {
+    "x": 240,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 3.png",
+   "frame": {
+    "x": 0,
+    "y": 55,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 4.png",
+   "frame": {
+    "x": 120,
+    "y": 55,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 5.png",
+   "frame": {
+    "x": 240,
+    "y": 55,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 6.png",
+   "frame": {
+    "x": 0,
+    "y": 110,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-spray-steam 7.png",
+   "frame": {
+    "x": 120,
+    "y": 110,
+    "w": 120,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 120,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 120,
+    "h": 55
+   },
+   "pivot": {
+    "x": 0.075,
+    "y": 0.4909090909090909
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "frontlines-spray-steam.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 360,
+   "h": 165
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 9,
+   "y": 27
+  },
+  "frameTags": [
+   {
+    "name": "frontlines-spray-steam",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

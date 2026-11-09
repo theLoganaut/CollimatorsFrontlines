@@ -1,0 +1,157 @@
+{
+ "frames": [
+  {
+   "filename": "frontlines-muzzle-heavy 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 25
+   },
+   "pivot": {
+    "x": 0.0851063829787234,
+    "y": 0.52
+   },
+   "duration": 67
+  },
+  {
+   "filename": "frontlines-muzzle-heavy 1.png",
+   "frame": {
+    "x": 47,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 25
+   },
+   "pivot": {
+    "x": 0.0851063829787234,
+    "y": 0.52
+   },
+   "duration": 67
+  },
+  {
+   "filename": "frontlines-muzzle-heavy 2.png",
+   "frame": {
+    "x": 94,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 25
+   },
+   "pivot": {
+    "x": 0.0851063829787234,
+    "y": 0.52
+   },
+   "duration": 67
+  },
+  {
+   "filename": "frontlines-muzzle-heavy 3.png",
+   "frame": {
+    "x": 0,
+    "y": 25,
+    "w": 47,
+    "h": 25
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 25
+   },
+   "pivot": {
+    "x": 0.0851063829787234,
+    "y": 0.52
+   },
+   "duration": 67
+  },
+  {
+   "filename": "frontlines-muzzle-heavy 4.png",
+   "frame": {
+    "x": 47,
+    "y": 25,
+    "w": 47,
+    "h": 25
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 25
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 25
+   },
+   "pivot": {
+    "x": 0.0851063829787234,
+    "y": 0.52
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "frontlines-muzzle-heavy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 141,
+   "h": 50
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 4,
+   "y": 13
+  },
+  "frameTags": [
+   {
+    "name": "frontlines-muzzle-heavy",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

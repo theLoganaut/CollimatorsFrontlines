@@ -1,0 +1,131 @@
+{
+ "frames": [
+  {
+   "filename": "frontlines-round-heavy 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0.7906976744186046,
+    "y": 0.4375
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-round-heavy 1.png",
+   "frame": {
+    "x": 43,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0.7906976744186046,
+    "y": 0.4375
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-round-heavy 2.png",
+   "frame": {
+    "x": 0,
+    "y": 16,
+    "w": 43,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0.7906976744186046,
+    "y": 0.4375
+   },
+   "duration": 83
+  },
+  {
+   "filename": "frontlines-round-heavy 3.png",
+   "frame": {
+    "x": 43,
+    "y": 16,
+    "w": 43,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0.7906976744186046,
+    "y": 0.4375
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "frontlines-round-heavy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 86,
+   "h": 32
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 34,
+   "y": 7
+  },
+  "frameTags": [
+   {
+    "name": "frontlines-round-heavy",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}

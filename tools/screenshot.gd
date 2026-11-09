@@ -248,7 +248,7 @@ func _ready() -> void:
 			if args.size() > 4: # a choice already taken (a multi-step event's next step)
 				run.resolve_event(int(args[4]))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_EVENT]
-		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_disrupt", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map", "combat_retreat", "combat_feedback", "combat_hover", "combat_enemy_cards":
+		"combat", "combat_reveal", "combat_end", "combat_preview", "combat_disrupt", "combat_play", "combat_keys", "combat_record", "combat_pad", "combat_status", "combat_map", "combat_retreat", "combat_feedback", "combat_hover", "combat_enemy_cards", "combat_fx":
 			run.choose_node(run.available_nodes()[0])
 			scene = RunState.PHASE_SCENES[RunData.PHASE_FIGHT]
 		_:
@@ -280,6 +280,10 @@ func _ready() -> void:
 	if what == "combat":
 		_play_one_card()
 		await get_tree().create_timer(2.5).timeout
+	if what == "combat_fx": # every attack animation (or args[3], comma-separated), the player's then an enemy's: frames to <out>/<style>_<who>_NN.png
+		await _attack_fx_reel(out, args[3].split(",") if args.size() > 3 else [])
+		get_tree().quit()
+		return
 	if what == "orders_go": # press To the map: the panel drops away and the stops pop up
 		var panel: OrdersPanel = get_tree().current_scene.find_children("*", "OrdersPanel", true, false)[0]
 		panel.done.emit()
@@ -776,3 +780,44 @@ func _pad_test() -> void:
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
 	await get_tree().create_timer(0.5).timeout
 
+
+## combat_fx: plays each attack style from a player part to an enemy part and
+## back (AttackFx, the scene's own layers), saving a frame every 0.05 s.
+func _attack_fx_reel(out: String, styles: Array) -> void:
+	var cs = get_tree().current_scene
+	DirAccess.make_dir_recursive_absolute(out)
+	if styles.is_empty():
+		styles = ["shot", "burst", "missile", "swarm", "mortar", "spray:fire", "spray:acid", "spray:frost", "spray:steam", "slash", "smash", "beam:electric", "beam:laser", "beam:heat", "beam:nova"]
+	var enemy: MechData = cs.combat.enemies[0]
+	var mine: ComponentData = cs.player_mech.non_destroyed_components()[0]
+	var theirs: ComponentData = enemy.non_destroyed_components()[0]
+	for style in styles:
+		for who in ["player", "enemy"]:
+			var from_mech: MechData = cs.player_mech if who == "player" else enemy
+			var to_mech: MechData = enemy if who == "player" else cs.player_mech
+			var from_part := mine if who == "player" else theirs
+			var to_part := theirs if who == "player" else mine
+			var layer: AttackFx = cs.attack_fx_front if who == "player" else cs.attack_fx_back
+			var from: Vector2 = cs._grid_for(from_mech).component_center_global(from_part)
+			var to: Vector2 = cs._grid_for(to_mech).component_center_global(to_part)
+			var hits := 3 if style.begins_with("burst") or style.begins_with("swarm") or style.begins_with("beam") else 1
+			var frame := 0
+			var tag: String = style.replace(":", "_") + "_" + who
+			for i in range(hits):
+				var t: float = layer.launch(style, from, to, cs._fx_scale(from_mech), cs._fx_scale(to_mech), i)
+				var landed := false
+				var start := Time.get_ticks_msec()
+				while true:
+					await RenderingServer.frame_post_draw
+					var el := (Time.get_ticks_msec() - start) / 1000.0
+					if not landed and el >= t:
+						layer.land(style, to, cs._fx_scale(to_mech))
+						landed = true
+					get_viewport().get_texture().get_image().save_png("%s/%s_%02d.png" % [out, tag, frame])
+					frame += 1
+					await get_tree().create_timer(0.05).timeout
+					if el > t + (0.15 if i < hits - 1 else 0.7):
+						break
+			layer.stop_loops()
+			await get_tree().create_timer(0.3).timeout
+	print("attack fx frames in ", out)

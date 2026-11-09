@@ -209,6 +209,10 @@ func pending_card() -> CardData:
 func pending_attacker_component() -> ComponentData:
 	return _attack.get("attacker_component", null)
 
+## The mech whose card is resolving (for its attack animation), or null.
+func pending_attacker_mech() -> MechData:
+	return _attack.get("attacker_mech", null)
+
 func pending_target() -> Dictionary:
 	if not _attack.has("card"):
 		return {}
