@@ -292,7 +292,7 @@ const BURST_MID := Vector2(40, 24)
 const RETICLE_MID := Vector2(24, 24)
 
 ## Where the heat cost's flame stands (the middle of its round body), and how tall.
-const FLAME_AT := Vector2(15.5, 18) # where the cost label's digit actually lands (measured)
+const FLAME_AT := Vector2(19.5, 18) # the cost digit lands about (15.5,18); Logan wanted the fire 4 px right of that
 const FLAME_H := 42.0 # may poke past the card edge (Logan, 2026-11-09: 1.5x so the number fits in the ball)
 
 ## The heat flame, its round body's middle at `at`, `height` tall.
