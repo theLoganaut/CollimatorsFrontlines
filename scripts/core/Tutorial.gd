@@ -460,11 +460,11 @@ func _icon(name: String) -> Array:
 static func _draw_card_icon(c: Control, name: String, at: Vector2) -> void:
 	match name:
 		"heat":
-			CardUI.draw_glyph(c, CardUI.flame_shape(at, 1.2), 0.35, 2.0)
+			CardUI.draw_flame(c, at, 26.0)
 		"damage":
-			CardUI.draw_glyph(c, CardUI.burst_shape(at, Vector2(13, 13)), 0.35, 2.0)
+			CardUI.draw_burst(c, at, 28.0)
 		"shots":
-			CardUI.draw_reticle(c, at, 2.0)
+			CardUI.draw_reticle(c, at, 26.0)
 
 func _place_skip() -> void:
 	var screen: Vector2 = _root.get_viewport_rect().size

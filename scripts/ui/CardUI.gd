@@ -232,8 +232,7 @@ func _draw() -> void:
 	else:
 		draw_rect(rect, Color(accent, 0.9), false, 1.5)
 	if card != null: # the heat cost, in a flame (Logan, 2026-10-16: it's heat)
-		draw_glyph(self, flame_shape(FLAME_AT, 1.0), 0.22, 1.5)
-		draw_colored_polygon(flame_shape(FLAME_AT + Vector2(0, 2), 0.6), Color(Palette.HARDPOINT, 0.16)) # a smaller flame inside
+		draw_flame(self, FLAME_AT, FLAME_H)
 		_draw_damage()
 	draw_line(Vector2(32 if card != null else 8, 28), Vector2(size.x - 8, 28), Color(accent, 0.35), 1.0) # (clear of the flame)
 	if hotkey > 0 and not _spent: # its number key, bottom right
@@ -256,41 +255,23 @@ func _draw() -> void:
 ## reticle holding the hit count, "×", then an impact burst holding the
 ## damage per hit. One hit: just the burst.
 const BURST_AT := Vector2(BASE_SIZE.x - 30.0, 14.0)
-const BURST_R := Vector2(24.0, 13.0) # the spikes' reach, across and up
-const RETICLE_R := 9.5
+const BURST_W := 48.0
+const RETICLE_SIZE := 25.0
 
 func _draw_damage() -> void:
 	if card == null or card.hits <= 0:
 		return
 	var font := get_theme_default_font()
 	var col := Palette.HARDPOINT
-	draw_glyph(self, burst_shape(BURST_AT, BURST_R), 0.2, 1.5)
+	draw_burst(self, BURST_AT, BURST_W)
 	_centered(font, card.per_hit_label(), BURST_AT, 11, Palette.TEXT)
 	if card.hits == 1:
 		return
-	var times_x := BURST_AT.x - BURST_R.x - 6.0
+	var times_x := BURST_AT.x - BURST_W / 2.0 - 6.0
 	_centered(font, "×", Vector2(times_x, BURST_AT.y), 12, col)
-	var c := Vector2(times_x - 6.0 - RETICLE_R - 3.0, BURST_AT.y)
-	draw_reticle(self, c, 1.5)
+	var c := Vector2(times_x - 6.0 - RETICLE_SIZE / 2.0, BURST_AT.y)
+	draw_reticle(self, c, RETICLE_SIZE)
 	_centered(font, str(card.hits), c, 11, Palette.TEXT)
-
-## The card face's glyphs (heat flame, damage burst), also drawn by the
-## training coach's inline icons: a dark fill, a `fill_alpha` tint and a
-## closed outline `width` wide.
-static func draw_glyph(canvas: CanvasItem, outline: PackedVector2Array, fill_alpha: float, width: float) -> void:
-	canvas.draw_colored_polygon(outline, GLYPH_DARK)
-	canvas.draw_colored_polygon(outline, Color(Palette.HARDPOINT, fill_alpha))
-	outline.append(outline[0])
-	canvas.draw_polyline(outline, Palette.HARDPOINT, width, true)
-
-## The hit-count reticle: a ring with crosshair ticks through it.
-static func draw_reticle(canvas: CanvasItem, at: Vector2, width: float) -> void:
-	canvas.draw_circle(at, RETICLE_R, GLYPH_DARK)
-	canvas.draw_arc(at, RETICLE_R, 0.0, TAU, 28, Palette.HARDPOINT, width, true)
-	for d in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]: # the crosshair's ticks, through the ring
-		canvas.draw_line(at + d * (RETICLE_R - 3.0), at + d * (RETICLE_R + 3.5), Palette.HARDPOINT, width, true)
-
-const GLYPH_DARK := Color(0.02, 0.05, 0.06, 0.95)
 
 ## `text` centered on `at` (a dark outline so it reads over the shapes).
 func _centered(font: Font, text: String, at: Vector2, font_size: int, color: Color) -> void:
@@ -299,53 +280,35 @@ func _centered(font: Font, text: String, at: Vector2, font_size: int, color: Col
 	draw_string_outline(font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 3, Color(0, 0, 0, 0.8))
 	draw_string(font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
-## An impact burst around `at`: spikes reaching `r` (across, up), a fixed
-## uneven pattern so every card's burst looks the same.
-static func burst_shape(at: Vector2, r: Vector2) -> PackedVector2Array:
-	const SPIKES := [1.0, 0.85, 1.0, 0.9, 0.8, 1.0, 0.92, 1.0, 0.82, 0.95, 1.0, 0.88]
-	var pts := PackedVector2Array()
-	var n := SPIKES.size()
-	for i in range(n * 2):
-		var a := TAU * float(i) / float(n * 2) - PI / 2.0
-		var k: float = SPIKES[i / 2] if i % 2 == 0 else 0.72
-		pts.append(at + Vector2(cos(a) * r.x, sin(a) * r.y) * k)
-	return pts
+# ---------- the card face's icons (PixelLab art, 2026-11-09) ----------
+# Each image has a dark middle the number sits in; also drawn by the training
+# coach's inline icons. `*_MID` is that middle in the image's own pixels.
 
-## Where the heat cost's flame stands: the middle of its round body.
+const FLAME_TEX := preload("res://assets/ui/card/heat_flame.png")
+const BURST_TEX := preload("res://assets/ui/card/damage_burst.png")
+const RETICLE_TEX := preload("res://assets/ui/card/hits_reticle.png")
+const FLAME_MID := Vector2(25, 44) # the round body under the tongues
+const BURST_MID := Vector2(40, 24)
+const RETICLE_MID := Vector2(24, 24)
+
+## Where the heat cost's flame stands (the middle of its round body), and how tall.
 const FLAME_AT := Vector2(16, 19)
+const FLAME_H := 28.0
 
-## A flame's outline around `at` (its round body's middle), `k` its size
-## (Logan, 2026-10-16, from his sketch): a round body with three tongues on
-## top, a tall one in the middle leaning right and a short one either side.
-## In units of the body's radius (9 px at k = 1), y down.
-const FLAME_PATH := [
-	# [to, control]: quadratic curves from the body's right shoulder round
-	[Vector2(-0.6, -1.25), Vector2(-1.0, -0.8)],    # up the left side to the left tongue's tip
-	[Vector2(-0.4, -0.78), Vector2(-0.46, -1.02)],  # down into the left notch
-	[Vector2(0.14, -1.85), Vector2(-0.38, -1.55)],  # up the middle tongue to its tip
-	[Vector2(0.36, -0.82), Vector2(-0.04, -1.22)],  # down its right edge to the right notch
-	[Vector2(0.7, -1.12), Vector2(0.58, -0.86)],    # up to the right tongue's tip
-	[Vector2(0.98, -0.2), Vector2(1.06, -0.72)],    # down to the body's right shoulder
-]
+## The heat flame, its round body's middle at `at`, `height` tall.
+static func draw_flame(canvas: CanvasItem, at: Vector2, height: float) -> void:
+	_draw_icon(canvas, FLAME_TEX, FLAME_MID, at, height / FLAME_TEX.get_height())
 
-static func flame_shape(at: Vector2, k: float) -> PackedVector2Array:
-	var r := 9.0 * k
-	var pts := PackedVector2Array()
-	var a0 := -0.2
-	var a1 := PI + 0.2
-	for i in range(17): # the round body, right shoulder down and round to the left
-		var a := lerpf(a0, a1, float(i) / 16.0)
-		pts.append(at + Vector2(cos(a), sin(a)) * r)
-	var from := Vector2(cos(a1), sin(a1))
-	for seg in FLAME_PATH:
-		var to: Vector2 = seg[0]
-		var ctrl: Vector2 = seg[1]
-		for i in range(1, 7):
-			var s := float(i) / 6.0
-			pts.append(at + from.lerp(ctrl, s).lerp(ctrl.lerp(to, s), s) * r)
-		from = to
-	pts.remove_at(pts.size() - 1) # the last point is the first one again
-	return pts
+## The damage burst, its middle at `at`, `width` across.
+static func draw_burst(canvas: CanvasItem, at: Vector2, width: float) -> void:
+	_draw_icon(canvas, BURST_TEX, BURST_MID, at, width / BURST_TEX.get_width())
+
+## The hit-count reticle, its middle at `at`, `size` across.
+static func draw_reticle(canvas: CanvasItem, at: Vector2, size: float) -> void:
+	_draw_icon(canvas, RETICLE_TEX, RETICLE_MID, at, size / RETICLE_TEX.get_width())
+
+static func _draw_icon(canvas: CanvasItem, tex: Texture2D, mid: Vector2, at: Vector2, k: float) -> void:
+	canvas.draw_texture_rect(tex, Rect2(at - mid * k, tex.get_size() * k), false)
 
 # ---------- hover ----------
 
