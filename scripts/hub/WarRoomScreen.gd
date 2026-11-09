@@ -41,7 +41,7 @@ const STATIONS := [
 	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(562, 246), "up_left"],
 ]
 ## The "Join the Discord!" sign hanging over Bay 2 (Logan, 2026-10-15; in
-## STATIONS, its art made in build/discord_sign/): clicking it opens the
+## STATIONS, its art made in art_src/discord_sign/): clicking it opens the
 ## server's invite (a permanent one) in the browser.
 const DISCORD_INVITE := "https://discord.gg/52vMbtkZtN"
 ## Where each station goes (the Research Bay has no unlocks yet).

@@ -37,7 +37,14 @@ fi
 # Don't paste the address here (this file is in git, and anyone with it can post
 # to the channel): put FEEDBACK_WEBHOOK="https://..." in tools/steam/config.local.sh,
 # which git ignores and which is read last, so it overrides anything above.
+# It travels between machines encrypted (tools/steam/secrets.enc, tools/secrets.sh):
+# after changing it, run `tools/secrets.sh lock` and commit secrets.enc.
 FEEDBACK_WEBHOOK=""
 
-LOCAL_CONFIG="$(dirname "${BASH_SOURCE[0]}")/config.local.sh"
+STEAM_DIR="$(dirname "${BASH_SOURCE[0]}")"
+LOCAL_CONFIG="$STEAM_DIR/config.local.sh"
+# A fresh pull has only the encrypted copy: unlock it if this machine has the key.
+if [[ ! -f "$LOCAL_CONFIG" && -f "$STEAM_DIR/secrets.enc" ]]; then
+	bash "$STEAM_DIR/../secrets.sh" unlock >&2 || echo "config: no secrets key here, so builds won't have the feedback webhook (tools/secrets.sh key <key>)" >&2
+fi
 if [[ -f "$LOCAL_CONFIG" ]]; then source "$LOCAL_CONFIG"; fi

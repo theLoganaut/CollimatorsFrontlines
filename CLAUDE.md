@@ -25,7 +25,7 @@ directives, liveries and Operator lines are JSON in `data/`. **Every tuning numb
 builder, which also takes parts, refits and shops; they take deployment orders and random event choices; options like
 `--mech=<enemy>.swap=a:b`, `--orders=`, `--variants=`, `--sweeps=` are listed atop `tools/balance_sim.gd`). `tools/card_value.gd` measures every attack card's damage per Heat (outliers by rarity) and what each protocol adds on the hardest-hitting cards. `tools/check_all.sh` runs the tests, `tools/validate_data.gd` (every
 data reference resolves) and a sim smoke run; run it before calling work done. `tools/golden.sh check [25]` is the golden
-master for refactors (seeded sim traces must stay identical); rerecord (`record`) after intended rule or data changes. `tools/Screenshot.tscn` opens a run screen
+master for refactors (seeded sim traces must stay identical); rerecord (`record`) after intended rule or data changes. Art working files (Discord sign, Steam capsules) are in `art_src/` (`.gdignore`d), not the git-ignored `build/`. `tools/Screenshot.tscn` opens a run screen
 (shop, refit, combat, map, event) in a set state and saves a PNG (needs a window, not `--headless`). New `class_name` scripts need
 `Godot --headless --editor --quit` once to register, and tests (`--script`) can't see autoloads.
 
@@ -76,7 +76,7 @@ last action, system/GPU, trail, the end of that session's Godot log) to `user://
 turn plate, which names the location), Settings → Send feedback, or F8 posts the pilot's note, where they are (`Feedback.context`), and
 a zip (screenshot, the fight in progress as `fight_replay.json` (a one-fight playtest report), run so far,
 last week's crash report, session trail, Godot log, profile, settings) to a Discord webhook; the address is `FEEDBACK_WEBHOOK` in
-`tools/steam/config.local.sh` (git-ignored, read by `config.sh`), stamped into the build by the release script (`BuildInfo`), or `user://feedback_webhook.txt` for a dev test.
+`tools/steam/config.local.sh` (git-ignored, read by `config.sh`; it travels encrypted as `tools/steam/secrets.enc`: `tools/secrets.sh lock` after changing it, and `config.sh` unlocks it on a machine with the key `~/.config/frontlines/secrets.key`), stamped into the build by the release script (`BuildInfo`), or `user://feedback_webhook.txt` for a dev test.
 **Steam** (App ID 5441720, project setting `steam/initialization/app_data/app_id`): the GodotSteam GDExtension in
 `addons/godotsteam` (Steamworks SDK 1.65; the steam_api libraries are copied from Valve's SDK). The `SteamService` autoload
 starts it and `SteamService.available` / `api()` say whether Steam is up; without the extension or a running client the game plays on.
