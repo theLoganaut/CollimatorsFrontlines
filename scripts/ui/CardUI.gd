@@ -287,13 +287,13 @@ func _centered(font: Font, text: String, at: Vector2, font_size: int, color: Col
 const FLAME_TEX := preload("res://assets/ui/card/heat_flame.png")
 const BURST_TEX := preload("res://assets/ui/card/damage_burst.png")
 const RETICLE_TEX := preload("res://assets/ui/card/hits_reticle.png")
-const FLAME_MID := Vector2(25, 44) # the round body under the tongues
+const FLAME_MID := Vector2(22, 43) # the middle of the dark round body under the tongues
 const BURST_MID := Vector2(40, 24)
 const RETICLE_MID := Vector2(24, 24)
 
 ## Where the heat cost's flame stands (the middle of its round body), and how tall.
 const FLAME_AT := Vector2(16, 19)
-const FLAME_H := 28.0
+const FLAME_H := 35.0 # may poke past the card edge (Logan, 2026-11-09: 1.25x so the number fits)
 
 ## The heat flame, its round body's middle at `at`, `height` tall.
 static func draw_flame(canvas: CanvasItem, at: Vector2, height: float) -> void:
