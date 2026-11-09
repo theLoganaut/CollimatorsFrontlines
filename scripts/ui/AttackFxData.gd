@@ -19,7 +19,8 @@ const SHEETS := {
 	"explosion": {"anchor": Vector2(48, 48)},
 	"hit_heavy": {"anchor": Vector2(35, 30)},
 	"hit_small": {"anchor": Vector2(35, 30)},
-	"spray": {"anchor": Vector2(9, 27), "loop": true, "reach": 112.0},
+	# the jet's thin tip is its right end: it fires backwards (turned round), widening toward the target
+	"spray": {"anchor": Vector2(110, 30), "loop": true, "reach": 100.0},
 	"beam": {"anchor": Vector2(10, 18), "loop": true, "reach": 150.0},
 }
 const STYLES := ["shot", "burst", "missile", "swarm", "mortar", "spray", "slash", "smash", "beam"]

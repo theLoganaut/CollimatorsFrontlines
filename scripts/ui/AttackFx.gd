@@ -14,6 +14,9 @@ extends Control
 ## Reduce motion on nothing flies (no shots, sprays or beams) and launch()
 ## returns 0; the hit's own impact still plays.
 
+## Every sheet drawn this much bigger than its mech's pixel scale (Logan,
+## 2026-11-09: 1.5x, more impact). Sprays and beams still just reach their target.
+const SIZE := 1.5
 const SHOT_SPEED := 1500.0 # px/s
 const BURST_SPEED := 1800.0
 const MISSILE_SPEED := 750.0
@@ -70,8 +73,8 @@ func launch(style: String, from: Vector2, to: Vector2, k_from: float, k_to: floa
 			return 0.55
 		"spray":
 			if i == 0:
-				var fx := _play("spray_" + tint, from, ang, k_from * 0.85)
-				fx.scale.x = dist / float(AttackFxData.meta("spray").get("reach", 112.0)) # it reaches the target
+				var fx := _play("spray_" + tint, from, ang + PI, k_from * 0.85) # drawn tip-first: turned round
+				fx.scale.x = dist / float(AttackFxData.meta("spray").get("reach", 100.0)) # it reaches the target
 				_loops.append(fx)
 			return 0.18 if i == 0 else 0.0
 		"slash", "smash":
@@ -130,7 +133,7 @@ func _play(sheet_name: String, at: Vector2, ang: float, k: float, life: float = 
 	fx.setup(AttackFxData.sheet(sheet_name), AttackFxData.meta(sheet_name), life)
 	fx.position = at - global_position
 	fx.rotation = ang
-	fx.scale = Vector2(k, k)
+	fx.scale = Vector2(k, k) * SIZE
 	add_child(fx)
 	return fx
 
@@ -152,7 +155,7 @@ func _fly(sheet_name: String, from: Vector2, to: Vector2, k_from: float, k_to: f
 		fx.position = p
 		if ahead != p:
 			fx.rotation = (ahead - p).angle()
-		var k := lerpf(k_from, k_to, u)
+		var k := lerpf(k_from, k_to, u) * SIZE
 		fx.scale = Vector2(k, k)
 	var tw := fx.create_tween()
 	if wait > 0.0:
