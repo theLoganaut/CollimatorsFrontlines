@@ -822,7 +822,7 @@ func _attack_fx_reel(out: String, styles: Array) -> void:
 			var to_mech: MechData = enemy if who == "player" else cs.player_mech
 			var from_part := mine if who == "player" else theirs
 			var to_part: ComponentData = enemy.non_destroyed_components()[-1] if who == "player" else cs.player_mech.non_destroyed_components()[-1]
-			var layer: AttackFx = cs.attack_fx_front if who == "player" else cs.attack_fx_back
+			var layer: AttackFx = cs.attack_fx
 			var from: Vector2 = cs._grid_for(from_mech).component_center_global(from_part)
 			var to: Vector2 = cs._grid_for(to_mech).component_center_global(to_part)
 			var hits := 3 if style.begins_with("burst") or style.begins_with("swarm") or style.begins_with("beam") else 1

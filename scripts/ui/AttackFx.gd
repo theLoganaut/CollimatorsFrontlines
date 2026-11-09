@@ -4,10 +4,10 @@ extends Control
 ## made in PixelLab's effects tool) played from the firing part to the part
 ## it hits. Which animation a card plays belongs to its hardpoint
 ## (data/attack_fx.json), so a part looks the same on the player's mech and
-## an enemy's. CombatScene keeps two layers: enemy attacks play on one under
-## the player's mech (a shot lands on the mech's front instead of passing
-## over it), the player's on one above it. Coordinates are global (the layer
-## sits at the origin and covers the screen).
+## an enemy's. CombatScene plays them on one layer over the enemies and under
+## the player's mech, so an enemy's shot lands on the mech's front and the
+## player's comes out from behind it (from its front). Coordinates are global
+## (the layer sits at the origin and covers the screen).
 ##
 ## Per hit, launch() starts the attack and says how long until it lands; the
 ## scene resolves the hit then and calls land() on each part it struck. With

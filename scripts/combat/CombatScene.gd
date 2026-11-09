@@ -101,10 +101,10 @@ var feedback_button: Button
 var map_button: MapButton
 var settings_menu: SettingsMenu
 var hit_fx: HitFx
-## Attack animations (AttackFx): enemy attacks under the player's mech (a
-## shot lands on its front), the player's over it.
-var attack_fx_back: AttackFx
-var attack_fx_front: AttackFx
+## Attack animations (AttackFx), on one layer over the enemies and under
+## the player's mech: an enemy's shot lands on its front, and the player's
+## leave from its front (they come out from behind it).
+var attack_fx: AttackFx
 var _fx_style := "" # the resolving card's animation (its hits' impacts)
 var _fx_layer: AttackFx
 
@@ -319,13 +319,11 @@ func _build_ui_and_start() -> void:
 		panel.setup(enemy_mechs[i], enemy_labels[enemy_mechs[i]])
 		enemy_panels.append(panel)
 
-	attack_fx_back = AttackFx.new()
-	add_child(attack_fx_back)
+	attack_fx = AttackFx.new()
+	add_child(attack_fx)
 	player_panel = PlayerMechPanel.new()
 	add_child(player_panel)
 	player_panel.setup(player_mech)
-	attack_fx_front = AttackFx.new()
-	add_child(attack_fx_front)
 
 	combat_log = CombatLog.new()
 	add_child(combat_log)
@@ -1198,7 +1196,7 @@ func _launch_attack_fx(card: CardData, mech: MechData, target: ComponentData, i:
 	var attacker := combat.pending_attacker_mech()
 	var part := combat.pending_attacker_component()
 	_fx_style = AttackFxData.style_for(card, part)
-	_fx_layer = attack_fx_front if attacker == player_mech else attack_fx_back
+	_fx_layer = attack_fx
 	if _fx_style == "" or _fx_layer == null or attacker == null or mech == null:
 		return true
 	var from_grid := _grid_for(attacker)
