@@ -14,7 +14,7 @@ const SHEETS := {
 	"round_heavy": {"anchor": Vector2(34, 7), "loop": true},
 	"round_small": {"anchor": Vector2(34, 7), "loop": true},
 	"missile": {"anchor": Vector2(122, 10), "loop": true},
-	"slash": {"anchor": Vector2(48, 44)},
+	"slash": {"anchor": Vector2(79, 37)}, # where the blade is through its whole swing, so it cuts across the part it hits
 	"smash": {"anchor": Vector2(52, 52)},
 	"explosion": {"anchor": Vector2(48, 48)},
 	"hit_heavy": {"anchor": Vector2(35, 30)},

@@ -825,6 +825,7 @@ func _attack_fx_reel(out: String, styles: Array) -> void:
 			var layer: AttackFx = cs.attack_fx
 			var from: Vector2 = cs._grid_for(from_mech).component_center_global(from_part)
 			var to: Vector2 = cs._grid_for(to_mech).component_center_global(to_part)
+			print("reel %s %s: %s -> %s" % [style, who, from, to])
 			var hits := 3 if style.begins_with("burst") or style.begins_with("swarm") or style.begins_with("beam") else 1
 			var frame := 0
 			var tag: String = style.replace(":", "_") + "_" + who
