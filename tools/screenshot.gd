@@ -786,17 +786,42 @@ func _pad_test() -> void:
 func _attack_fx_reel(out: String, styles: Array) -> void:
 	var cs = get_tree().current_scene
 	DirAccess.make_dir_recursive_absolute(out)
+	if styles == ["real"]: # one real attack card dropped on the enemy's last part, through the screen's drop handler
+		var cm: CombatManager = cs.combat
+		while not cm.is_player_turn() or UIState.input_locked:
+			await get_tree().create_timer(0.2).timeout
+		var cards := cm.hand_cards().filter(func(c): return c.is_attack() and cm.can_play(c))
+		var melee := func(c): return AttackFxData.style_for(c, cm.player_mech.get_component(c.owner_component_id)) in ["slash", "smash"]
+		cards.sort_custom(func(x, y): return not melee.call(x) and melee.call(y)) # ranged first
+		for card in cards:
+				var e: MechData = cm.living_enemies()[0]
+				var tgt: ComponentData = e.non_destroyed_components()[-1]
+				var src := cm.player_mech.get_component(card.owner_component_id)
+				print("real: %s from %s at %s -> %s at %s" % [card.id, src.id, cs._grid_for(cm.player_mech).component_center_global(src), tgt.id, cs._grid_for(e).component_center_global(tgt)])
+				cs._handle_card_drop(card, cs._grid_for(e).component_center_global(tgt), 999.0)
+				for f in range(30):
+					await RenderingServer.frame_post_draw
+					get_viewport().get_texture().get_image().save_png("%s/real_%02d.png" % [out, f])
+					await get_tree().create_timer(0.04).timeout
+				return
+		return
 	if styles.is_empty():
 		styles = ["shot", "burst", "missile", "swarm", "mortar", "spray:fire", "spray:acid", "spray:frost", "spray:steam", "slash", "smash", "beam:electric", "beam:laser", "beam:heat", "beam:nova"]
 	var enemy: MechData = cs.combat.enemies[0]
-	var mine: ComponentData = cs.player_mech.non_destroyed_components()[0]
-	var theirs: ComponentData = enemy.non_destroyed_components()[0]
+	# from a real weapon (a part with an attack card) to a part on the other mech
+	var weapon := func(m: MechData) -> ComponentData:
+		for c in m.non_destroyed_components():
+			if c.cards.any(func(k): return k.is_attack()):
+				return c
+		return m.non_destroyed_components()[0]
+	var mine: ComponentData = weapon.call(cs.player_mech)
+	var theirs: ComponentData = weapon.call(enemy)
 	for style in styles:
 		for who in ["player", "enemy"]:
 			var from_mech: MechData = cs.player_mech if who == "player" else enemy
 			var to_mech: MechData = enemy if who == "player" else cs.player_mech
 			var from_part := mine if who == "player" else theirs
-			var to_part := theirs if who == "player" else mine
+			var to_part: ComponentData = enemy.non_destroyed_components()[-1] if who == "player" else cs.player_mech.non_destroyed_components()[-1]
 			var layer: AttackFx = cs.attack_fx_front if who == "player" else cs.attack_fx_back
 			var from: Vector2 = cs._grid_for(from_mech).component_center_global(from_part)
 			var to: Vector2 = cs._grid_for(to_mech).component_center_global(to_part)
