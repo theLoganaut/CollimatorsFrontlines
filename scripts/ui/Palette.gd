@@ -68,7 +68,7 @@ static func status_color(status: String) -> Color:
 ## glyphs): a dark chip edged in the status's color with its symbol on it.
 ## Bolt Shock, drop Acid, fire Burn, bubble Absorb, shield Deflect,
 ## circle-slash Disabled, unplugged plug Offline, snowflake Freeze, hollow
-## drop Coolant, jammed pistol Jam, cloud Smoke (Logan, 2026-11-09). Each shape is its
+## drop Coolant, wedged cog Jam, cloud Smoke (Logan, 2026-11-09). Each shape is its
 ## own, so colorblind mode only swaps the colors.
 static func draw_status(ci: CanvasItem, c: Vector2, r: float, status: String) -> void:
 	var col := status_color(status)
@@ -126,12 +126,16 @@ static func draw_status_glyph(ci: CanvasItem, c: Vector2, g: float, status: Stri
 			ci.draw_line(c + Vector2(0, -0.2) * g, c + Vector2(0, 0.6) * g, col, w * 0.8, true)
 			ci.draw_polyline(_pts(c, g, [[-0.3, 0.3], [0.0, 0.65], [0.3, 0.3]]), col, w * 0.8, true)
 		"jam":
-			# a jammed gun: a pistol with a spent case stuck upright in its port
-			ci.draw_rect(Rect2(c + Vector2(-0.95, -0.35) * g, Vector2(1.9, 0.5) * g), col, true)
-			ci.draw_colored_polygon(_pts(c, g, [[-0.9, 0.15], [-0.4, 0.15], [-0.5, 0.95], [-0.95, 0.95]]), col)
-			ci.draw_rect(Rect2(c + Vector2(-0.05, -0.95) * g, Vector2(0.3, 0.55) * g), col.lightened(0.3), true)
-			ci.draw_line(c + Vector2(0.45, -0.95) * g, c + Vector2(0.85, -0.55) * g, col, maxf(1.0, w * 0.7), true)
-			ci.draw_line(c + Vector2(0.85, -0.95) * g, c + Vector2(0.45, -0.55) * g, col, maxf(1.0, w * 0.7), true)
+			# a jammed cog: a wedge stuck in its teeth (using the part works it loose)
+			for i in range(8):
+				var d := Vector2.from_angle(i * TAU / 8.0)
+				ci.draw_line(c + d * g * 0.5, c + d * g * 0.92, col, w * 1.3)
+			ci.draw_circle(c, g * 0.62, col)
+			ci.draw_circle(c, g * 0.24, Color(0.02, 0.03, 0.05))
+			var wedge := _pts(c, g, [[0.05, -1.1], [0.95, -0.85], [0.2, -0.15]])
+			ci.draw_colored_polygon(wedge, Color(0.95, 0.95, 0.95))
+			wedge.append(wedge[0])
+			ci.draw_polyline(wedge, Color(0.02, 0.03, 0.05), 1.0, true)
 		"smoke":
 			# a cloud: puffs over a flat base (round puffs alone read as a blob)
 			for p in [[-0.5, 0.25, 0.38], [0.05, -0.1, 0.5], [0.55, 0.3, 0.33]]:

@@ -1,7 +1,7 @@
 class_name IntentIcon
 extends Control
 ## One enemy intent symbol: a vague picture of what one planned action will
-## do (CardData.intent()): a minigun (attack), a missile (heavy attack),
+## do (CardData.intent()): a minigun (attack), a missile salvo (heavy attack),
 ## a shield (guard), a skull (afflict: a status on you), a plus (recover /
 ## buff itself), a charging battery (charge). None reuses a status glyph
 ## (Shock's bolt, Acid's drop, Jam's arrow), so the intent row and the badge
@@ -122,25 +122,17 @@ func _draw() -> void:
 		CardData.INTENT_ATTACK:
 			# a minigun: housing, three barrels, a collar, tracers
 			draw_rect(Rect2(m + Vector2(-10, -4.5), Vector2(6, 9)), c, true)
-			draw_rect(Rect2(m + Vector2(-8, 4.5), Vector2(3, 3)), c, true)
 			for y in [-3.0, 0.0, 3.0]:
 				draw_line(m + Vector2(-4, y), m + Vector2(6, y), c, 2.0)
 			draw_rect(Rect2(m + Vector2(2, -5), Vector2(2, 10)), c, true)
 			for t in [[8.0, -3.0], [9.5, 1.5]]:
 				draw_line(m + Vector2(t[0], t[1]), m + Vector2(t[0] + 2.5, t[1]), c.lightened(0.4), 1.5)
 		CardData.INTENT_HEAVY_ATTACK:
-			# a missile climbing to the upper right, fins and exhaust
-			var d := Vector2(1, -1).normalized()
-			var pp := Vector2(-d.y, d.x)
-			var tail := m - d * 7.0
-			var nose := m + d * 6.0
-			draw_colored_polygon(PackedVector2Array([tail + pp * 2.5, nose + pp * 2.5, nose + d * 4.0,
-				nose - pp * 2.5, tail - pp * 2.5]), c)
-			for side in [1.0, -1.0]:
-				draw_colored_polygon(PackedVector2Array([tail + d * 3.0 + pp * 2.5 * side,
-					tail + pp * 5.5 * side - d * 1.0, tail + pp * 2.5 * side]), c)
-			draw_colored_polygon(PackedVector2Array([tail + pp * 1.8, tail - pp * 1.8, tail - d * 5.0]), Palette.LINK)
-			draw_colored_polygon(PackedVector2Array([tail + pp * 1.0, tail - pp * 1.0, tail - d * 2.8]), Color.WHITE)
+			# a salvo diving at you: one big missile, a small one above and below
+			var d := Vector2(1, 0.8).normalized()
+			_draw_missile(m + Vector2(-1, 0), d, 1.0, c)
+			_draw_missile(m + Vector2(2, -7.5), d, 0.6, c)
+			_draw_missile(m + Vector2(-5, 7), d, 0.6, c)
 		CardData.INTENT_BLOCK:
 			draw_colored_polygon(PackedVector2Array([
 				m + Vector2(-8, -9), m + Vector2(8, -9), m + Vector2(8, 1),
@@ -156,17 +148,11 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]), Palette.WARNING, 1.5, true)
 			Palette.draw_status_glyph(self, m + Vector2(0, 2.5), 5.0, "burn", Palette.LINK)
 		INTENT_VENT:
-			# steam blasting out of a pipe, puffs swelling as they fly off
-			var dir := Vector2(1, -0.85).normalized()
-			var side := Vector2(-dir.y, dir.x)
-			var base := m + Vector2(-5, 5)
-			draw_line(base - dir * 6.0, base, c, 4.0)
-			draw_line(base - side * 3.0, base + side * 3.0, c, 2.0)
-			for p in [[2.5, 2.0], [6.0, 3.0], [11.0, 4.2]]:
-				draw_circle(base + dir * p[0], p[1], c)
-			for off in [-5.0, 5.0]:
-				var q: Vector2 = base + side * off
-				draw_line(q + dir * 3.0, q + dir * 9.0, Color(c, 0.6), 1.0, true)
+			# a mushroom cloud of steam: a column punching up into a billowing cap
+			draw_rect(Rect2(m + Vector2(-2, -2), Vector2(4, 10)), c, true)
+			draw_colored_polygon(PackedVector2Array([m + Vector2(-8, 10), m + Vector2(8, 10), m + Vector2(4, 6.5), m + Vector2(-4, 6.5)]), c)
+			for p in [[-6.0, -4.5, 3.5], [0.0, -6.5, 4.5], [6.0, -4.5, 3.5], [-3.0, -2.0, 3.0], [3.0, -2.0, 3.0]]:
+				draw_circle(m + Vector2(p[0], p[1]), p[2], c)
 		CardData.INTENT_STATUS:
 			# a skull: it puts something nasty on your parts
 			var bg := Palette.PANEL_2
@@ -211,6 +197,19 @@ func _draw_preview(rect: Rect2) -> void:
 			draw_rect(rect.grow(2.0), Palette.PROTOCOL, false, 2.0)
 			var p := Vector2(ICON_SIZE.x - 6, ICON_SIZE.y - 7)
 			draw_colored_polygon(PackedVector2Array([p + Vector2(-4, -4), p + Vector2(4, -4), p + Vector2(0, 3)]), Palette.PROTOCOL)
+
+## A missile centered at `at`, flying along `d`, `k` its size.
+func _draw_missile(at: Vector2, d: Vector2, k: float, c: Color) -> void:
+	var pp := Vector2(-d.y, d.x)
+	var tail := at - d * 6.0 * k
+	var nose := at + d * 5.0 * k
+	var r := 2.3 * k
+	draw_colored_polygon(PackedVector2Array([tail + pp * r, nose + pp * r, nose + d * 3.5 * k,
+		nose - pp * r, tail - pp * r]), c)
+	for side in [1.0, -1.0]:
+		draw_colored_polygon(PackedVector2Array([tail + d * 3.0 * k + pp * r * side,
+			tail + pp * (r + 2.5 * k) * side - d * 1.0 * k, tail + pp * r * side]), c)
+	draw_colored_polygon(PackedVector2Array([tail + pp * r * 0.8, tail - pp * r * 0.8, tail - d * 4.5 * k]), Palette.LINK)
 
 ## A sword on a diagonal, blade toward the top; `flip` = -1 mirrors it.
 func _draw_sword(m: Vector2, flip: float, c: Color) -> void:
