@@ -139,7 +139,7 @@ static func _plan_preview(t: TestContext) -> void:
 	cm = f["cm"]
 	card = cm.player_mech.components[0].cards[0]
 	marks = cm.preview_plan(card, f["enemy"], f["gun"])
-	t.assert_eq(_marked(f, marks, "stop").size(), 1, "Freeze: the part fires once and goes Offline, so only its later step stops")
+	t.assert_eq(_marked(f, marks, "stop"), ["g1", "g2"], "Freeze stops the Frozen part's steps")
 	cm.play_attack_card(card, f["enemy"], f["gun"])
 	cm.end_player_turn()
 	var fired := []
@@ -149,7 +149,7 @@ static func _plan_preview(t: TestContext) -> void:
 			break
 		fired.append((a["card"] as CardData).id)
 		cm.execute_enemy_action(a)
-	t.assert_eq(fired.filter(func(id): return id != "o1").size(), 1, "and that is what happens: one of its two steps fires")
+	t.assert_eq(fired.filter(func(id): return id != "o1").size(), 0, "and that is what happens: neither of its steps fires")
 
 	var big := TestFixtures.make_card("big", "arm", 0, 1, 99, 99)
 	f = _preview_fight([big])

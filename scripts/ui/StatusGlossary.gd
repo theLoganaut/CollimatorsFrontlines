@@ -52,9 +52,9 @@ const ENTRIES := {
 	},
 	"freeze": {
 		"label": "Freeze",
-		"rule": "Play a card from the frozen part and it goes Offline for the rest of the fight. Wait it out: lasts one of its owner's turns per stack.",
+		"rule": "The frozen part can't be used: an enemy part skips its next steps, and its Charge fizzles. Lasts one of its owner's turns per stack.",
 		"decay": "Lose 1 at end of turn.",
-		"tip": "Freeze: use that part and it goes Offline for the fight. Wait it out; it drops a stack each turn.",
+		"tip": "Freeze: that part can't be used, so a frozen enemy part skips its next step. Drops a stack each turn.",
 	},
 	"coolant": {
 		"label": "Coolant",

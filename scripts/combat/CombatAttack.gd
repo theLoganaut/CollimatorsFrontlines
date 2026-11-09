@@ -616,7 +616,6 @@ static func preview_plan(cm: CombatManager, card: CardData, defender: MechData, 
 	if card == null or target == null or target.destroyed or not card.is_attack():
 		return out
 	var effects := _plan_effects(cm, card, defender, target)
-	var used := {} # a Frozen part fires once, then it's Offline (CombatManager._after_use)
 	for i in range(actions.size()):
 		var a: Dictionary = actions[i]
 		var comp: ComponentData = a.get("component", null)
@@ -624,17 +623,15 @@ static func preview_plan(cm: CombatManager, card: CardData, defender: MechData, 
 		if e.is_empty() or a.get("cancelled", false):
 			continue
 		var shot: CardData = a["card"]
-		if e.get("stop", false) or used.has(comp):
+		if e.get("stop", false):
 			out[i] = "stop"
 		elif e.get("maybe", false):
 			out[i] = "maybe_stop"
 		elif e.get("shock", false) and shot.hits > 0 and not a.get("charge", false) and comp.status_stacks("shock") <= 0:
 			out[i] = "weaken"
-		if e.get("freeze", false) and not a.get("charged", false):
-			used[comp] = true
 	return out
 
-## The parts `card` would stop or Shock: {part: {stop, maybe, freeze, shock}}.
+## The parts `card` would stop or Shock: {part: {stop, maybe, shock}}.
 static func _plan_effects(cm: CombatManager, card: CardData, defender: MechData, target: ComponentData) -> Dictionary:
 	var fx := {}
 	var hit := preview(cm, card, defender, target)
@@ -680,11 +677,8 @@ static func _note_status(fx: Dictionary, defender: MechData, part: ComponentData
 	if stacks <= 0 or part == null or part.destroyed:
 		return
 	match status:
-		"disabled", "offline":
+		"disabled", "offline", "freeze":
 			fx.get_or_add(part, {})["stop" if sure else "maybe"] = true
-		"freeze":
-			if sure:
-				fx.get_or_add(part, {})["freeze"] = true
 		"shock":
 			if sure:
 				fx.get_or_add(part, {})["shock"] = true

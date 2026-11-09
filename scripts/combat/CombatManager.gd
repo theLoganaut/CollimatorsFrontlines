@@ -8,8 +8,8 @@ extends RefCounted
 ##
 ## Everything a card or part can do is resolved here and in CardResolver
 ## (rules from data/component_rules.json): card costs after Coolant / Jam /
-## Overclock Shunt, parts that can't act (Disabled / Offline, Freeze going
-## Offline on use), hit chances, multi-target hits, repeating attacks,
+## Overclock Shunt, parts that can't act (Disabled / Frozen / Offline),
+## hit chances, multi-target hits, repeating attacks,
 ## primed protocols (see the Protocols section), and the passives that fire
 ## on turns, hits and destruction.
 ##
@@ -452,14 +452,11 @@ func _pay_heat(mech: MechData, card: CardData, cost: int, allow_bleed: bool) -> 
 		passive_triggered.emit(mech, mech.living_passives(ComponentData.PASSIVE_RECYCLE_VENT)[0])
 	return mech.current_heat - before
 
-## After a part is used: Coolant/Jam lose a stack, Freeze turns it Offline.
+## After a part is used: Coolant/Jam lose a stack.
 func _after_use(comp: ComponentData) -> void:
 	for s in ["coolant", "jam"]:
 		if comp.status_stacks(s) > 0:
 			comp.remove_status(s, 1)
-	if comp.status_stacks("freeze") > 0:
-		comp.remove_status("freeze", 99)
-		comp.add_status("offline", 1)
 
 # ---------- player attacks ----------
 

@@ -81,9 +81,10 @@ func has_passive() -> bool:
 func passive_text() -> String:
 	return passive.get("text", "")
 
-## Can act: standing, not Disabled, not Offline (Statuses & Links).
+## Can act: standing, not Disabled, Frozen or Offline (Statuses & Links).
+## A Frozen part skips its steps until Freeze wears off (Logan, 2026-11-08).
 func is_usable() -> bool:
-	return not destroyed and status_stacks("disabled") <= 0 and status_stacks("offline") <= 0
+	return not destroyed and status_stacks("disabled") <= 0 and status_stacks("freeze") <= 0 and status_stacks("offline") <= 0
 
 func has_cards() -> bool:
 	return cards.size() > 0
