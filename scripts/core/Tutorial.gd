@@ -21,13 +21,13 @@ const TRAINING_MISSION := "training"
 ## an enemy part; the step is skipped if there's none), "side" ("right": the box keeps
 ## to that half of the screen), "button" (the Next button's label).
 const STEPS := [
-	# a quick tour of the War Room first (Logan, 2026-10-16: pilots didn't know there was more to click than the table)
+	# a quick tour of the War Room first (center, then the left wall, the right wall, back to the table) (Logan, 2026-10-16: pilots didn't know there was more to click than the table)
 	["war_room", "hangar", "Welcome aboard, pilot: let me show you around. {y}This is the Hangar.{/y} Pick your mech and its starting loadout here before a mission.", "next"],
 	["war_room", "directives", "Directives are three daily goals. Complete them on missions to earn Chips.", "next"],
-	["war_room", "pilot_log", "The Pilot Log keeps your stats, mission history and achievements, plus recordings of your fights to watch back.", "next"],
 	["war_room", "memorial_wall", "The Memorial Wall holds the corrupted Collimators you've faced.", "next"],
 	["war_room", "info_bay", "The Info Bay lets you browse every part and status in the game. You can replay this training from there, too.", "next"],
 	["war_room", "livery_bay", "The Livery Bay sells paint schemes for your mechs, paid in Chips.", "next"],
+	["war_room", "pilot_log", "The Pilot Log keeps your stats, mission history and achievements, plus recordings of your fights to watch back.", "next"],
 	["war_room", "discord", "That sign opens our Discord. Meet other pilots, report bugs and see what's coming.", "next"],
 	["war_room", "table", "Every mission starts at the War Table. Click the table.", "table_opened"],
 	["sector_map", "map", "This is a simulated mission at the Shipyard. Real missions offer three locations to choose from; for training there's just this one. Click it.", "location_opened"],

@@ -97,7 +97,8 @@ the part's cells, turned with the part, by `PartArt`. Grid squares have no fill:
 `draw_empty_cell` draw every grid's squares as see-through edges in the category color (a part without art keeps a faint tint).
 The War Room is pixel art in `assets/warroom/` (624×390, drawn ×1152/624): `room.png`, then each station's piece as a
 `Hotspot` (hover and clicks only on its opaque pixels, yellow outline of its shape) with a `HoloLabel` projected from a
-fixed emitter on it; live holograms, dailies, sector beacons and Memorial Wall trophies (`Profile.memorial_points`) are drawn on top.
+fixed emitter on it; three views the camera pans between (`WarRoomScreen.VIEWS`: center, `wall_left.png` with the Research and Info
+Bays, `wall_right.png` with the Livery Bay and Pilot Log; edge arrows, A/D or ←/→, the bumpers; training's tour pans with it); live holograms, dailies, sector beacons and Memorial Wall trophies (`Profile.memorial_points`) are drawn on top.
 The War Table's sector map is a generated theater (`WarMap`, seeded by `Profile.sector_seed`: coast, mountain flank, river,
 front line, units; each location placed by its `map_zone` in sectors.json) shown by `SectorMapView` as a 3D hologram
 (`HoloTerrain`: heightmap mesh in a SubViewport, composited additively) with a 2D overlay of markers; `LocationPopup` is glass, beamed from the marker.

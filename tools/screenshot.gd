@@ -12,6 +12,8 @@ extends Node
 ## "weather" <out folder> <frames> <background id> [interval] saves a frame every 0.25 s (or interval) of
 ## that background and its weather (rain, snow, dust), to watch it move.
 ## "whats_new" opens the War Room with the What's New?! board up.
+## "warroom_left" / "warroom_right" [station id | arrow_left | arrow_right] turn the War Room to a side wall (hovering that);
+## "warroom_pan" catches the pan to the right wall halfway.
 ## "daily" opens the War Room, zooms into the War Table and opens the Daily
 ## Operation's pop-up (it reads the real profile but never saves it).
 ## combat_keys does the same with key presses (number keys, Tab, Enter, E).
@@ -117,6 +119,30 @@ func _ready() -> void:
 					b.button_pressed = true
 					break
 		await get_tree().create_timer(wait).timeout
+		get_viewport().get_texture().get_image().save_png(out)
+		print("saved ", out)
+		get_tree().quit()
+		return
+	if what in ["warroom_left", "warroom_right", "warroom_pan"]: # a side wall (warroom_pan: caught mid-pan to the right wall, [hover station id])
+		var wv: Node = load(SceneRouter.WAR_ROOM).instantiate()
+		get_tree().root.add_child.call_deferred(wv)
+		get_tree().set_deferred("current_scene", wv)
+		await get_tree().create_timer(1.5).timeout
+		if not Tutorial.active:
+			Tutorial._root.visible = false
+		wv._operator.visible = false
+		if what == "warroom_pan":
+			wv._pan_to(1)
+			await get_tree().create_timer(0.12).timeout
+		else:
+			wv._pan_to(-1 if what == "warroom_left" else 1, true)
+			if args.size() > 3: # hover a station
+				await get_tree().process_frame
+				var spot: Control = wv._arrows[-1 if args[3] == "arrow_left" else 1] if args[3].begins_with("arrow") else wv._stations[args[3]]
+				var at: Vector2 = spot.get_global_rect().get_center()
+				await _mouse_move(at)
+				await _mouse_move(at + Vector2(1, 0))
+			await get_tree().create_timer(wait).timeout
 		get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
 		get_tree().quit()

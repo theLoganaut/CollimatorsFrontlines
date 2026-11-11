@@ -28,6 +28,8 @@ const KEY_ACTIONS := [
 	["fire", "Fire at the target", KEY_ENTER],
 	["rotate", "Rotate a held part", KEY_R],
 	["undo", "Undo a move (with Ctrl / Cmd)", KEY_Z],
+	["view_left", "War Room: look at the left wall", KEY_A],
+	["view_right", "War Room: look at the right wall", KEY_D],
 	["feedback", "Send feedback", KEY_F8],
 	["screenshot", "Take a screenshot", KEY_F9],
 ]

@@ -90,6 +90,9 @@ func _layout() -> void:
 		"right":
 			_attach = _anchor + Vector2(GAP, 0)
 			_panel = Rect2(_attach - Vector2(0, sz.y / 2.0), sz)
+		"left":
+			_attach = _anchor - Vector2(GAP, 0)
+			_panel = Rect2(_attach - Vector2(sz.x, sz.y / 2.0), sz)
 		_:
 			_attach = _anchor + Vector2(0, -GAP)
 			_panel = Rect2(_attach - Vector2(sz.x / 2.0, sz.y), sz)

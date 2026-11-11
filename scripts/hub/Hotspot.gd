@@ -20,7 +20,7 @@ var title: String = ""
 var subtitle: String = ""
 var enabled: bool = true
 ## Label anchor in room coordinates (WarRoomScreen), and which way the
-## label's panel grows from it: "up", "up_left", "up_right" or "right".
+## label's panel grows from it: "up", "up_left", "up_right", "right" or "left".
 var anchor: Vector2 = Vector2.ZERO
 var label_dir: String = "up"
 ## Extra drawing on top of the art (the dailies on the Directives glass,

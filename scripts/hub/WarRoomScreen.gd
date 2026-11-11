@@ -15,6 +15,13 @@ extends Control
 ## location projects its glass pop-up from its marker; Launch starts a run
 ## and fades to that location's map. The other stations open their own screens; the Research
 ## Bay waits for unlocks.
+##
+## Three views (Logan, 2026-11-11): the center (the three bays, the War
+## Table, the Discord sign), the left wall (Research Bay, Info Bay) and the
+## right wall (Livery Bay, Pilot Log), each drawn straight on. The camera
+## pans between them: the arrows at the screen's edges, the view_left /
+## view_right keys (A / D, and the arrow keys) or the gamepad's bumpers.
+## Stations run a little ahead of their wall while it pans (parallax).
 
 const BASE := Vector2(1152, 720)
 const ART := "res://assets/warroom/"
@@ -25,20 +32,29 @@ const ZOOM_FILL := 0.9 # share of the free screen the table's glass fills when z
 const ZOOM_DIM := 0.86 # how dark the room gets behind the hologram
 const STATION_ZOOM_MAX := 3.0 # how far the camera pushes in on a station as its screen opens
 const MEMORIAL_SLOTS := 14
+const PAN_TIME := 0.38
+const PARALLAX := 36.0 # how far ahead of its wall a station runs mid-pan, in logical pixels
+## Views left to right: index -> [backdrop art (empty: the room), what's there].
+const VIEWS := {
+	-1: ["wall_left.png", "Research Bay  ·  Info Bay"],
+	0: ["", "War Room"],
+	1: ["wall_right.png", "Livery Bay  ·  Pilot Log"],
+}
 
 ## [id, title, subtitle, art file, rect in room-art pixels (empty: the art
 ##  is a room-sized layer, cut to what it covers), label emitter in
-##  room-art pixels, which way the label grows]. Back to front.
+##  room-art pixels, which way the label grows, view (-1 left wall, 0 center,
+##  1 right wall)]. Back to front.
 const STATIONS := [
-	["memorial_wall", "Memorial Wall", "The corrupted Collimators you've faced.", "memorial_wall_empty.png", Rect2(67, 124, 118, 115), Vector2(126, 124), "up"],
-	["hangar", "Hangar", "Pick your mech and loadout.", "hangar.png", Rect2(231, 124, 164, 115), Vector2(313, 124), "up"],
-	["directives", "Directives", "Today's three goals. Earn Chips.", "directives.png", Rect2(437, 124, 120, 116), Vector2(497, 124), "up"],
-	["discord", "Join the Discord!", "Meet other pilots, report bugs, see what's coming.", "discord_sign.png", Rect2(292, 62, 90, 46), Vector2(376, 91), "right"],
-	["research_bay", "Research Bay", "Permanent unlocks, paid in Chips.", "research_bay.png", Rect2(), Vector2(34, 128), "up_right"],
-	["livery_bay", "Livery Bay", "Paint schemes, paid in Chips.", "livery_bay.png", Rect2(), Vector2(590, 124), "up_left"],
-	["war_table", "War Table", "Sector Select: pick where to drop in.", "war_table.png", Rect2(203.7, 216.7, 216.6, 114.8), Vector2(418, 255), "right"],
-	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(30, 254), "up_right"],
-	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(594, 224), "up_left"],
+	["memorial_wall", "Memorial Wall", "The corrupted Collimators you've faced.", "memorial_wall_empty.png", Rect2(67, 124, 118, 115), Vector2(126, 124), "up", 0],
+	["hangar", "Hangar", "Pick your mech and loadout.", "hangar.png", Rect2(231, 124, 164, 115), Vector2(313, 124), "up", 0],
+	["directives", "Directives", "Today's three goals. Earn Chips.", "directives.png", Rect2(437, 124, 120, 116), Vector2(497, 124), "up", 0],
+	["discord", "Join the Discord!", "Meet other pilots, report bugs, see what's coming.", "discord_sign.png", Rect2(292, 62, 90, 46), Vector2(376, 91), "right", 0],
+	["war_table", "War Table", "Sector Select: pick where to drop in.", "war_table.png", Rect2(203.7, 216.7, 216.6, 114.8), Vector2(418, 255), "right", 0],
+	["research_bay", "Research Bay", "Permanent unlocks, paid in Chips.", "research_bay.png", Rect2(), Vector2(116, 98), "up", -1],
+	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(513, 155), "up", -1],
+	["livery_bay", "Livery Bay", "Paint schemes, paid in Chips.", "livery_bay.png", Rect2(), Vector2(126, 110), "up", 1],
+	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(504, 129), "up", 1],
 ]
 ## The "Join the Discord!" sign hanging over Bay 2 (Logan, 2026-10-15; in
 ## STATIONS, its art made in art_src/discord_sign/): clicking it opens the
@@ -53,6 +69,8 @@ const STATION_SCENES := {
 ## The table's glass (war_table.png pixels): the sectors show on it, and
 ## the camera zooms in to it.
 const TABLE_GLASS := Rect2(20, 6, 228, 73)
+## How tall a sector's pin stands on the table's glass (logical pixels).
+const PIN_H := 14.0
 ## Hangar pads (hangar.png pixels): x of each pad's centre, the pads' floor
 ## line, and hologram height. Mechs left to right.
 const HANGAR_PADS := [["redline", 57.0], ["bastion", 124.0], ["jackal", 191.0]]
@@ -69,7 +87,18 @@ var war_map: WarMap
 var popup: LocationPopup
 var settings_menu: SettingsMenu
 var _stations: Dictionary = {} # id -> Hotspot
-var _label: HoloLabel
+var _station_view: Dictionary = {} # id -> view index
+var _views: Dictionary = {} # view index -> Control (0 is `room`)
+var _fronts: Dictionary = {} # view index -> the Control its stations stand in (runs ahead in a pan)
+var _labels: Dictionary = {} # view index -> HoloLabel
+var _view: int = 0 # the view the camera rests on
+var _pan: float = 0.0 # where the camera is, in views (between two mid-pan)
+var _pan_tw: Tween
+var _pan_goal: float = 0.0 # where the slide under way ends
+var _arrow_label: HoloLabel # where an edge arrow turns to, while it's hovered
+var _arrow_hover: int = 0 # the hovered arrow (-1 / 1), 0: none
+var _arrows: Dictionary = {} # -1 / 1 -> the edge button that pans that way
+var _label: HoloLabel # the hovered station's view's label
 var _label_owner: Hotspot
 var _room_tex: Texture2D
 var _floors: Array[Texture2D] = []
@@ -99,15 +128,27 @@ func _ready() -> void:
 	get_tree().paused = false
 	Audio.music("hub")
 	Audio.ambience("hub")
-	room = Control.new()
-	room.size = BASE
-	room.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	room.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	room.draw.connect(_draw_room)
-	add_child(room)
 	_room_tex = load(ART + "room.png")
 	for f in ["floor_left.png", "floor_right.png"]:
 		_floors.append(load(ART + f))
+	for v in VIEWS.keys():
+		var view := Control.new()
+		view.size = BASE
+		view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if v == 0:
+			view.draw.connect(_draw_room)
+		else:
+			var wall_tex: Texture2D = load(ART + VIEWS[v][0])
+			view.draw.connect(func(): view.draw_texture_rect(wall_tex, Rect2(Vector2.ZERO, BASE), false))
+		add_child(view)
+		var front := Control.new()
+		front.size = BASE
+		front.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		view.add_child(front)
+		_views[v] = view
+		_fronts[v] = front
+	room = _views[0]
 
 	var saved := SaveGame.has_save()
 	var closed_run := false
@@ -133,10 +174,13 @@ func _ready() -> void:
 	table.draw_extra = _draw_table_sectors
 	_update_memorial()
 
-	_label = HoloLabel.new()
-	_label.size = BASE
-	_label.bounds = Rect2(6, TOP_BAR_H + 6, BASE.x - 12, BASE.y - TOP_BAR_H - 12)
-	room.add_child(_label)
+	for v in _views.keys():
+		var lbl := HoloLabel.new()
+		lbl.size = BASE
+		lbl.bounds = Rect2(6, TOP_BAR_H + 6, BASE.x - 12, BASE.y - TOP_BAR_H - 12)
+		_views[v].add_child(lbl)
+		_labels[v] = lbl
+	_label = _labels[0]
 
 	if closed_run:
 		_operator_override = "Your last sortie was logged on an older build and can't be picked up after the update. I've closed it out. Your Chips, record and hangar are untouched."
@@ -159,7 +203,7 @@ func _ready() -> void:
 	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dim.draw.connect(func(): _dim.draw_rect(Rect2(Vector2.ZERO, _dim.size), Color(0.0, 0.01, 0.02, _dim_a), true))
 	add_child(_dim)
-	move_child(_dim, room.get_index() + 1)
+	move_child(_dim, _views[1].get_index() + 1)
 
 	war_map = WarMap.generate(Profile.sector_seed, GameData.sectors())
 	sector_map = SectorMapView.new()
@@ -179,6 +223,19 @@ func _ready() -> void:
 	_daily_button.tooltip_text = "Today's mission: the same for every pilot, one scored attempt."
 	_daily_button.pressed.connect(_on_daily)
 	add_child(_daily_button)
+
+	for dir in [-1, 1]:
+		var arrow := GlassPanel.button("", 18)
+		arrow.custom_minimum_size = Vector2(40, 88)
+		arrow.focus_mode = Control.FOCUS_NONE
+		arrow.pressed.connect(_pan_by.bind(dir))
+		arrow.mouse_entered.connect(_show_arrow_label.bind(dir))
+		arrow.mouse_exited.connect(_hide_arrow_label.bind(dir))
+		add_child(arrow)
+		_arrows[dir] = arrow
+	_arrow_label = HoloLabel.new()
+	add_child(_arrow_label)
+	_update_arrows()
 
 	popup = LocationPopup.new()
 	popup.z_index = 300
@@ -213,6 +270,13 @@ func _ready() -> void:
 	var spots := _stations.duplicate() # each station, for training's tour of the room
 	spots["table"] = table
 	Tutorial.reached("war_room", spots)
+	Tutorial.advanced.connect(_follow_tutorial)
+	_follow_tutorial()
+	Gamepad.handler = self
+
+func _exit_tree() -> void:
+	if Gamepad.handler == self:
+		Gamepad.handler = null
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -223,8 +287,7 @@ func _layout() -> void:
 	var screen: Vector2 = get_viewport_rect().size
 	size = screen
 	if not _zoomed and not _zooming:
-		room.scale = Vector2.ONE
-		room.position = ((screen - BASE) / 2.0).floor()
+		_apply_pan()
 	else:
 		var z := _zoom_target(screen)
 		room.scale = Vector2(z[0], z[0])
@@ -234,6 +297,14 @@ func _layout() -> void:
 	_dim.size = Vector2(screen.x, screen.y - TOP_BAR_H)
 	_back_button.position = Vector2(16, TOP_BAR_H + 12)
 	_daily_button.position = Vector2(16, TOP_BAR_H + 56)
+	var mid := TOP_BAR_H + (screen.y - TOP_BAR_H) / 2.0
+	for dir in _arrows.keys():
+		var arrow: Button = _arrows[dir]
+		arrow.size = arrow.get_combined_minimum_size()
+		arrow.position = Vector2(12.0 if dir < 0 else screen.x - arrow.size.x - 12.0, mid - arrow.size.y / 2.0).floor()
+	_arrow_label.size = screen
+	_arrow_label.bounds = Rect2(6, TOP_BAR_H + 6, screen.x - 12, screen.y - TOP_BAR_H - 12)
+	_operator.position = Vector2((screen.x - OPERATOR_RECT.size.x) / 2.0, screen.y - OPERATOR_RECT.size.y - 12.0).floor()
 	popup.size = screen
 	settings_menu.size = screen
 	_build_label.position = screen - _build_label.get_minimum_size() - Vector2(10, 6)
@@ -247,6 +318,142 @@ func _draw_room() -> void:
 	room.draw_texture_rect(_room_tex, r, false)
 	for f in _floors:
 		room.draw_texture_rect(f, r, false)
+
+# ---------- panning between the views ----------
+
+## The room's scale and position at rest: it covers the whole screen (no bars
+## at the sides on a wide screen), cropping a little top and bottom instead.
+func _rest_scale() -> float:
+	var screen: Vector2 = get_viewport_rect().size
+	return maxf(screen.x / BASE.x, screen.y / BASE.y)
+
+func _rest_origin() -> Vector2:
+	return ((get_viewport_rect().size - BASE * _rest_scale()) / 2.0).floor()
+
+## Puts every view where the camera is: side by side on a loop (past the
+## right wall comes the left one), and only those in shot showing. Stations
+## run ahead of their wall by up to PARALLAX while it moves. Each view's
+## label keeps to the part of it that's on screen.
+func _apply_pan() -> void:
+	var screen: Vector2 = get_viewport_rect().size
+	var k := _rest_scale()
+	var origin := _rest_origin()
+	var shown := Rect2((Vector2(6, TOP_BAR_H + 6) - origin) / k, (screen - Vector2(12, TOP_BAR_H + 12)) / k)
+	for v in _views.keys():
+		var off := wrapf(float(v) - _pan, -1.5, 1.5)
+		var view: Control = _views[v]
+		view.scale = Vector2(k, k)
+		view.position = Vector2(origin.x + off * BASE.x * k, origin.y).round()
+		view.visible = absf(off) < 0.999
+		(_fronts[v] as Control).position.x = roundf(off * PARALLAX)
+		(_labels[v] as HoloLabel).bounds = shown
+
+func _pan_by(dir: int) -> void:
+	_slide(dir)
+
+## Turns the camera to view `v` the short way round (`now`: no slide).
+## Returns the slide's tween, or null.
+func _pan_to(v: int, now: bool = false) -> Tween:
+	return _slide(wrapi(v - _view, -1, 2), now)
+
+## Slides the camera `steps` views to the right (negative: left), looping.
+func _slide(steps: int, now: bool = false) -> Tween:
+	if steps == 0 or _zoomed or _zooming or SceneRouter.is_busy():
+		return null
+	_view = wrapi(_view + steps, -1, 2)
+	_set_stations_interactive(false)
+	_update_arrows()
+	CrashLog.crumb("war room view %d" % _view)
+	var from := _pan
+	if _pan_tw != null and _pan_tw.is_valid():
+		_pan_tw.kill()
+		from = _pan # mid-slide: carry on from where the camera is
+	var to := roundf(from) + steps if absf(from - roundf(from)) < 0.001 else _pan_goal + steps
+	_pan_goal = to
+	if now or GameSettings.reduce_motion:
+		_end_slide()
+		return null
+	Audio.play("holo", 0.03, -8.0)
+	_pan_tw = create_tween()
+	_pan_tw.tween_method(_set_pan, from, to, PAN_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_pan_tw.tween_callback(_end_slide)
+	return _pan_tw
+
+func _end_slide() -> void:
+	_pan = float(_view)
+	_pan_goal = _pan
+	_apply_pan()
+	_set_stations_interactive(true)
+
+func _set_pan(p: float) -> void:
+	_pan = p
+	_apply_pan()
+
+## The edge arrows (they loop round); hovering one projects where it turns to.
+func _update_arrows() -> void:
+	for dir in _arrows.keys():
+		var arrow: Button = _arrows[dir]
+		arrow.visible = not _zoomed and not _zooming
+		arrow.text = "◀" if dir < 0 else "▶"
+	if _arrow_hover != 0:
+		_show_arrow_label(_arrow_hover)
+
+## A holo label beamed from the hovered arrow's inner edge, level with it.
+func _show_arrow_label(dir: int) -> void:
+	_arrow_hover = dir
+	var arrow: Button = _arrows[dir]
+	if not arrow.visible:
+		_arrow_label.hide_label()
+		return
+	var to: int = wrapi(_view + dir, -1, 2)
+	var r := arrow.get_rect()
+	var at := Vector2(r.end.x + 2.0 if dir < 0 else r.position.x - 2.0, r.get_center().y)
+	var key := GameSettings.key_label("view_left" if dir < 0 else "view_right")
+	_arrow_label.show_for(at, "right" if dir < 0 else "left", VIEWS[to][1], ["Turn %s  (%s)" % ["left" if dir < 0 else "right", key]])
+
+func _hide_arrow_label(dir: int) -> void:
+	if _arrow_hover == dir:
+		_arrow_hover = 0
+		_arrow_label.hide_label()
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k == null or not k.pressed or k.echo or Tutorial.active:
+		return
+	if GameSettings.is_key(k, "view_left") or k.keycode == KEY_LEFT:
+		_pan_by(-1)
+	elif GameSettings.is_key(k, "view_right") or k.keycode == KEY_RIGHT:
+		_pan_by(1)
+	else:
+		return
+	get_viewport().set_input_as_handled()
+
+## Gamepad: the bumpers pan (Gamepad.handler).
+func pad_button(b: JoyButton) -> bool:
+	if Tutorial.active or _zoomed or _zooming:
+		return false
+	if b == JOY_BUTTON_LEFT_SHOULDER or b == JOY_BUTTON_RIGHT_SHOULDER:
+		_pan_by(-1 if b == JOY_BUTTON_LEFT_SHOULDER else 1)
+		return true
+	return false
+
+## Training's tour of the room: the camera turns to the wall of the station
+## it's talking about, then the coach rings it where it now stands.
+func _follow_tutorial() -> void:
+	if not Tutorial.active or Tutorial.step >= Tutorial.STEPS.size():
+		return
+	var st: Array = Tutorial.STEPS[Tutorial.step]
+	if st[0] != "war_room":
+		return
+	var v: int = _station_view.get(st[1], 0)
+	if v == _view:
+		return
+	var tw := _pan_to(v)
+	if tw != null:
+		await tw.finished
+	var spots := _stations.duplicate()
+	spots["table"] = table
+	Tutorial.reached("war_room", spots)
 
 # ---------- building ----------
 
@@ -262,8 +469,10 @@ func _build_station(s: Array) -> Hotspot:
 	spot.anchor = (s[5] as Vector2) * ART_SCALE
 	spot.label_dir = s[6]
 	spot.hover_changed.connect(_on_station_hover.bind(spot))
-	room.add_child(spot)
+	var view: int = s[7]
+	_fronts[view].add_child(spot)
 	_stations[s[0]] = spot
+	_station_view[s[0]] = view
 	return spot
 
 ## The mechs stand on the Hangar's pads as holograms; the one you'll
@@ -349,15 +558,11 @@ func _draw_table_sectors(spot: Hotspot) -> void:
 	if _zoomed or _zooming:
 		return
 	var glass := _glass_local(spot)
-	# the theater squeezed into the glass, clear of its rounded ends and rim
-	var inner := Rect2(glass.position + glass.size * Vector2(0.14, 0.3), glass.size * Vector2(0.72, 0.6))
+	# the theater squeezed into the glass's lower part, so each site's name stands on the glass too
+	# (Logan, 2026-11-11: no front line across it; the names stayed on the glass)
+	var inner := Rect2(glass.position + glass.size * Vector2(0.16, 0.52), glass.size * Vector2(0.68, 0.36))
 	var font := get_theme_default_font()
 	var c := Palette.HARDPOINT
-	var front := PackedVector2Array()
-	for uv in war_map.front:
-		front.append(inner.position + uv * inner.size)
-	spot.draw_polyline(front, Color(c, 0.3), 3.0, true)
-	spot.draw_polyline(front, Color(c, 0.6), 1.0, true)
 	for i in range(GameData.sectors().size()):
 		var loc: Dictionary = GameData.sectors()[i]
 		var p := inner.position + (war_map.sites.get(loc["id"], Vector2(0.5, 0.5)) as Vector2) * inner.size
@@ -366,17 +571,20 @@ func _draw_table_sectors(spot: Hotspot) -> void:
 		spot.draw_arc(Vector2.ZERO, 12.0 + pulse * 4.0, 0.0, TAU, 32, Color(c, 0.35 * (1.0 - pulse)), 2.0, true)
 		spot.draw_arc(Vector2.ZERO, 11.0, 0.0, TAU, 32, c, 2.0, true)
 		spot.draw_set_transform_matrix(Transform2D.IDENTITY)
-		spot.draw_line(p, p - Vector2(0, 30), Color(c, 0.3), 4.0)
-		spot.draw_line(p, p - Vector2(0, 30), Color(c, 0.75), 1.0)
-		spot.draw_rect(Rect2(p - Vector2(3, 36), Vector2(6, 6)), c, true)
+		spot.draw_line(p, p - Vector2(0, PIN_H), Color(c, 0.3), 4.0)
+		spot.draw_line(p, p - Vector2(0, PIN_H), Color(c, 0.75), 1.0)
+		spot.draw_rect(Rect2(p - Vector2(3, PIN_H + 6), Vector2(6, 6)), c, true)
 		var name := str(loc.get("name", "")).to_upper()
 		var w := font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
-		spot.draw_string(font, p + Vector2(-w / 2.0, -42), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, c)
+		spot.draw_string(font, p + Vector2(-w / 2.0, -PIN_H - 10), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, c)
 
 # ---------- hover labels ----------
 
 func _on_station_hover(hovered: bool, spot: Hotspot) -> void:
 	if hovered:
+		if _label_owner != null:
+			_label.hide_label()
+		_label = _labels[_station_view[spot.id]]
 		_label_owner = spot
 		Audio.play("holo", 0.04, -6.0)
 		var info := _label_info(spot)
@@ -415,14 +623,14 @@ func _set_stations_interactive(v: bool) -> void:
 		(spot as Hotspot).interactive = v
 	if not v:
 		_label_owner = null
-		_label.hide_label()
+		for lbl in _labels.values():
+			(lbl as HoloLabel).hide_label()
 
 func _build_operator() -> void:
 	var r := OPERATOR_RECT
 	_operator = GlassPanel.new()
-	_operator.position = r.position
-	_operator.size = r.size
-	room.add_child(_operator)
+	_operator.size = r.size # placed on the screen's bottom edge (_layout), over whichever view
+	add_child(_operator)
 	_operator_face = OperatorPortrait.new()
 	_operator_face.position = Vector2(10, 10)
 	_operator_face.size = Vector2(76, r.size.y - 20)
@@ -564,6 +772,8 @@ func _zoom_in() -> void:
 	Tutorial.event("table_opened")
 	_setup_sector_map() # training may have started since the room opened
 	_set_stations_interactive(false)
+	_update_arrows()
+	_arrow_label.hide_label()
 	table.queue_redraw()
 	var z := _zoom_target(get_viewport_rect().size)
 	var tw := create_tween().set_parallel(true)
@@ -595,13 +805,14 @@ func _zoom_out() -> void:
 	var screen: Vector2 = get_viewport_rect().size
 	_operator.visible = not _operator_dismissed and not _operator_held()
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(room, "scale", Vector2.ONE, ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(room, "position", ((screen - BASE) / 2.0).floor(), ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(room, "scale", Vector2.ONE * _rest_scale(), ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(room, "position", _rest_origin(), ZOOM_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(_operator, "modulate:a", 1.0, ZOOM_TIME).set_delay(ZOOM_TIME * 0.3)
 	tw.tween_method(_set_dim, _dim_a, 0.0, ZOOM_TIME * 0.7)
 	await tw.finished
 	_zooming = false
 	_set_stations_interactive(true)
+	_update_arrows()
 	table.queue_redraw()
 
 ## The camera pushes in on the station while the screen fades, so its
@@ -611,15 +822,18 @@ func _open_station(id: String) -> void:
 		return
 	_zooming = true
 	_set_stations_interactive(false)
+	for arrow in _arrows.values():
+		(arrow as Button).visible = false
 	var spot: Hotspot = _stations[id]
+	var view: Control = _views[_station_view[id]]
 	var r := Rect2(spot.position, spot.size)
 	var screen: Vector2 = get_viewport_rect().size
 	var free := Vector2(screen.x, screen.y - TOP_BAR_H)
 	var s := minf(STATION_ZOOM_MAX, minf(free.x / r.size.x, free.y / r.size.y))
 	var center := Vector2(screen.x / 2.0, TOP_BAR_H + free.y / 2.0)
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(room, "scale", Vector2(s, s), SceneRouter.FADE_OUT + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(room, "position", center - r.get_center() * s, SceneRouter.FADE_OUT + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(view, "scale", Vector2(s, s), SceneRouter.FADE_OUT + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(view, "position", center - r.get_center() * s, SceneRouter.FADE_OUT + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(_operator, "modulate:a", 0.0, 0.2)
 	SceneRouter.go(STATION_SCENES[id])
 

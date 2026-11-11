@@ -16,3 +16,8 @@ Working files behind shipped art, kept in git so they're on every machine.
 - `warroom_right/` — the War Room's side-wall stations (Directives screen, Livery Bay, Pilot Log and Info Bay
   terminals, the R&D shelf without its hologram): PixelLab sources, candidates and `build.py`, which writes them
   into `assets/warroom/`. `old_*.png` are the pieces they replaced.
+- `warroom_walls/` — the War Room's left and right walls seen straight on (PixelLab Pro `left_v1.png` /
+  `right_v1.png`, room.png as reference) and `build.py`, which patches the left floor and cuts the four
+  side stations (Research Bay, Info Bay, Livery Bay, Pilot Log) out of them by rectangles into
+  `assets/warroom/`, and seals the empty middle panels with hazard tape and a hung COMING SOON! sign. These replace `warroom_right/`'s corner pieces.
+- `memorial/` — the Memorial Wall's candle trophy cleaned up by `candle.py` (`old_slot_00.png` is the one it replaced).
