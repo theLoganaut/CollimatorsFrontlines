@@ -6,6 +6,7 @@ extends Node
 ##        [--feedback-dry (also writes what Send feedback would post: <out>.txt and <out>.zip)] [--pad-page (with _settings: the gamepad controls page)]
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
+##        [--store (Steam page shots: no Feedback buttons or build label; tools/steam_screenshots.sh takes the set)]
 ## A screen name ending in _settings opens the settings menu over it.
 ## "hub_<station>" [tab] opens a War Room station (hub_pilot_log mechs).
 ## "weather" <out folder> <frames> <background id> [interval] saves a frame every 0.25 s (or interval) of
@@ -39,6 +40,21 @@ extends Node
 ## once as is and once with each experiment (no MSAA on HoloTerrain, no weather).
 ## It never saves the run or touches the profile.
 
+## --store: every frame, hide what a player on the Steam page shouldn't see
+## (the Feedback buttons, the "v0.2.2 · Dev build" label).
+func _hide_dev_bits() -> void:
+	# in a fight, keep the real mouse off the hand (it would lift whatever card it's over), over the enemies
+	var cs := get_tree().current_scene
+	var vr := get_viewport().get_visible_rect().size
+	if cs != null and "combat" in cs and get_viewport().get_mouse_position().distance_to(Vector2(vr.x * 0.5, vr.y * 0.32)) > 2.0:
+		get_viewport().warp_mouse(Vector2(vr.x * 0.5, vr.y * 0.32))
+	for n in get_tree().root.find_children("*", "Button", true, false):
+		if n.text == "Feedback":
+			n.modulate.a = 0.0
+	for n in get_tree().root.find_children("*", "Label", true, false):
+		if n.text == BuildInfo.label():
+			n.visible = false
+
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	# display settings for this shot only (never saved): --colorblind --reduce-motion
@@ -59,6 +75,9 @@ func _ready() -> void:
 					Profile.seen_orders.append(o["id"])
 	# no one-time Operator tips in shots (they'd save to the real profile), unless asked for
 	GameSettings.operator_tips = "--explain" in OS.get_cmdline_user_args()
+	# --store: shots for the Steam page, without the Feedback buttons and the build label
+	if "--store" in OS.get_cmdline_user_args():
+		get_tree().process_frame.connect(_hide_dev_bits)
 	GameSettings.apply()
 	var what: String = args[0] if args.size() > 0 else "shop"
 	var settings := what.ends_with("_settings") # open the settings menu over the screen

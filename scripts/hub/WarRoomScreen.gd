@@ -32,13 +32,13 @@ const MEMORIAL_SLOTS := 14
 const STATIONS := [
 	["memorial_wall", "Memorial Wall", "The corrupted Collimators you've faced.", "memorial_wall_empty.png", Rect2(67, 124, 118, 115), Vector2(126, 124), "up"],
 	["hangar", "Hangar", "Pick your mech and loadout.", "hangar.png", Rect2(231, 124, 164, 115), Vector2(313, 124), "up"],
-	["directives", "Directives", "Today's three goals. Earn Chips.", "directives.png", Rect2(438, 124, 118, 115), Vector2(497, 124), "up"],
+	["directives", "Directives", "Today's three goals. Earn Chips.", "directives.png", Rect2(437, 124, 120, 116), Vector2(497, 124), "up"],
 	["discord", "Join the Discord!", "Meet other pilots, report bugs, see what's coming.", "discord_sign.png", Rect2(292, 62, 90, 46), Vector2(376, 91), "right"],
 	["research_bay", "Research Bay", "Permanent unlocks, paid in Chips.", "research_bay.png", Rect2(), Vector2(34, 128), "up_right"],
 	["livery_bay", "Livery Bay", "Paint schemes, paid in Chips.", "livery_bay.png", Rect2(), Vector2(590, 124), "up_left"],
 	["war_table", "War Table", "Sector Select: pick where to drop in.", "war_table.png", Rect2(203.7, 216.7, 216.6, 114.8), Vector2(418, 255), "right"],
-	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(60, 242), "up_right"],
-	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(562, 246), "up_left"],
+	["info_bay", "Info Bay", "Browse every component and status.", "info_bay.png", Rect2(), Vector2(30, 254), "up_right"],
+	["pilot_log", "Pilot Log", "Your stats and mission history.", "pilot_log.png", Rect2(), Vector2(594, 224), "up_left"],
 ]
 ## The "Join the Discord!" sign hanging over Bay 2 (Logan, 2026-10-15; in
 ## STATIONS, its art made in art_src/discord_sign/): clicking it opens the
@@ -59,7 +59,7 @@ const HANGAR_PADS := [["redline", 57.0], ["bastion", 124.0], ["jackal", 191.0]]
 const HANGAR_PAD_FLOOR := 126.0
 const HANGAR_HOLO_H := 62.0
 ## The dailies' rows on the Directives glass (directives.png pixels).
-const DIRECTIVE_ROWS := Rect2(27, 65, 91, 45)
+const DIRECTIVE_ROWS := Rect2(23, 36, 74, 57)
 const OPERATOR_RECT := Rect2(256, 604, 640, 104)
 
 var room: Control
