@@ -1,7 +1,60 @@
 {
   "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it; {\"label\", \"items\"} with no text is a category heading (Logan, 2026-10-16: New, Gameplay, UI, Balance, Bug Fixes, each entry \"Name - short description\"). A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
-  "current": "0.2.2",
+  "current": "0.2.3",
   "releases": [
+    {
+      "version": "0.2.3",
+      "title": "",
+      "items": [
+        {
+          "label": "New",
+          "items": [
+            {
+              "label": "Salvage Crates",
+              "text": "- after a win, pick a crate. It bursts open and its parts spin into place, one at a time."
+            },
+            {
+              "label": "War Room Walls",
+              "text": "- turn left to the Research and Info Bays, right to the Livery Bay and Pilot Log (edge arrows, A / D, or the bumpers)."
+            },
+            {
+              "label": "Attack Animations",
+              "text": "- every weapon fires its own shot, burst, missile, spray, beam, blade or hammer."
+            }
+          ]
+        },
+        {
+          "label": "Gameplay",
+          "items": [
+            {
+              "label": "Freeze",
+              "text": "- a Frozen part can't be used at all: enemy steps on it are skipped and its charge fizzles."
+            }
+          ]
+        },
+        {
+          "label": "UI",
+          "items": [
+            {
+              "label": "Part Cards",
+              "text": "- rebuilt: the part's shape on its own grid, heat and damage at a glance, and names that fit on one line."
+            },
+            {
+              "label": "New Icons",
+              "text": "- new enemy intent icons and bigger status badges."
+            },
+            {
+              "label": "Card Faces",
+              "text": "- the heat flame, damage burst and hit reticle are redrawn."
+            },
+            {
+              "label": "War Room",
+              "text": "- fills the whole screen, and the War Table's locations sit on its glass."
+            }
+          ]
+        }
+      ]
+    },
     {
       "version": "0.2.2",
       "title": "",
@@ -221,7 +274,6 @@
         "kind": "minor",
         "when": "Week of Nov 9",
         "items": [
-          "New icons for enemy intents and statuses",
           "New achievements",
           "New deployment orders",
           "Fixes from your feedback"
