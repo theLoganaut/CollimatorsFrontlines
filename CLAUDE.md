@@ -116,8 +116,8 @@ enemies' feet stand (`PlayField` draws them, with `Rain` for rainy ones; `Combat
 
 ## Source of truth: the Hermes vault
 
-Design notes, decisions, change logs and tasks live in the Hermes vault at `~/hermes-vault/projects/collimators-frontlines/`
-(follow `~/hermes-vault/CLAUDE.md` when reading or changing it). **Never use Notion**: the old Notion pages were imported
+Design notes, decisions, change logs and tasks live in the Hermes vault at `~/hermes-hub/hermes-vault/projects/collimators-frontlines/`
+(follow `~/hermes-hub/hermes-vault/CLAUDE.md` when reading or changing it). **Never use Notion**: the old Notion pages were imported
 into the vault and Notion is no longer kept up.
 
 `notes/Frontlines Game Home.md` is the index. Open only the note you need (all in `notes/`):
@@ -157,4 +157,4 @@ into the vault and Notion is no longer kept up.
 
 ## Planning
 
-Tasks and notes for this project are in `~/hermes-vault/projects/collimators-frontlines/`. Start at `Collimators Frontlines.md` there, and follow `~/hermes-vault/CLAUDE.md` when reading or changing them.
+Tasks and notes for this project are in `~/hermes-hub/hermes-vault/projects/collimators-frontlines/`. Start at `Collimators Frontlines.md` there, and follow `~/hermes-hub/hermes-vault/CLAUDE.md` when reading or changing them.
