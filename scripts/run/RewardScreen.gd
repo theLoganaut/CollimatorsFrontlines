@@ -5,7 +5,7 @@ extends RunScreen
 ## rarity-rolled) to take one of, or skip for scraps (RunData.skip_payout;
 ## each card says what it would sell for). Logan, 2026-10-02: no "Take a…"
 ## title and no best-turn number (that's for the player to work out); the
-## choices spread evenly across the box; "+N scrap" sits left of Continue.
+## choices spread evenly across the box; "+N scraps" sits left of Continue.
 ## A part goes into Cargo; if it
 ## doesn't fit, a stored part can be scrapped to make room. Continue moves
 ## on (to a refit on the refit rows). The reward was rolled when the fight
@@ -13,8 +13,24 @@ extends RunScreen
 ## battlefield the fight was on (dimmed), on holo glass.
 ## SHOW MECH (bottom left; Logan, 2026-10-02) opens the mech and its Cargo
 ## over the box, so the player can see what they have and what would fit.
+##
+## The categories are salvage crates (Logan, 2026-11-11; SalvageCrate), each
+## with a line on what that kind of part does and nothing on what's inside.
+## Picking one plays the opening: the other crates fade, the chosen one flies
+## to the bottom of the screen, shakes and pops, and three slots spin like
+## slot-machine reels (SlotReel) through that category's parts, landing on
+## the parts really inside one at a time. The open crate stays at the bottom
+## while its parts are on the table.
 
 const PANEL_W := 760.0
+## What each crate holds, in a line (no rarity: that waits for the reels).
+const CATEGORY_BLURB := {
+	"hardpoint": "Weapons. New attack cards for your hand.",
+	"reactor": "Power cores. Passives that are always in play.",
+	"protocol": "Augments. Free cards that power up your next play.",
+}
+const CRATE_STAND := Vector2(230, 176) # each crate's spot in the row; they stand on its bottom edge
+const CRATE_REST_SCALE := 0.7 # the open crate at the bottom, against its size in the row
 
 var _content: VBoxContainer
 var _pick_area: VBoxContainer
@@ -29,6 +45,10 @@ var _backdrop: Texture2D = null
 var _mech_toggle: Button
 var _mech_glass: GlassPanel
 var _mech_box: VBoxContainer
+var _crates: Dictionary = {} # category -> SalvageCrate in the row
+var _crate: SalvageCrate # the chosen crate, at the bottom of the screen
+var _opening: bool = false # the crate's opening is playing
+var _beam_layer: Control
 
 func screen_phase() -> String:
 	return RunData.PHASE_REWARD
@@ -57,6 +77,12 @@ func _build() -> void:
 	_glass = GlassPanel.new()
 	_glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_glass)
+	# the open crate's light, over the glass but behind the cards and buttons
+	_beam_layer = Control.new()
+	_beam_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_beam_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_beam_layer.draw.connect(_draw_beam)
+	add_child(_beam_layer)
 	_content = VBoxContainer.new()
 	_content.resized.connect(_fit_glass)
 	_content.add_theme_constant_override("separation", 14)
@@ -123,6 +149,14 @@ func _layout(screen: Vector2) -> void:
 	_fit_glass()
 	if _mech_glass != null and is_instance_valid(_mech_glass):
 		_mech_glass.position = ((screen - _mech_glass.size) / 2.0).floor()
+	if _crate != null and not _opening:
+		_crate.scale = Vector2.ONE * CRATE_REST_SCALE
+		_crate.position = _crate_rest(screen)
+
+## Where the opened crate sits: bottom center of the screen.
+func _crate_rest(screen: Vector2) -> Vector2:
+	var sz := _crate.art_size() * CRATE_REST_SCALE
+	return Vector2((screen.x - sz.x) / 2.0, screen.y - sz.y - 6.0).floor()
 
 ## The glass sits behind the content, a margin wider.
 func _fit_glass() -> void:
@@ -139,25 +173,88 @@ func _refresh() -> void:
 		_build_categories()
 	else:
 		_build_parts()
-	_skip.visible = run.reward["category"] != "" and not run.reward["part_taken"]
-	_skip.text = "+%d scrap" % run.skip_payout()
+	_skip.visible = run.reward["category"] != "" and not run.reward["part_taken"] and not _opening
+	_skip.text = "+%d scraps" % run.skip_payout()
+	if run.reward["category"] != "" and _crate == null: # back on this screen after picking: the crate lies open
+		_crate = _make_crate(run.reward["category"])
+		_crate.show_open()
+		_layout(get_viewport_rect().size)
 	refresh_header()
 
 func _build_categories() -> void:
-	_pick_area.add_child(UIKit.label("Choose 1", 20, Color("dffcf8")))
+	_crates.clear()
+	_pick_area.add_child(UIKit.label("Choose a crate", 20, Color("dffcf8")))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 16)
 	_pick_area.add_child(row)
-	for cat in Economy.CATEGORIES: # three equal buttons across the box
+	for cat in Economy.CATEGORIES: # three crates across the box
 		var n: int = (run.reward["options"].get(cat, []) as Array).size()
 		var col := Palette.category_color(cat)
-		var b := GlassPanel.button("%s\n%s" % [cat.capitalize(), "%d parts" % n if n > 0 else "nothing salvageable yet"], 17, false, col)
-		b.custom_minimum_size = Vector2(0, 96)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.add_theme_stylebox_override("normal", GlassPanel.control_style(col, 0.12, 0.85))
-		b.disabled = n == 0
-		b.pressed.connect(_choose_category.bind(cat))
-		row.add_child(b)
+		var column := VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		column.add_theme_constant_override("separation", 4)
+		row.add_child(column)
+		# every crate stands on the same line, centered in its column, whatever its art's size
+		var stand := Control.new()
+		stand.custom_minimum_size = CRATE_STAND
+		stand.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		stand.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(stand)
+		var crate := SalvageCrate.new()
+		crate.setup(cat, 2.0)
+		crate.enabled = n > 0
+		crate.pressed.connect(_choose_category.bind(cat))
+		stand.add_child(crate)
+		crate.position = (Vector2(CRATE_STAND.x / 2.0, CRATE_STAND.y - 10.0) - crate.foot()).floor()
+		_crates[cat] = crate
+		var title := UIKit.label(cat.to_upper(), 17, col if n > 0 else Palette.TEXT_MUTED)
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(title)
+		var blurb := UIKit.label(CATEGORY_BLURB.get(cat, "") if n > 0 else "Nothing salvageable yet.", 12, Color("9fb9b6"), true)
+		blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		blurb.custom_minimum_size.x = 200.0
+		column.add_child(blurb)
+
+func _process(_delta: float) -> void:
+	if _crate != null and _beam_layer != null:
+		_beam_layer.queue_redraw()
+
+## The crate's beam in screen space, from wherever the crate is.
+func _draw_beam() -> void:
+	if _crate == null or not is_instance_valid(_crate):
+		return
+	var to_crate := _crate.get_global_transform()
+	_beam_layer.draw_set_transform_matrix(_beam_layer.get_global_transform().affine_inverse() * to_crate)
+	# aimed at the cards' row: its edges on the far edges of the outer cards, fading out at their tops
+	var aim := Rect2()
+	var row := _card_row_rect()
+	if row.has_area():
+		var inv := to_crate.affine_inverse()
+		var a: Vector2 = inv * row.position
+		var b: Vector2 = inv * row.end
+		aim = Rect2(a, b - a)
+	_crate.draw_beam(_beam_layer, aim)
+	_beam_layer.draw_set_transform_matrix(Transform2D.IDENTITY)
+
+## The cards (or the slots spinning onto them) on screen: from the left card's left edge to the
+## right card's right edge, top to bottom. Empty when there are none.
+func _card_row_rect() -> Rect2:
+	var out := Rect2()
+	for n in _pick_area.find_children("*", "", true, false):
+		if n is SlotReel or (n is PartCardUI and not (n.get_parent().get_parent() is SlotReel)): # not the cards on a reel's strip
+			var r: Rect2 = (n as Control).get_global_rect()
+			out = r if not out.has_area() else out.merge(r)
+	return out
+
+func _make_crate(cat: String) -> SalvageCrate:
+	var crate := SalvageCrate.new()
+	crate.setup(cat, 2.0)
+	crate.beam_elsewhere = true
+	crate.interactive = false
+	crate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	crate.z_index = 60
+	add_child(crate)
+	return crate
 
 func _build_parts() -> void:
 	var cat: String = run.reward["category"]
@@ -184,13 +281,88 @@ func _on_skip() -> void:
 	var paid := run.skip_reward_part()
 	Audio.play("shop_buy")
 	_hide_cargo()
-	_message.text = "Skipped: +%d scrap." % paid
+	_message.text = "Skipped: +%d scraps." % paid
 	_message.add_theme_color_override("font_color", Palette.SCRAPS)
 	_refresh()
 
+## The opening: the other crates fade, the picked one flies to the bottom,
+## shakes, pops, and the slots spin onto the parts inside, one at a time.
 func _choose_category(cat: String) -> void:
+	if _opening or run.reward["category"] != "":
+		return
+	_opening = true
+	var quick := GameSettings.reduce_motion
+	var from: Rect2 = (_crates[cat] as SalvageCrate).get_global_rect()
 	run.choose_reward_category(cat)
-	_refresh()
+	CrashLog.crumb("salvage crate: " + cat)
+	Audio.play("ui")
+	_continue.disabled = true
+	_mech_toggle.disabled = true
+	for crate in _crates.values():
+		(crate as SalvageCrate).interactive = false
+	_crate = _make_crate(cat)
+	_crate.position = from.position
+	(_crates[cat] as SalvageCrate).modulate.a = 0.0
+	var screen := get_viewport_rect().size
+	var fly := create_tween().set_parallel(true)
+	fly.tween_property(_pick_area, "modulate:a", 0.0, 0.25)
+	fly.tween_property(_crate, "position", _crate_rest(screen), 0.12 if quick else 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	fly.tween_property(_crate, "scale", Vector2.ONE * CRATE_REST_SCALE, 0.12 if quick else 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	await fly.finished
+	# the slots go up, empty and sealed, while the crate rattles
+	var reels := _build_reels(cat)
+	_pick_area.modulate.a = 1.0
+	for i in range(reels.size()):
+		var slot: Control = (reels[i] as SlotReel).get_parent()
+		create_tween().tween_property(slot, "modulate:a", 1.0, 0.2).set_delay(i * 0.08)
+	if not quick:
+		var rattle := create_tween()
+		rattle.tween_callback(Audio.play.bind("crate_rattle", 0.1, -4.0))
+		rattle.tween_property(_crate, "shake", 1.2, 0.3)
+		rattle.tween_callback(Audio.play.bind("crate_rattle", 0.1, -2.0))
+		rattle.tween_property(_crate, "shake", 2.0, 0.25)
+		rattle.tween_callback(Audio.play.bind("crate_rattle", 0.1, 0.0))
+		rattle.tween_property(_crate, "shake", 3.2, 0.25)
+		rattle.tween_callback(Audio.play.bind("crate_rattle", 0.1, 1.0))
+		rattle.tween_interval(0.1)
+		await rattle.finished
+	_crate.open()
+	Audio.play("crate_open", 0.02)
+	# the slots kick as the lid blows, then spin; each lands a beat after the last
+	var last: SlotReel = null
+	for i in range(reels.size()):
+		var slot: Control = (reels[i] as SlotReel).get_parent()
+		slot.pivot_offset = slot.size / 2.0
+		slot.scale = Vector2(0.94, 0.94)
+		create_tween().tween_property(slot, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		(reels[i] as SlotReel).spin((0.35 + 0.2 * i) if quick else (1.1 + 0.65 * i))
+		last = reels[i]
+	if last != null:
+		await last.landed
+		await get_tree().create_timer(0.3).timeout
+	_opening = false
+	_continue.disabled = false
+	_mech_toggle.disabled = false
+	_refresh() # the real, pickable cards take the reels' places
+
+## The slots, laid out like the cards they'll land on, hidden until the crate pops.
+func _build_reels(cat: String) -> Array:
+	for c in _pick_area.get_children():
+		c.queue_free()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 0)
+	_pick_area.add_child(row)
+	var reels: Array = []
+	for id in run.reward["options"].get(cat, []):
+		var slot := CenterContainer.new()
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.modulate.a = 0.0
+		row.add_child(slot)
+		var reel := SlotReel.new()
+		slot.add_child(reel)
+		reel.setup(id, cat)
+		reels.append(reel)
+	return reels
 
 func _on_card_pressed(card: PartCardUI) -> void:
 	if run.reward["part_taken"]:

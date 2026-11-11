@@ -21,3 +21,4 @@ Working files behind shipped art, kept in git so they're on every machine.
   side stations (Research Bay, Info Bay, Livery Bay, Pilot Log) out of them by rectangles into
   `assets/warroom/`, and seals the empty middle panels with hazard tape and a hung COMING SOON! sign. These replace `warroom_right/`'s corner pieces.
 - `memorial/` — the Memorial Wall's candle trophy cleaned up by `candle.py` (`old_slot_00.png` is the one it replaced).
+- `crates/` — the salvage crates (RewardScreen, SalvageCrate): PixelLab Pro candidates per category (`cand_*`), the picked ones, their open state (`e_*_open.png`, a Pro Flash edit) and `build.py`, which copies them into `assets/run/crates/` and prints each lid's height for `SalvageCrate.LID_ROWS`. `ref_style.png` is the War Room crop used as the style.

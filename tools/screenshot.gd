@@ -7,6 +7,8 @@ extends Node
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ##        [--store (Steam page shots: no Feedback buttons or build label; tools/steam_screenshots.sh takes the set)]
+##        [--category=reactor (reward_parts / reward_mech: the category picked; default hardpoint)]
+##        [--stay (a run screen: open it set up and leave the game running to play, no PNG; e.g. reward x --stay)]
 ## A screen name ending in _settings opens the settings menu over it.
 ## "hub_<station>" [tab] opens a War Room station (hub_pilot_log mechs).
 ## "weather" <out folder> <frames> <background id> [interval] saves a frame every 0.25 s (or interval) of
@@ -260,11 +262,15 @@ func _ready() -> void:
 			run.add_scraps(300)
 			run.cargo.add(run.new_part("autocannon"))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_SHOP]
-		"reward", "reward_parts", "reward_mech": # salvage after a won fight (reward_parts: a category picked; reward_mech: and SHOW MECH)
+		"reward", "reward_parts", "reward_mech", "reward_open": # salvage after a won fight (reward_parts: a category picked; reward_mech: and SHOW MECH)
 			run.choose_node(run.available_nodes()[0])
 			run.fight_won()
-			if what != "reward":
-				run.choose_reward_category("hardpoint")
+			if what != "reward" and what != "reward_open":
+				var cat_arg := ""
+				for ua in OS.get_cmdline_user_args():
+					if ua.begins_with("--category="):
+						cat_arg = ua.trim_prefix("--category=")
+				run.choose_reward_category(cat_arg if cat_arg != "" else "hardpoint")
 			scene = RunState.PHASE_SCENES[RunData.PHASE_REWARD]
 		"debrief": # an ejected run's debrief (never recorded in the profile)
 			run.eject()
@@ -302,6 +308,10 @@ func _ready() -> void:
 	var inst: Node = load(scene).instantiate()
 	get_tree().root.add_child.call_deferred(inst)
 	get_tree().set_deferred("current_scene", inst)
+	if "--stay" in OS.get_cmdline_user_args(): # play from here: the screen is set up, nothing is saved, the tool steps aside
+		SaveGame.disabled = true # a made-up run: never over the real save or profile
+		Profile.saving_off = true
+		return
 	await get_tree().create_timer(wait).timeout
 	if settings:
 		for n in _all_menus(get_tree().root):
@@ -336,6 +346,17 @@ func _ready() -> void:
 	if what == "combat_map" or what == "event_map": # the location map over the fight / the stop
 		LocationMapScreen.peek(get_tree().current_scene)
 		await get_tree().create_timer(2.0).timeout
+	if what == "reward_open": # pick a crate ([category], default hardpoint) and save a frame every 0.15 s of the opening into <out> (a folder)
+		var rs := get_tree().current_scene
+		await get_tree().create_timer(0.8).timeout
+		rs._choose_category(args[3] if args.size() > 3 else "hardpoint")
+		DirAccess.make_dir_recursive_absolute(out)
+		for i in range(36):
+			get_viewport().get_texture().get_image().save_png(out.path_join("f_%02d.png" % i))
+			await get_tree().create_timer(0.15).timeout
+		print("saved ", out)
+		get_tree().quit()
+		return
 	if what == "reward_mech":
 		get_tree().current_scene._show_mech()
 		await get_tree().create_timer(0.5).timeout

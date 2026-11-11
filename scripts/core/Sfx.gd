@@ -165,6 +165,11 @@ func _build() -> void:
 	# a soft two-tone alarm: your HP has dropped low
 	_streams["low_hp"] = _make(0.6, func(t, n): return sin(TAU * (520.0 if t < 0.3 else 390.0) * t) * 0.16 * _env(t, 0.6, 1.5) * (1.0 if fmod(t, 0.3) < 0.24 else 0.0))
 	# the quietest tick: hovering a card
+	# the salvage crate (RewardScreen): a metal rattle, the lid popping, the reels ticking past and landing
+	_streams["crate_rattle"] = _make(0.11, func(t, n): return (_noise(n) * 0.35 + _square(t, 210.0 + 60.0 * sin(TAU * 40.0 * t)) * 0.18) * _env(t, 0.11, 30.0))
+	_streams["crate_open"] = _make(0.7, func(t, n): return _noise(n) * _env(t, 0.7, 9.0) * 0.55 + sin(TAU * (80.0 - 40.0 * t) * t) * _env(t, 0.7, 7.0) * 0.6 + _arp(t, [784.0, 1047.0, 1568.0], 0.07) * 0.16 * _env(t, 0.7, 3.0))
+	_streams["reel_tick"] = _make(0.025, func(t, n): return (_square(t, 1800.0) * 0.18 + _noise(n) * 0.1) * _env(t, 0.025, 160.0))
+	_streams["reel_land"] = _make(0.3, func(t, n): return sin(TAU * (130.0 - 60.0 * t) * t) * _env(t, 0.3, 14.0) * 0.7 + _noise(n) * _env(t, 0.3, 40.0) * 0.3 + sin(TAU * 1568.0 * t) * 0.12 * _env(t, 0.3, 8.0))
 	_streams["hover"] = _make(0.02, func(t, n): return sin(TAU * 2600.0 * t) * 0.12 * _env(t, 0.02, 140.0))
 	_streams["defeat"] = _make(0.8, func(t, n): return _arp(t, [392.0, 311.0, 262.0, 196.0], 0.18) * 0.3 * _env(t, 0.8, 2.0))
 

@@ -18,7 +18,12 @@ const SET_ASIDE := "user://run_save_incompatible.json"
 static func has_save() -> bool:
 	return FileAccess.file_exists(PATH) or FileAccess.file_exists(PATH + ".bak")
 
+## Off for dev sessions that play a made-up run (tools/screenshot.gd --stay), so it never replaces the real save.
+static var disabled: bool = false
+
 static func save(run: RunData) -> void:
+	if disabled:
+		return
 	SafeFile.write_json(PATH, run.to_dict())
 
 static func load_run() -> RunData:
@@ -58,6 +63,8 @@ static func problems() -> Array[String]:
 ## Moves a save that can't load out of the way (kept as SET_ASIDE) and
 ## clears it. The profile is never touched.
 static func set_aside() -> void:
+	if disabled:
+		return
 	var d = SafeFile.read_json(PATH)
 	if d != null:
 		var f := FileAccess.open(SET_ASIDE, FileAccess.WRITE)
@@ -67,4 +74,6 @@ static func set_aside() -> void:
 	clear()
 
 static func clear() -> void:
+	if disabled:
+		return
 	SafeFile.remove(PATH)

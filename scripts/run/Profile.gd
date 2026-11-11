@@ -131,7 +131,12 @@ func load_profile() -> void:
 		for h in history:
 			_count_mech(str(h.get("mech", "")), h.get("result", "") == "cleared", int(h.get("stats", {}).get("fights_won", 0)), int(h.get("stops", 0)))
 
+## Off for dev sessions that play a made-up run (tools/screenshot.gd --stay): the profile isn't written.
+var saving_off: bool = false
+
 func save() -> void:
+	if saving_off:
+		return
 	SafeFile.write_json(PATH, {
 		"v": 1,
 		"recon_intel": recon_intel, "sector_seed": sector_seed, "bosses_faced": bosses_faced,
