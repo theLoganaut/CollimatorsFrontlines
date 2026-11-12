@@ -235,6 +235,13 @@ func _build_panels() -> void:
 	if chosen != "":
 		box.add_child(UIKit.label("ORDERS  ·  %s" % DeploymentOrders.title(chosen).to_upper(), 11, Palette.LINK))
 		box.add_child(UIKit.label(DeploymentOrders.text(chosen), 10, Color("9fb9b6"), true))
+		var mults: Dictionary = run.mod("route_mults", {})
+		if not mults.is_empty(): # Unmapped Route: what it rolled (Logan, 2026-11-12)
+			var parts: Array[String] = []
+			for key in DeploymentOrders.ROUTE_ODDS:
+				if mults.has(key):
+					parts.append("%s ×%.2f" % [DeploymentOrders.ROUTE_NAMES[key], float(mults[key])])
+			box.add_child(UIKit.label("  ·  ".join(parts), 10, Palette.LINK, true))
 	box.add_child(UIKit.seed_row(run.seed_value))
 	_left.size.y = 300.0
 	(func(): _left.size.y = maxf(300.0, box.get_combined_minimum_size().y + 24.0)).call_deferred() # room for the orders' text

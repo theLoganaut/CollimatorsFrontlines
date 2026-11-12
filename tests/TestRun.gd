@@ -327,6 +327,26 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(sk.skip_reward_part(), 0, "…once")
 	t.assert_eq(sk.skip_payout(), 0, "and nothing is left to skip")
 
+	t.group("Surprise me: a random crate and part, only that part")
+	var su := _new_run(6)
+	su.choose_node(su.available_nodes()[0])
+	su.fight_won(RunStats.new())
+	var su_id := su.surprise_reward()
+	var su_cat: String = su.reward["category"]
+	t.assert_true(su_cat != "" and (su.reward["options"][su_cat] as Array).has(su_id), "it commits a crate and lands on one of its parts")
+	t.assert_eq(su.surprise_reward(), su_id, "pressing again changes nothing")
+	t.assert_eq(su.choose_reward_category("hardpoint" if su_cat != "hardpoint" else "reactor"), su.reward["options"][su_cat], "the crate is final")
+	var su2 := _new_run(6)
+	su2.choose_node(su2.available_nodes()[0])
+	su2.fight_won(RunStats.new())
+	t.assert_eq(su2.surprise_reward(), su_id, "same run, same stop: same part (no reroll on reload)")
+	for other in su.reward["options"][su_cat]:
+		if other != su_id:
+			t.assert_eq(su.take_reward_part(other), null, "another part in the crate can't be taken")
+			break
+	var su_taken := su.take_reward_part(su_id)
+	t.assert_true(su_taken != null and su_taken.library_id == su_id, "the surprise part goes into Cargo")
+
 	t.group("Rarity rolls: Surplus 70% / Salvaged 25% / Prototype 5%")
 	var rr := RandomNumberGenerator.new()
 	rr.seed = 3

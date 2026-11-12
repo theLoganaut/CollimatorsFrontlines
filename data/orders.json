@@ -125,7 +125,7 @@
       "id": "scramble",
       "kind": "gamble",
       "name": "Scramble",
-      "text": "Every installed component is swapped for a random one of the same type, one rarity higher. You refit before you drop."
+      "text": "{parts} random installed components are each swapped for a random one of the same type, its rarity rolled like salvage. You refit before you drop."
     },
     {
       "id": "transmute",
@@ -173,13 +173,13 @@
       "id": "mystery_crate",
       "kind": "gamble",
       "name": "Mystery Crate",
-      "text": "{parts} random parts of any type and rarity, stowed in Cargo."
+      "text": "Three sealed crates. Open one blind and keep the part inside, its rarity rolled twice and the better kept."
     },
     {
       "id": "coin_flip",
       "kind": "gamble",
       "name": "Coin Flip",
-      "text": "Heads: +{scraps} scraps. Tails: your components start at 70% HP."
+      "text": "Heads: +{scraps} scraps. Tails: +{tails_scraps} scraps, and your components start at 70% HP."
     },
     {
       "id": "unmapped_route",

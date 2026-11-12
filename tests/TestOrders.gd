@@ -309,7 +309,7 @@ static func run_all(t: TestContext) -> void:
 
 	t.group("Gambles")
 	var sp: RunData = _take("spare_parts")[0]
-	t.assert_true(sp.cargo.items.size() == 2 and sp.phase == RunData.PHASE_REFIT, "Spare Parts Crate: two parts in Cargo, then a refit")
+	t.assert_true(sp.cargo.items.size() == _o("spare_parts", "parts") and sp.phase == RunData.PHASE_REFIT, "Spare Parts Crate: %d parts in Cargo, then a refit" % _o("spare_parts", "parts"))
 	t.assert_true((sp.cargo.items + sp.bench.items).all(func(c): return c.rarity == "surplus"), "both Surplus")
 
 	var pc: RunData = _take("prototype_contract")[0]
@@ -318,16 +318,25 @@ static func run_all(t: TestContext) -> void:
 	t.assert_true(pc.player_mech.components.all(func(c): return c.current_hp == ceili(c.max_hp * 0.6)), "installed parts at 60% HP")
 
 	var sc_ok := true
+	var sc_n := _o("scramble", "parts")
 	for s in range(1, 25):
 		var before := _run(s).player_mech.components
 		var sc: RunData = _take("scramble", s)[0]
-		var want := before.map(func(c): return "%s %s" % [c.category, Economy.rarity_above(c.rarity)])
-		var have := (sc.cargo.items + sc.bench.items).map(func(c): return "%s %s" % [c.category, c.rarity])
+		var gone := before.filter(func(c): return sc.player_mech.get_component(c.id) == null)
+		var want := gone.map(func(c): return c.category)
+		var have := (sc.cargo.items + sc.bench.items).map(func(c): return c.category)
 		want.sort()
 		have.sort()
-		sc_ok = sc_ok and want == have and sc.player_mech.components.is_empty()
-		sc_ok = sc_ok and sc.phase == RunData.PHASE_REFIT and (sc.orders["swaps"] as Array).size() == before.size()
-	t.assert_true(sc_ok, "Scramble: every part off the chassis, its replacement (same type, a rarity up) in Cargo, and a refit")
+		sc_ok = sc_ok and want == have and gone.size() == mini(sc_n, before.size())
+		sc_ok = sc_ok and sc.player_mech.components.size() == before.size() - gone.size()
+		sc_ok = sc_ok and sc.phase == RunData.PHASE_REFIT and (sc.orders["swaps"] as Array).size() == gone.size()
+	t.assert_true(sc_ok, "Scramble: %d random parts off the chassis, their replacements (same type) in Cargo, the rest stay, and a refit" % sc_n)
+	var sc_rar := {}
+	for s in range(1, 41):
+		var scr: RunData = _take("scramble", s)[0]
+		for c in scr.cargo.items + scr.bench.items:
+			sc_rar[c.rarity] = true
+	t.assert_true(sc_rar.has("surplus"), "…their rarity is rolled like salvage, not one up (Surplus comes back)")
 	var sc1: RunData = _take("scramble", 1)[0]
 	var sw: Dictionary = sc1.orders["swaps"][0]
 	t.assert_true(sw.has("old") and sw.has("offset") and sc1.cargo.items.any(func(c): return c.id == sw["new"]), "each swap is kept for the refit to animate")
@@ -339,6 +348,63 @@ static func run_all(t: TestContext) -> void:
 	t.assert_eq(tm.phase, RunData.PHASE_REFIT, "then a refit")
 	var new_hp: Array = tm.cargo.items.filter(func(c): return c.category == ComponentData.CATEGORY_HARDPOINT and c.rarity == "prototype")
 	t.assert_eq(new_hp.size(), 1, "by a hardpoint one rarity up (Neon Axe is Salvaged: a Prototype)")
+
+	var my: RunData = _take("mystery_crate")[0]
+	var my_step := DeploymentOrders.current_step(my)
+	t.assert_true(my_step.get("blind", false) and my.orders_pending(), "Mystery Crate: a blind crate pick is waiting")
+	var my_opts := DeploymentOrders.pick_category(my, "reactor")
+	t.assert_eq(my_opts.size(), _o("mystery_crate", "parts"), "the crate holds %d part" % _o("mystery_crate", "parts"))
+	t.assert_true(DeploymentOrders.pick_part(my, my_opts[0]) != "" and my.phase == RunData.PHASE_REFIT, "it's taken, then a refit")
+	var my_best := 0
+	var my_n := 0
+	for s in range(1, 201):
+		var m2: RunData = _take("mystery_crate", s)[0]
+		var o2 := DeploymentOrders.pick_category(m2, "hardpoint")
+		if not o2.is_empty():
+			my_n += 1
+			if ComponentLibrary.definition(o2[0])["rarity"] != "surplus":
+				my_best += 1
+	t.assert_true(my_best * 100 > my_n * 35, "its rarity is rolled twice, best kept: Salvaged or better %d of %d (one roll: ~30%%)" % [my_best, my_n])
+
+	var heads_seen := false
+	var tails_seen := false
+	for s in range(1, 30):
+		var cf_run := _run(s)
+		var hp_before := cf_run.player_mech.components.map(func(c): return c.current_hp)
+		var scraps_before := cf_run.scraps
+		cf_run.orders = {"offer": ["coin_flip"], "chosen": "", "steps": []}
+		DeploymentOrders.choose(cf_run, "coin_flip")
+		var heads: bool = cf_run.orders["reveal"]["heads"]
+		if heads:
+			heads_seen = heads_seen or (cf_run.scraps == scraps_before + _o("coin_flip", "scraps") and cf_run.player_mech.components.map(func(c): return c.current_hp) == hp_before)
+		else:
+			tails_seen = tails_seen or (cf_run.scraps == scraps_before + _o("coin_flip", "tails_scraps") and cf_run.player_mech.components.all(func(c): return c.current_hp == maxi(1, ceili(c.max_hp * 0.7))))
+	t.assert_true(heads_seen, "Coin Flip heads: +%d scraps, HP untouched" % _o("coin_flip", "scraps"))
+	t.assert_true(tails_seen, "Coin Flip tails: +%d scraps, parts at 70%% HP" % _o("coin_flip", "tails_scraps"))
+
+	var ur: RunData = _take("unmapped_route")[0]
+	var mults: Dictionary = ur.mods.get("route_mults", {})
+	t.assert_eq(mults.keys().size(), DeploymentOrders.ROUTE_ODDS.size(), "Unmapped Route: each stop type's roll is kept to show")
+	t.assert_true(mults.values().all(func(m): return m >= 0.5 and m <= 2.0), "each between ×0.5 and ×2")
+	t.assert_eq(ur.orders["reveal"]["mults"], mults, "and revealed on the orders panel")
+
+	t.group("Order picks: Surprise me")
+	var spk: RunData = _take("requisition")[0]
+	var sp_id := DeploymentOrders.surprise_pick(spk)
+	var sp_step := DeploymentOrders.current_step(spk)
+	t.assert_true(sp_step["category"] != "" and (sp_step["options"] as Array).has(sp_id), "a random category, its options rolled, one of them picked")
+	t.assert_eq(DeploymentOrders.surprise_pick(spk), sp_id, "pressing again changes nothing")
+	var sp2: RunData = _take("requisition")[0]
+	t.assert_eq(DeploymentOrders.surprise_pick(sp2), sp_id, "same run: same pick (no reroll on reload)")
+	for other in sp_step["options"]:
+		if other != sp_id:
+			t.assert_eq(DeploymentOrders.pick_part(spk, other), "", "another option can't be taken")
+			break
+	t.assert_true(DeploymentOrders.pick_part(spk, sp_id) != "" and not spk.orders_pending(), "the surprise part is taken")
+	var hi2: RunData = _take("hot_insertion")[0]
+	DeploymentOrders.surprise_pick(hi2)
+	DeploymentOrders.pick_part(hi2, DeploymentOrders.current_step(hi2)["surprise"])
+	t.assert_true(hi2.orders_pending() and DeploymentOrders.current_step(hi2)["category"] == "", "Hot Insertion: the second pick waits, fresh")
 
 	t.group("Saving: the offer and the steps left survive a reload")
 	var sv := _run()

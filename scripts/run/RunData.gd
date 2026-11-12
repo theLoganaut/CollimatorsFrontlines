@@ -514,10 +514,35 @@ func choose_reward_category(category: String) -> Array:
 		reward["category"] = category
 	return reward["options"].get(reward["category"], [])
 
+## Surprise me (Logan, 2026-11-12): a random crate and a random part in it,
+## instead of choosing. Commits the category and marks the part (reward
+## "surprise"), so only that one can be taken (or the pick skipped, if it
+## won't fit). Seeded by the run and the stop, not the run's rng, so a
+## reload lands on the same part and the rest of the run rolls as before.
+## Returns the part's id ("" when there's nothing to pick).
+func surprise_reward() -> String:
+	if reward.is_empty() or reward["part_taken"] or reward["category"] != "":
+		return reward.get("surprise", "")
+	var cats: Array = []
+	for cat in Economy.CATEGORIES:
+		if not (reward["options"].get(cat, []) as Array).is_empty():
+			cats.append(cat)
+	if cats.is_empty():
+		return ""
+	var pick := RandomNumberGenerator.new()
+	pick.seed = hash([seed_value, current_node_id, "surprise"])
+	var cat: String = cats[pick.randi() % cats.size()]
+	var opts: Array = reward["options"][cat]
+	reward["category"] = cat
+	reward["surprise"] = opts[pick.randi() % opts.size()]
+	return reward["surprise"]
+
 ## Takes one of the chosen category's parts into Cargo. Returns the new
 ## part, or null if it doesn't fit (the caller can make room and retry).
 func take_reward_part(component_id: String) -> ComponentData:
 	if reward.is_empty() or reward["part_taken"] or not reward["options"].get(reward["category"], []).has(component_id):
+		return null
+	if reward.get("surprise", "") not in ["", component_id]: # a surprise pick takes only the part it landed on
 		return null
 	var comp := new_part(component_id)
 	if not cargo.add(comp):

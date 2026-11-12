@@ -21,6 +21,12 @@ extends RunScreen
 ## slot-machine reels (SlotReel) through that category's parts, landing on
 ## the parts really inside one at a time. The open crate stays at the bottom
 ## while its parts are on the table.
+##
+## SURPRISE ME (Logan, 2026-11-12), under the crates: a light runs across the
+## crates like the reels do and stops on one (RunData.surprise_reward picks it),
+## that crate opens as usual, then the light runs across its parts and stops on
+## one, which is taken. The others fade; the part and the crate stay until
+## Continue. If it won't fit in Cargo, it's the only part left to take (or skip).
 
 const PANEL_W := 760.0
 ## What each crate holds, in a line (no rarity: that waits for the reels).
@@ -49,6 +55,7 @@ var _crates: Dictionary = {} # category -> SalvageCrate in the row
 var _crate: SalvageCrate # the chosen crate, at the bottom of the screen
 var _opening: bool = false # the crate's opening is playing
 var _beam_layer: Control
+var _surprise: Button
 
 func screen_phase() -> String:
 	return RunData.PHASE_REWARD
@@ -214,6 +221,13 @@ func _build_categories() -> void:
 		blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		blurb.custom_minimum_size.x = 200.0
 		column.add_child(blurb)
+	var under := CenterContainer.new()
+	_pick_area.add_child(under)
+	_surprise = GlassPanel.button("SURPRISE ME", 15, false, Palette.LINK)
+	_surprise.custom_minimum_size = Vector2(220, 42)
+	_surprise.tooltip_text = "A random crate, and a random part from it."
+	_surprise.pressed.connect(_on_surprise)
+	under.add_child(_surprise)
 
 func _process(_delta: float) -> void:
 	if _crate != null and _beam_layer != null:
@@ -267,10 +281,16 @@ func _build_parts() -> void:
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(slot)
 		var card := PartCardUI.new()
-		card.selectable = not run.reward["part_taken"]
+		var surprise: String = run.reward.get("surprise", "")
+		card.selectable = not run.reward["part_taken"] and surprise in ["", id] and not _opening # not while Surprise me's light runs
 		slot.add_child(card)
 		card.setup(id)
-		if not run.reward["part_taken"]:
+		if surprise not in ["", id]: # a surprise pick: only the part it landed on stays (in its place)
+			card.modulate.a = 0.0
+			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_cards.append(card)
+			continue
+		if card.selectable:
 			var fits := not run.cargo.find_fit(card.component).is_empty()
 			var sells := "sells for %d" % Economy.sell_value(id)
 			card.set_footer(("Fits in Cargo · %s" if fits else "No room in Cargo · %s") % sells, Palette.TEXT_MUTED if fits else Palette.WARNING)
@@ -290,16 +310,33 @@ func _on_skip() -> void:
 func _choose_category(cat: String) -> void:
 	if _opening or run.reward["category"] != "":
 		return
-	_opening = true
-	var quick := GameSettings.reduce_motion
-	var from: Rect2 = (_crates[cat] as SalvageCrate).get_global_rect()
 	run.choose_reward_category(cat)
 	CrashLog.crumb("salvage crate: " + cat)
 	Audio.play("ui")
+	_lock()
+	await _open_crate(cat)
+	_unlock()
+	_refresh() # the real, pickable cards take the reels' places
+
+## While something plays: no Continue, no SHOW MECH, no crates or Surprise me.
+func _lock() -> void:
+	_opening = true
 	_continue.disabled = true
 	_mech_toggle.disabled = true
+	if _surprise != null and is_instance_valid(_surprise):
+		_surprise.disabled = true
 	for crate in _crates.values():
 		(crate as SalvageCrate).interactive = false
+
+func _unlock() -> void:
+	_opening = false
+	_continue.disabled = false
+	_mech_toggle.disabled = false
+
+## The chosen crate's opening, up to the last reel landing.
+func _open_crate(cat: String) -> void:
+	var quick := GameSettings.reduce_motion
+	var from: Rect2 = (_crates[cat] as SalvageCrate).get_global_rect()
 	_crate = _make_crate(cat)
 	_crate.position = from.position
 	(_crates[cat] as SalvageCrate).modulate.a = 0.0
@@ -340,10 +377,68 @@ func _choose_category(cat: String) -> void:
 	if last != null:
 		await last.landed
 		await get_tree().create_timer(0.3).timeout
-	_opening = false
-	_continue.disabled = false
-	_mech_toggle.disabled = false
-	_refresh() # the real, pickable cards take the reels' places
+
+## Surprise me: the light runs over the crates and stops on the picked one, it
+## opens, the light runs over its parts and stops on the picked part, and it's taken.
+func _on_surprise() -> void:
+	if _opening or run.reward["category"] != "":
+		return
+	var id := run.surprise_reward()
+	if id == "":
+		return
+	var cat: String = run.reward["category"]
+	CrashLog.crumb("salvage surprise: %s, %s" % [cat, id])
+	Audio.play("ui")
+	_lock()
+	var lit: Array = []
+	for c in Economy.CATEGORIES:
+		if _crates.has(c) and (_crates[c] as SalvageCrate).enabled:
+			lit.append(_crates[c])
+	await _roll_light(lit, lit.find(_crates[cat]), func(n, on): n.spotlight = on)
+	await get_tree().create_timer(0.1 if GameSettings.reduce_motion else 0.35).timeout
+	(_crates[cat] as SalvageCrate).spotlight = false
+	await _open_crate(cat)
+	# the real cards take the reels' places, not pickable yet; then the light runs over them
+	_refresh()
+	for c in _cards:
+		c.modulate.a = 1.0
+	var target: PartCardUI = null
+	for c in _cards:
+		if c.component_id == id:
+			target = c
+	await _roll_light(_cards, _cards.find(target), func(n, on): n.spotlight = on)
+	var fade := create_tween().set_parallel(true)
+	for c in _cards:
+		if c != target:
+			fade.tween_property(c, "modulate:a", 0.0, 0.15 if GameSettings.reduce_motion else 0.4)
+	if target != null and not GameSettings.reduce_motion:
+		var slot: Control = target.get_parent()
+		slot.pivot_offset = slot.size / 2.0
+		var pop := create_tween()
+		pop.tween_property(slot, "scale", Vector2(1.06, 1.06), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		pop.tween_property(slot, "scale", Vector2.ONE, 0.2)
+	await fade.finished
+	if target != null:
+		target.spotlight = false
+	_unlock()
+	var comp := run.take_reward_part(id)
+	_refresh()
+	if comp != null:
+		Audio.play("shop_buy")
+		_message.text = "Surprise: %s stowed in Cargo." % comp.name
+		_message.add_theme_color_override("font_color", Palette.OK)
+		for c in _cards:
+			if c.component_id == id:
+				c.set_footer("Taken", Palette.OK)
+	else:
+		_message.text = "No room in Cargo for %s. Click a stored part twice to scrap it, then take it, or skip." % ComponentLibrary.make(id).name
+		_message.add_theme_color_override("font_color", Palette.WARNING)
+		_show_cargo()
+
+## A light runs over `nodes` (lit with `light.call(node, on)`) like a reel: fast,
+## then slowing, a tick per step, stopping on nodes[stop] with a thunk.
+func _roll_light(nodes: Array, stop: int, light: Callable) -> void:
+	await SlotReel.roll_light(self, nodes, stop, light)
 
 ## The slots, laid out like the cards they'll land on, hidden until the crate pops.
 func _build_reels(cat: String) -> Array:

@@ -24,7 +24,8 @@ var _prev_y: float = 0.0
 var _spinning: bool = false # until the crate pops, the slot is an empty, sealed window
 var _time: float = 0.0
 
-func setup(id: String, cat: String) -> void:
+## `pool`: the ids the strip rolls through (default: every part of `cat`).
+func setup(id: String, cat: String, pool: Array = []) -> void:
 	real_id = id
 	category = cat
 	custom_minimum_size = PartCardUI.SIZE
@@ -34,7 +35,9 @@ func setup(id: String, cat: String) -> void:
 	_strip = Control.new()
 	_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_strip)
-	var pool := ComponentLibrary.all_ids().filter(func(p): return ComponentLibrary.definition(p).get("category", "") == cat and p != id and ComponentLibrary.is_implemented(p))
+	if pool.is_empty():
+		pool = ComponentLibrary.all_ids().filter(func(p): return ComponentLibrary.definition(p).get("category", "") == cat and ComponentLibrary.is_implemented(p))
+	pool = pool.filter(func(p): return p != id)
 	pool.shuffle()
 	var ids: Array = []
 	for i in range(FILLERS):
@@ -53,6 +56,24 @@ func setup(id: String, cat: String) -> void:
 	_strip.position.y = -(ids.size() - 1) * _step
 	_prev_y = _strip.position.y
 	_strip.visible = false
+
+## Surprise me's light (Logan, 2026-11-12): runs over `nodes` like a reel,
+## lit with `light.call(node, on)`, fast then slowing, a tick a step, and stops
+## on nodes[stop] with a thunk. Used by the salvage screen and the orders panel.
+static func roll_light(host: Node, nodes: Array, stop: int, light: Callable) -> void:
+	if nodes.is_empty() or stop < 0:
+		return
+	var quick := GameSettings.reduce_motion
+	var n := nodes.size()
+	var steps := (n * (1 if quick else 3)) + stop + 1 # whole laps, then on to the stop
+	for i in range(steps):
+		var at: int = i % n
+		for j in range(n):
+			light.call(nodes[j], j == at)
+		Audio.play("reel_tick", 0.08, -4.0)
+		var t := float(i) / maxf(1.0, steps - 1)
+		await host.get_tree().create_timer((0.04 if quick else 0.06) + t * t * (0.1 if quick else 0.34)).timeout
+	Audio.play("reel_land", 0.03)
 
 ## Spins for `seconds`, then lands on the real part.
 func spin(seconds: float) -> void:

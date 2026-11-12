@@ -186,14 +186,18 @@
       "max_heat": -1
     },
     "spare_parts": {
-      "parts": 2,
-      "rarity": "surplus"
+      "parts": 3,
+      "rarity": "surplus",
+      "_why": "Logan, 2026-11-12: 3 Surplus parts (was 2), set apart from Mystery Crate"
     },
     "prototype_contract": {
       "rarity": "prototype",
       "hp_share": 0.6
     },
-    "scramble": {},
+    "scramble": {
+      "parts": 3,
+      "_why": "Logan, 2026-11-12: it swapped every installed part one rarity up; now `parts` random ones, each new part's rarity rolled like salvage (one up made it 3 free Salvaged parts)"
+    },
     "transmute": {},
     "_2026_09_30_note": "Claude's 9 new orders (2026-09-30, Proposed): built only from effects the other orders already use. One order a run, so orders never stack (Logan, 2026-09-30).",
     "heat_sinks": {
@@ -219,12 +223,16 @@
       "turn_heat": 2
     },
     "mystery_crate": {
-      "parts": 2
+      "parts": 1,
+      "rarity_rolls": 2,
+      "_why": "Logan, 2026-11-12: three sealed crates, open one blind; `parts` part(s) inside, rarity rolled `rarity_rolls` times and the best kept (as elites drop)"
     },
     "coin_flip": {
       "chance": 0.5,
       "scraps": 250,
-      "hp_share": 0.7
+      "tails_scraps": 100,
+      "hp_share": 0.7,
+      "_why": "Logan, 2026-11-12: less volatile; tails pays tails_scraps too"
     },
     "unmapped_route": {
       "odds_min": 0.5,

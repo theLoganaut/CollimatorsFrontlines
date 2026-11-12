@@ -20,11 +20,20 @@ extends RefCounted
 ## RunData.finish_refit). Scramble and Transmute put the old part's
 ## replacement in that Cargo and leave the swap in orders "swaps" for the
 ## refit to animate (SwapFx).
+##
+## Gambles show their roll (Logan, 2026-11-12): what a random order rolled
+## goes into orders "reveal" for OrdersPanel to play once (the coin, the parts
+## on reels, the route's odds), then it's dropped. Their swings were cut the
+## same day: Coin Flip's tails pays a little too, Scramble swaps a few parts
+## (not all) with their rarity rolled as salvage is (not one up), Spare Parts
+## Crate is 3 Surplus parts from anywhere, and Mystery Crate is three sealed
+## crates: open one blind for its one part, rarity rolled twice (best kept).
 
 const PATH := "res://data/orders.json"
 const KINDS := ["boost", "tradeoff", "gamble"]
 
-const STEP_PICK := "pick"           # {category ("" until chosen), options, rarity}
+const STEP_PICK := "pick"           # {category ("" until chosen), options, rarity ("" = rolled), surprise (Surprise me's part),
+                                    #  blind (Mystery Crate: one part, taken as it lands), rolls, count}
 const STEP_CELLS := "cells"         # {left}
 const STEP_REMOVE := "remove"       # choose an installed component to strip out
 const STEP_TRANSMUTE := "transmute" # choose an installed component to transmute
@@ -33,6 +42,10 @@ const STEP_TRANSMUTE := "transmute" # choose an installed component to transmute
 const PART_ORDERS := ["requisition", "blind_drop", "hot_insertion", "spare_parts", "prototype_contract", "scramble", "transmute",
 	"special_requisition", "mystery_crate"]
 const OPENING_CARGO := 5
+
+## Unmapped Route's rolls: each stop type's odds, and what it's called on screen.
+const ROUTE_ODDS := ["repair_chance", "shop_chance", "event_chance", "elite_chance"]
+const ROUTE_NAMES := {"repair_chance": "Repair bays", "shop_chance": "Autonomous bays", "event_chance": "Events", "elite_chance": "Elites"}
 
 static var _defs: Array = []
 
@@ -157,18 +170,22 @@ static func choose(run: RunData, id: String) -> String:
 				run.cargo.grow_cols()
 			run.mods["max_heat"] = int(n.call("max_heat", -1))
 		"spare_parts":
+			var got: Array = []
 			for i in range(int(n.call("parts", 2))):
 				var pid := Economy.roll_part(Economy.CATEGORIES[run.rng.randi() % 3], run.rng, [], 1, run.player_mech.weight_class, "surplus")
 				if pid != "":
 					notes.append(stow(run, run.new_part(pid)))
+					got.append(pid)
+			run.orders["reveal"] = {"type": "parts", "ids": got, "any_part": true} # the reels roll through every part the mech can use
 		"prototype_contract":
 			var pid := Economy.roll_part(Economy.CATEGORIES[run.rng.randi() % 3], run.rng, [], 1, run.player_mech.weight_class, "prototype")
 			for c in run.player_mech.components:
 				c.current_hp = maxi(1, ceili(c.max_hp * n.call("hp_share", 0.6)))
 			if pid != "":
 				notes.append(stow(run, run.new_part(pid)))
+				run.orders["reveal"] = {"type": "parts", "ids": [pid]}
 		"scramble":
-			notes.append(_scramble(run))
+			notes.append(_scramble(run, int(n.call("parts", 3))))
 		# 2026-09-30 drafts (Claude, for Logan to vet): only effects the orders above already use
 		"heat_sinks":
 			run.mods["max_heat"] = int(n.call("max_heat", 1))
@@ -190,23 +207,29 @@ static func choose(run: RunData, id: String) -> String:
 			steps.append(_pick_step("prototype"))
 			run.mods["turn_heat"] = int(n.call("turn_heat", 2))
 		"mystery_crate":
-			for i in range(int(n.call("parts", 2))):
-				var pid := Economy.roll_part(Economy.CATEGORIES[run.rng.randi() % 3], run.rng, [], 1, run.player_mech.weight_class, "")
-				if pid != "":
-					notes.append(stow(run, run.new_part(pid)))
+			# three sealed crates: open one blind for its one part, rarity rolled `rarity_rolls` times, best kept (Logan, 2026-11-12)
+			steps.append({"type": STEP_PICK, "rarity": "", "category": "", "options": [], "blind": true,
+				"rolls": int(n.call("rarity_rolls", 2)), "count": int(n.call("parts", 1))})
 		"coin_flip":
-			if run.rng.randf() < n.call("chance", 0.5):
+			var heads: bool = run.rng.randf() < n.call("chance", 0.5)
+			if heads:
 				run.add_scraps(int(n.call("scraps")))
 				notes.append("Heads: +%d scraps." % int(n.call("scraps")))
-			else:
+			else: # tails pays a little too (Logan, 2026-11-12)
+				run.add_scraps(int(n.call("tails_scraps")))
 				for c in run.player_mech.components:
 					c.current_hp = maxi(1, ceili(c.max_hp * n.call("hp_share", 0.7)))
-				notes.append("Tails: your parts start at %d%% HP." % int(round(n.call("hp_share", 0.7) * 100.0)))
+				notes.append("Tails: +%d scraps, and your parts start at %d%% HP." % [int(n.call("tails_scraps")), int(round(n.call("hp_share", 0.7) * 100.0))])
+			run.orders["reveal"] = {"type": "coin", "heads": heads}
 		"unmapped_route":
 			var odds := {}
-			for key in ["repair_chance", "shop_chance", "event_chance", "elite_chance"]:
-				odds[key] = Balance.get_num("map", key, 0.12) * run.rng.randf_range(n.call("odds_min", 0.5), n.call("odds_max", 2.0))
+			var mults := {}
+			for key in ROUTE_ODDS:
+				mults[key] = snappedf(run.rng.randf_range(n.call("odds_min", 0.5), n.call("odds_max", 2.0)), 0.01)
+				odds[key] = Balance.get_num("map", key, 0.12) * mults[key]
 			run.mods["map_odds"] = odds
+			run.mods["route_mults"] = mults # shown: the reveal, then the location map's panel
+			run.orders["reveal"] = {"type": "odds", "mults": mults}
 		"transmute":
 			steps.append({"type": STEP_TRANSMUTE})
 	run.apply_mech_mods()
@@ -251,13 +274,34 @@ static func pick_category(run: RunData, category: String) -> Array:
 		return []
 	if step["category"] == "":
 		step["category"] = category
-		step["options"] = Economy.roll_options(category, run.rng, 1, run.player_mech.weight_class, step["rarity"])
+		step["options"] = Economy.roll_options(category, run.rng, int(step.get("rolls", 1)), run.player_mech.weight_class, step["rarity"], int(step.get("count", -1)))
 	return step["options"]
+
+## A pick step's Surprise me (as on the salvage screen): a random category,
+## its options rolled as if chosen, and a random one of them marked
+## (step "surprise"), the only one pick_part takes. Seeded by the run and the
+## picks left, so a reload lands on the same category and part.
+## Returns the part's id ("" if there's no pick waiting, or nothing rolled).
+static func surprise_pick(run: RunData) -> String:
+	var step := current_step(run)
+	if step.get("type", "") != STEP_PICK:
+		return ""
+	if step["category"] != "":
+		return step.get("surprise", "")
+	var pick := RandomNumberGenerator.new()
+	pick.seed = hash([run.seed_value, "order_surprise", (run.orders["steps"] as Array).size()])
+	var opts := pick_category(run, Economy.CATEGORIES[pick.randi() % Economy.CATEGORIES.size()])
+	if opts.is_empty():
+		return ""
+	step["surprise"] = opts[pick.randi() % opts.size()]
+	return step["surprise"]
 
 ## A pick step: take one of its options. Returns the note ("" if not an option).
 static func pick_part(run: RunData, component_id: String) -> String:
 	var step := current_step(run)
 	if step.get("type", "") != STEP_PICK or not (step.get("options", []) as Array).has(component_id):
+		return ""
+	if step.get("surprise", "") not in ["", component_id]:
 		return ""
 	_pop_step(run)
 	var note := stow(run, run.new_part(component_id))
@@ -298,24 +342,32 @@ static func choose_part(run: RunData, comp: ComponentData) -> String:
 	if type == STEP_REMOVE:
 		run.player_mech.components.erase(comp)
 		return "%s stripped out." % comp.name
-	var note := _swap_all(run, [comp])
+	var note := _swap_all(run, [comp], true)
 	_maybe_open_refit(run)
 	return note
 
-## Scramble: every installed part swapped.
-static func _scramble(run: RunData) -> String:
-	return _swap_all(run, run.player_mech.components.filter(func(c): return not c.destroyed))
+## Scramble: `count` random installed parts swapped (Logan, 2026-11-12: was every part,
+## one rarity up; now a few, each new part's rarity rolled as salvage's is).
+static func _scramble(run: RunData, count: int) -> String:
+	var parts: Array = run.player_mech.components.filter(func(c): return not c.destroyed)
+	for i in range(parts.size() - 1, 0, -1):
+		var j := run.rng.randi_range(0, i)
+		var t = parts[i]
+		parts[i] = parts[j]
+		parts[j] = t
+	return _swap_all(run, parts.slice(0, count), false)
 
-## Swaps each of `parts` for a random part of its category one rarity up.
+## Swaps each of `parts` for a random part of its category: one rarity up
+## (`rarity_up`, Transmute), or its rarity rolled as salvage's is (Scramble).
 ## The old part comes off the chassis and its replacement goes into Cargo
 ## (5×5 for the opening refit); orders "swaps" keeps what the refit shows:
 ## [{old, rotation, offset, new (the new part's id)}].
-static func _swap_all(run: RunData, parts: Array) -> String:
+static func _swap_all(run: RunData, parts: Array, rarity_up: bool) -> String:
 	var mech := run.player_mech
 	var swaps: Array = run.orders.get("swaps", [])
 	var notes: Array[String] = []
 	for old in parts:
-		var id := Economy.roll_part(old.category, run.rng, [old.library_id], 1, mech.weight_class, Economy.rarity_above(old.rarity))
+		var id := Economy.roll_part(old.category, run.rng, [old.library_id], 1, mech.weight_class, Economy.rarity_above(old.rarity) if rarity_up else "")
 		if id == "":
 			continue
 		mech.components.erase(old)

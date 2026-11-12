@@ -38,6 +38,11 @@ var component: ComponentData = null # an existing part (keeps its HP), else a fr
 var selectable: bool = true
 var footer_text: String = ""
 var footer_color: Color = Palette.TEXT
+## Lit as if hovered (the salvage Surprise me roll passing over it).
+var spotlight: bool = false:
+	set(v):
+		spotlight = v
+		queue_redraw()
 
 var _hover: bool = false
 var _footer: Label
@@ -270,10 +275,11 @@ func _draw() -> void:
 	if component == null:
 		return
 	var c := Palette.category_color(component.category)
-	var edge := Palette.LINK if _hover else c
+	var lit := _hover or spotlight
+	var edge := Palette.LINK if lit else c
 	var r := Rect2(Vector2.ZERO, size)
 	draw_rect(r, Color(0.015, 0.03, 0.04, 0.88), true)
-	GlassPanel.draw_glass(self, r, 1.0, edge, 10.0, 0.9 if _hover else 0.7)
+	GlassPanel.draw_glass(self, r, 1.0, edge, 10.0, 0.9 if lit else 0.7)
 
 	# header: the rarity gem, and the HP badge
 	var rc := Palette.rarity_color(_rarity)

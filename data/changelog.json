@@ -1,7 +1,56 @@
 {
   "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it; {\"label\", \"items\"} with no text is a category heading (Logan, 2026-10-16: New, Gameplay, UI, Balance, Bug Fixes, each entry \"Name - short description\"). A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
-  "current": "0.2.3",
+  "current": "0.2.4",
   "releases": [
+    {
+      "version": "0.2.4",
+      "title": "",
+      "items": [
+        {
+          "label": "New",
+          "items": [
+            {
+              "label": "Surprise Me",
+              "text": "- after a win, let fate pick: a light runs across the crates, one opens, then it runs across the parts and takes one for you."
+            },
+            {
+              "label": "Gambles You Can Watch",
+              "text": "- deployment order gambles now play out on screen: Coin Flip tosses a coin, random parts land on reels, and Unmapped Route's odds tick in and stay on the map."
+            }
+          ]
+        },
+        {
+          "label": "Gameplay",
+          "items": [
+            {
+              "label": "Order Picks",
+              "text": "- Requisition, Blind Drop, Hot Insertion and Special Requisition use the salvage crates, Surprise Me included."
+            },
+            {
+              "label": "Mystery Crate",
+              "text": "- three sealed crates: open one blind and keep the part inside, its rarity rolled twice and the better kept."
+            },
+            {
+              "label": "Spare Parts Crate",
+              "text": "- 3 Surplus parts (was 2), from anything your mech can use."
+            }
+          ]
+        },
+        {
+          "label": "Balance",
+          "items": [
+            {
+              "label": "Coin Flip",
+              "text": "- tails now pays +100 scraps too (your parts still start at 70% HP)."
+            },
+            {
+              "label": "Scramble",
+              "text": "- swaps 3 random parts instead of all of them, and the new parts' rarity is rolled like salvage instead of always one higher."
+            }
+          ]
+        }
+      ]
+    },
     {
       "version": "0.2.3",
       "title": "",

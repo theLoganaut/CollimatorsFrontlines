@@ -28,6 +28,8 @@ var shake: float = 0.0
 ## The beam is drawn by another layer (RewardScreen puts it behind the cards), not over everything with the crate.
 var beam_elsewhere: bool = false
 var opened: bool = false
+## Lit as if hovered (the Surprise me roll passing over it).
+var spotlight: bool = false
 
 var _tex: Texture2D
 var _open_tex: Texture2D
@@ -145,7 +147,7 @@ func show_open() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	_lift = move_toward(_lift, 1.0 if _hover else 0.0, delta * 6.0)
+	_lift = move_toward(_lift, 1.0 if _hover or spotlight else 0.0, delta * (14.0 if spotlight else 6.0))
 	if shake > 0.0:
 		_jolt = Vector2(randf_range(-shake, shake), randf_range(-shake, shake) * 0.4) * art_scale
 		_tilt = randf_range(-shake, shake) * 0.012
@@ -183,7 +185,7 @@ func _draw() -> void:
 	var lift := Vector2(0, -6.0 * _lift)
 	draw_set_transform(foot + _jolt + lift, _tilt, Vector2.ONE)
 	var body := Rect2(-foot, sz)
-	var tint := Color(1.18, 1.18, 1.18) if _hover else (Color(0.45, 0.45, 0.5) if not enabled else Color.WHITE)
+	var tint := Color(1.18, 1.18, 1.18) if _hover or spotlight else (Color(0.45, 0.45, 0.5) if not enabled else Color.WHITE)
 	if opened and _open_tex != null:
 		draw_texture_rect(_open_tex, body, false, tint)
 	elif opened:

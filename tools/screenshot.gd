@@ -8,6 +8,9 @@ extends Node
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ##        [--store (Steam page shots: no Feedback buttons or build label; tools/steam_screenshots.sh takes the set)]
 ##        [--category=reactor (reward_parts / reward_mech: the category picked; default hardpoint)]
+## reward_surprise <out folder>: presses Surprise me and saves frames of the rolls.
+## orders_take <out folder> <seconds> <order id> [surprise | <category>]: takes that order on the orders panel (then
+## Surprise me or that crate for a pick) and saves frames: the gambles' reveals, the crate picks.
 ##        [--stay (a run screen: open it set up and leave the game running to play, no PNG; e.g. reward x --stay)]
 ## A screen name ending in _settings opens the settings menu over it.
 ## "hub_<station>" [tab] opens a War Room station (hub_pilot_log mechs).
@@ -262,10 +265,10 @@ func _ready() -> void:
 			run.add_scraps(300)
 			run.cargo.add(run.new_part("autocannon"))
 			scene = RunState.PHASE_SCENES[RunData.PHASE_SHOP]
-		"reward", "reward_parts", "reward_mech", "reward_open": # salvage after a won fight (reward_parts: a category picked; reward_mech: and SHOW MECH)
+		"reward", "reward_parts", "reward_mech", "reward_open", "reward_surprise": # salvage after a won fight (reward_parts: a category picked; reward_mech: and SHOW MECH)
 			run.choose_node(run.available_nodes()[0])
 			run.fight_won()
-			if what != "reward" and what != "reward_open":
+			if what not in ["reward", "reward_open", "reward_surprise"]:
 				var cat_arg := ""
 				for ua in OS.get_cmdline_user_args():
 					if ua.begins_with("--category="):
@@ -277,6 +280,12 @@ func _ready() -> void:
 			RunState.last_run = run
 			RunState.run = null
 			scene = RunState.DEBRIEF
+		"orders_offer": # the orders panel with a real offer of three (a boost, a tradeoff, a gamble); with --stay, play it
+			DeploymentOrders.offer(run)
+			scene = RunState.PHASE_SCENES[RunData.PHASE_MAP]
+		"orders_take": # the orders panel offering only <order id> (args[3]); it's taken and frames saved (see below)
+			run.orders = {"offer": [args[3]], "chosen": "", "steps": []}
+			scene = RunState.PHASE_SCENES[RunData.PHASE_MAP]
 		"orders_done", "orders_go": # the deployment orders signed off on the location map (orders_go: and To the map pressed)
 			DeploymentOrders.offer(run)
 			for o in DeploymentOrders.all():
@@ -339,6 +348,23 @@ func _ready() -> void:
 		await _attack_fx_reel(out, args[3].split(",") if args.size() > 3 else [])
 		get_tree().quit()
 		return
+	if what == "orders_take": # <out folder> <order id> [surprise | <category>]: take it, then pick (Surprise me, or that crate); a frame every 0.15 s
+		var panel: OrdersPanel = get_tree().current_scene.find_children("*", "OrdersPanel", true, false)[0]
+		await get_tree().create_timer(0.8).timeout
+		panel._take(args[3])
+		var how: String = args[4] if args.size() > 4 else ""
+		DirAccess.make_dir_recursive_absolute(out)
+		for i in range(80):
+			if i == 6 and how != "":
+				if how == "surprise":
+					panel._surprise_pick()
+				else:
+					panel._pick_crate(how)
+			get_viewport().get_texture().get_image().save_png(out.path_join("f_%02d.png" % i))
+			await get_tree().create_timer(0.15).timeout
+		print("saved ", out)
+		get_tree().quit()
+		return
 	if what == "orders_go": # press To the map: the panel drops away and the stops pop up
 		var panel: OrdersPanel = get_tree().current_scene.find_children("*", "OrdersPanel", true, false)[0]
 		panel.done.emit()
@@ -352,6 +378,17 @@ func _ready() -> void:
 		rs._choose_category(args[3] if args.size() > 3 else "hardpoint")
 		DirAccess.make_dir_recursive_absolute(out)
 		for i in range(36):
+			get_viewport().get_texture().get_image().save_png(out.path_join("f_%02d.png" % i))
+			await get_tree().create_timer(0.15).timeout
+		print("saved ", out)
+		get_tree().quit()
+		return
+	if what == "reward_surprise": # press Surprise me and save a frame every 0.15 s of the rolls and the opening into <out> (a folder)
+		var rs := get_tree().current_scene
+		await get_tree().create_timer(0.8).timeout
+		rs._on_surprise()
+		DirAccess.make_dir_recursive_absolute(out)
+		for i in range(70):
 			get_viewport().get_texture().get_image().save_png(out.path_join("f_%02d.png" % i))
 			await get_tree().create_timer(0.15).timeout
 		print("saved ", out)
