@@ -136,7 +136,7 @@ func _build_left() -> void:
 	_bench.setup(bench_cells, Vector2i(BENCH_SIZE, BENCH_SIZE), CELL)
 	_bench.position = Vector2(((LEFT.size.x - _bench.size.x) / 2.0), 328)
 	panel.add_child(_bench)
-	_message = UIKit.label("Pick a part from the armory, or click one on the chassis or workbench to pick it up.  R / right-click rotates.", 11, Color("9fb9b6"), true)
+	_message = UIKit.label("Pick a part from the armory, or click one on the chassis or workbench to pick it up.  %s / %s rotates." % [GameSettings.key_label("rotate"), GameSettings.key_label("inspect")], 11, Color("9fb9b6"), true)
 	_message.position = Vector2(12, 560)
 	_message.size = Vector2(LEFT.size.x - 24, 36)
 	panel.add_child(_message)
@@ -273,7 +273,7 @@ func _pick_from_armory(id: String) -> void:
 	_drag_rel = GridUtils.rotate_cells(_drag.cells, 0)[0]
 	_drag_from = null
 	_preview.show_part(_drag)
-	_message.text = "Placing %s: click a spot on the chassis or workbench (R rotates, right-click or Esc cancels)." % _drag.name
+	_message.text = "Placing %s: click a spot on the chassis or workbench (%s rotates, %s or %s cancels)." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("inspect"), GameSettings.key_label("cancel")]
 	_update_hints()
 	_update_ghost()
 
@@ -361,7 +361,7 @@ func _input(event: InputEvent) -> void:
 		elif _drag_from != null and not _carrying:
 			if _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
 				_carrying = true
-				_message.text = "Holding %s: click where it goes, or off the grids to remove it (%s rotates, Esc puts it back)." % [_drag.name, GameSettings.key_label("rotate")]
+				_message.text = "Holding %s: click where it goes, or off the grids to remove it (%s rotates, %s puts it back)." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("cancel")]
 			else:
 				_drop()
 

@@ -46,7 +46,7 @@ const STEPS := [
 	["combat", "", "", "turn_ended"],
 	["combat", "", "That's the whole loop. Finish it off.", "next"],
 	["reward", "reward", "Salvage comes after every win. Your scraps are already banked. Pick a category, then one part for your Cargo (or skip it for a few scraps), then Continue.", "reward_done"],
-	["refit", "mech", "A refit lets you rebuild your mech. Click a part to pick it up, then click where it goes. R or right-click rotates it. Lit squares show where it fits.", "next"],
+	["refit", "mech", "A refit lets you rebuild your mech. Click a part to pick it up, then click where it goes. {key:rotate} or {key:inspect} rotates it. Lit squares show where it fits.", "next"],
 	["refit", "cargo", "Yellow arrows are links. A part with arrows affects whatever part they point at. Parts in Cargo wait here until you fit them.", "next"],
 	["refit", "leave", "Finish the refit when you're happy with the build.", "refit_done"],
 	["combat", "", "One more fight with your new setup.", "next"],
@@ -399,6 +399,8 @@ func _set_text(text: String, lit: bool) -> void:
 	_text.clear()
 	var marked := text.contains("{y}") or text.contains("{r}") or text.begins_with("{plain}")
 	text = text.trim_prefix("{plain}")
+	for km in RegEx.create_from_string("\\{key:(\\w+)\\}").search_all(text): # what to press, keys or pad
+		text = text.replace(km.get_string(), GameSettings.key_label(km.get_string(1)))
 	if lit and not marked:
 		var m := RegEx.create_from_string("^(.+?[.!?])(\\s|$)").search(text)
 		if m != null:

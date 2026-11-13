@@ -19,11 +19,15 @@ var status: String = ""
 ## Steam Cloud syncs the saves (Auto-Cloud, tools/steam/STEAMWORKS.md): on
 ## for this account and this app. Set at launch; logged in the crash trail.
 var cloud_on: bool = false
+## Running on a Steam Deck (Steam says so; or FRONTLINES_DECK=1 to try the
+## Deck's behaviour on a PC).
+var on_deck: bool = false
 
 var _steam: Object = null
 
 func _ready() -> void:
 	app_id = int(ProjectSettings.get_setting(APP_ID_SETTING, DEFAULT_APP_ID))
+	on_deck = OS.get_environment("FRONTLINES_DECK") == "1" or OS.get_environment("SteamDeck") == "1"
 	if not Engine.has_singleton("Steam"):
 		status = "GodotSteam extension not loaded"
 		return
@@ -40,6 +44,9 @@ func _ready() -> void:
 	user_name = _steam.getPersonaName()
 	status = "" if available else "Steam user not logged on"
 	CrashLog.crumb("Steam: app %d, %s" % [app_id, user_name if available else status])
+	if available and _steam.isSteamRunningOnSteamDeck():
+		on_deck = true
+		CrashLog.crumb("Running on a Steam Deck")
 	if available:
 		cloud_on = _steam.isCloudEnabledForAccount() and _steam.isCloudEnabledForApp()
 		CrashLog.crumb("Steam Cloud: %s (account %s, app %s)" % ["on" if cloud_on else "off",
@@ -87,3 +94,15 @@ func unlock_achievements(ids: Array) -> void:
 		if not steam.setAchievement(str(id)):
 			push_warning("Steam: no achievement '%s' in Steamworks" % id)
 	steam.storeStats()
+
+## Steam's on-screen keyboard over `field` (a LineEdit or TextEdit that has
+## focus): it types into the field like a real keyboard. Only Steam in Big
+## Picture / on a Deck shows one; returns whether it did.
+func show_keyboard(field: Control) -> bool:
+	var steam := api()
+	if steam == null or not steam.has_method("showFloatingGamepadTextInput"):
+		return false
+	var xf := field.get_viewport().get_final_transform() * field.get_global_transform_with_canvas()
+	var r := xf * Rect2(Vector2.ZERO, field.size)
+	var multiline := 1 if field is TextEdit else 0 # FLOATING_GAMEPAD_TEXT_INPUT_MODE_*
+	return steam.showFloatingGamepadTextInput(multiline, int(r.position.x), int(r.position.y), int(r.size.x), int(r.size.y))

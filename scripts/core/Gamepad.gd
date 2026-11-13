@@ -7,7 +7,9 @@ extends Node
 ##   Left stick           move the cursor (D-pad: slowly, for small targets)
 ##   A                    click (hold to drag)
 ##   B / Start            Esc: back, cancel, the settings menu
-##   X / Y                Vent / End turn
+##   X                    right-click (rotate / cancel a held part, an enemy part's cards)
+##   Right stick press    show / hide the location map (in a run)
+##   Y                    End turn (ending a turn without a card is the Vent action)
 ##   LB / RB              combat: pick the previous / next playable card;
 ##                        elsewhere LB undoes a move, RB rotates a held part
 ##   Back (Select)        show / hide the combat log
@@ -17,6 +19,16 @@ extends Node
 ## bool): the combat screen does while a card is picked (A plays it, the
 ## D-pad steps its target, B puts it back). Joypad events are taken out of
 ## Godot's ui_* actions so its focus moves don't fight the cursor.
+## A text box that takes focus while the pad is in use opens Steam's
+## on-screen keyboard (SteamService.show_keyboard). `using_pad` says whether
+## the pad or the mouse/keyboard was used last (key hints show its buttons;
+## `changed` fires when it flips).
+
+signal changed()
+
+## The last input came from a gamepad (or this is a Steam Deck, until the
+## mouse or keyboard is used).
+var using_pad: bool = false
 
 ## The screen that sees buttons first (a node with pad_button(button) -> bool).
 var handler: Node = null
@@ -32,6 +44,7 @@ var _a_down: bool = false
 var _rt_down: bool = false
 var _scroll_t: float = 0.0
 var _cursor := Vector2(-1, -1)
+var _warped_at: int = -1000
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # works in the (pausing) settings menu
@@ -39,6 +52,18 @@ func _ready() -> void:
 		for ev in InputMap.action_get_events(action):
 			if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 				InputMap.action_erase_event(action, ev)
+	(func(): _set_using_pad(using_pad or SteamService.on_deck)).call_deferred() # SteamService starts after this
+	get_viewport().gui_focus_changed.connect(_on_focus)
+
+func _set_using_pad(on: bool) -> void:
+	if on != using_pad:
+		using_pad = on
+		changed.emit()
+
+## A text box took focus with the pad in hand: Steam's keyboard over it.
+func _on_focus(c: Control) -> void:
+	if using_pad and (c is LineEdit or c is TextEdit) and c.is_visible_in_tree():
+		SteamService.show_keyboard.call_deferred(c)
 
 ## A held (a drag in progress), for code that polls the mouse button.
 func a_held() -> bool:
@@ -51,10 +76,13 @@ func left_held() -> bool:
 func _input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton:
 		_device = event.device
+		_set_using_pad(true)
 		get_viewport().set_input_as_handled()
 		_button(event.button_index, event.pressed)
 	elif event is InputEventJoypadMotion:
 		_device = event.device
+		if absf(event.axis_value) > DEADZONE:
+			_set_using_pad(true)
 		if event.axis == JOY_AXIS_TRIGGER_RIGHT:
 			var on: bool = event.axis_value > TRIGGER_ON
 			if on != _rt_down:
@@ -63,6 +91,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and not _a_down:
 		_cursor = Vector2(-1, -1) # the real mouse moved: follow it from here
+		# (warp_mouse makes motion events of its own: only a real move counts)
+		if event.relative.length() > 2.0 and not event.has_meta("pad") and Time.get_ticks_msec() - _warped_at > 150:
+			_set_using_pad(false)
+	elif event is InputEventKey and event.pressed and not event.has_meta("pad") and not event.is_echo():
+		_set_using_pad(false)
 
 func _button(b: JoyButton, pressed: bool) -> void:
 	if pressed and handler != null and is_instance_valid(handler) and handler.has_method("pad_button") and handler.pad_button(b):
@@ -76,6 +109,10 @@ func _button(b: JoyButton, pressed: bool) -> void:
 			_tap(KEY_ESCAPE, pressed)
 		JOY_BUTTON_Y:
 			_tap(GameSettings.key("end_turn"), pressed)
+		JOY_BUTTON_X:
+			_mouse_button(MOUSE_BUTTON_RIGHT, pressed)
+		JOY_BUTTON_RIGHT_STICK:
+			_tap(GameSettings.key("map"), pressed)
 		JOY_BUTTON_BACK:
 			_tap(GameSettings.key("log"), pressed)
 		JOY_BUTTON_RIGHT_SHOULDER:
@@ -114,12 +151,14 @@ func _move_cursor(by: Vector2) -> void:
 	var rect := vp.get_visible_rect()
 	var to := (from + by).clamp(rect.position, rect.end - Vector2.ONE)
 	_cursor = to
+	_warped_at = Time.get_ticks_msec()
 	vp.warp_mouse(to)
 	var ev := InputEventMouseMotion.new()
 	ev.position = to
 	ev.global_position = to
 	ev.relative = to - from
 	ev.button_mask = MOUSE_BUTTON_MASK_LEFT if _a_down else 0
+	ev.set_meta("pad", true)
 	get_tree().root.push_input(ev, true)
 
 func _mouse_button(index: MouseButton, pressed: bool) -> void:
@@ -131,6 +170,7 @@ func _mouse_button(index: MouseButton, pressed: bool) -> void:
 	ev.pressed = pressed
 	ev.factor = 1.0
 	ev.button_mask = MOUSE_BUTTON_MASK_LEFT if _a_down else 0
+	ev.set_meta("pad", true)
 	get_tree().root.push_input(ev, true)
 
 ## A key press or release, as if typed (Input sees it held, too).
@@ -146,4 +186,5 @@ func _key(keycode: int, pressed: bool, ctrl: bool = false) -> void:
 	ev.pressed = pressed
 	ev.ctrl_pressed = ctrl
 	ev.shift_pressed = keycode == KEY_SHIFT and pressed
+	ev.set_meta("pad", true)
 	Input.parse_input_event(ev)

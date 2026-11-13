@@ -13,7 +13,7 @@ func _ready() -> void:
 	var btn := Button.new()
 	btn.flat = true
 	btn.size = BUTTON_SIZE
-	btn.tooltip_text = "Settings (Esc)"
+	btn.tooltip_text = "Settings (%s)" % ("Menu" if Gamepad.using_pad else "Esc")
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.pressed.connect(func(): pressed.emit())
 	btn.mouse_entered.connect(btn.queue_redraw)

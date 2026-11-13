@@ -36,6 +36,13 @@ func _ready() -> void:
 ## What End Turn does, for the Description Box (naming the current key
 ## bindings, GameSettings.KEY_ACTIONS).
 func _describe_end_turn() -> Array:
+	if Gamepad.using_pad:
+		var deck: bool = SteamService.on_deck
+		return ["End Turn (%s)" % GameSettings.key_label("end_turn"),
+			"The enemy acts, then your heat vents and your cards come back. End a turn without playing a card and you vent %d%% of your heat instead.\n\nButtons: %s / %s pick a card (A plays it, the D-pad picks its target, B puts it back). Hold %s to fast-forward the enemy turn. Every button is in Settings → Controls → Gamepad." % [
+			int(round(Balance.get_num("heat", "vent_action_share", 0.8) * 100.0)),
+			GameSettings.pad_button_name(JOY_BUTTON_LEFT_SHOULDER, deck), GameSettings.pad_button_name(JOY_BUTTON_RIGHT_SHOULDER, deck),
+			GameSettings.key_label("shift")]]
 	return ["End Turn (%s)" % GameSettings.key_label("end_turn"),
 		"The enemy acts, then your heat vents and your cards come back. End a turn without playing a card and you vent %d%% of your heat instead.\n\nKeys: 1–9 play the cards left to right (attacks: %s picks the target, %s fires, Esc cancels). Hold Shift or Space to fast-forward the enemy turn, or press %s to keep it fast. Every key is in Settings → Controls." % [
 		int(round(Balance.get_num("heat", "vent_action_share", 0.8) * 100.0)),

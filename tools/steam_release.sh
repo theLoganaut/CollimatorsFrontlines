@@ -51,7 +51,7 @@ echo "== Exporting ($DESC)"
 # Stamped into the build for the game to show (BuildInfo); only there while exporting.
 printf '{"stamp": "%s", "commit": "%s", "feedback_webhook": "%s"}\n' "$STAMP" "$COMMIT" "${FEEDBACK_WEBHOOK:-}" > "$ROOT/build_info.json"
 trap 'rm -f "$ROOT/build_info.json"' EXIT
-rm -rf "$OUT/windows" "$OUT/macos"
+rm -rf "$OUT/windows" "$OUT/macos" "$OUT/linux"
 mkdir -p "$OUT/windows" "$OUT/logs"
 "$GODOT" --headless --path "$ROOT" --export-release "Windows" "$OUT/windows/CollimatorsFrontlines.exe" > "$OUT/logs/export_windows.log" 2>&1 \
 	|| { echo "Windows export failed, see $OUT/logs/export_windows.log" >&2; exit 1; }
@@ -62,6 +62,11 @@ if [[ -n "$DEPOT_MACOS" ]]; then
 	"$GODOT" --headless --path "$ROOT" --export-release "macOS" "$OUT/macos/Collimators Frontlines.app" > "$OUT/logs/export_macos.log" 2>&1 \
 		|| { echo "macOS export failed, see $OUT/logs/export_macos.log" >&2; exit 1; }
 fi
+if [[ -n "${DEPOT_LINUX:-}" ]]; then
+	mkdir -p "$OUT/linux"
+	"$GODOT" --headless --path "$ROOT" --export-release "Linux" "$OUT/linux/CollimatorsFrontlines.x86_64" > "$OUT/logs/export_linux.log" 2>&1 		|| { echo "Linux export failed, see $OUT/logs/export_linux.log" >&2; exit 1; }
+	[[ -f "$OUT/linux/libsteam_api.so" ]] || { echo "libsteam_api.so is missing from the Linux build" >&2; exit 1; }
+fi
 ls -la "$OUT/windows"
 
 [[ $UPLOAD == 1 ]] || { echo "== Exported to $OUT (no upload)"; exit 0; }
@@ -71,7 +76,7 @@ OUT_NATIVE="$OUT"
 command -v cygpath > /dev/null && OUT_NATIVE="$(cygpath -m "$OUT")"
 
 # The app build script for one app, written fresh each time (SetLive, description).
-write_vdf() { # app_id windows_depot mac_depot vdf_path
+write_vdf() { # app_id windows_depot mac_depot vdf_path linux_depot
 	{
 		echo '"AppBuild"'
 		echo '{'
@@ -85,13 +90,14 @@ write_vdf() { # app_id windows_depot mac_depot vdf_path
 		echo '	{'
 		echo "		\"$2\" { \"FileMapping\" { \"LocalPath\" \"windows/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
 		[[ -n "$3" ]] && echo "		\"$3\" { \"FileMapping\" { \"LocalPath\" \"macos/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
+		[[ -n "${5:-}" ]] && echo "		\"$5\" { \"FileMapping\" { \"LocalPath\" \"linux/*\" \"DepotPath\" \".\" \"Recursive\" \"1\" } }"
 		echo '	}'
 		echo '}'
 	} > "$4"
 }
 
 ARGS=(+login "$STEAM_USER")
-write_vdf "$APP_ID" "$DEPOT_WINDOWS" "$DEPOT_MACOS" "$OUT/app_build.vdf"
+write_vdf "$APP_ID" "$DEPOT_WINDOWS" "$DEPOT_MACOS" "$OUT/app_build.vdf" "${DEPOT_LINUX:-}"
 ARGS+=(+run_app_build "$OUT_NATIVE/app_build.vdf")
 APPS=("$APP_ID")
 if [[ -n "$PLAYTEST_APP_ID" && -n "$PLAYTEST_DEPOT" ]]; then

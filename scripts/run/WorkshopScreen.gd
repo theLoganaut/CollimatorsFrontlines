@@ -420,7 +420,7 @@ func _input(event: InputEvent) -> void:
 				_drop()
 		elif not _carrying and _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
 			_carrying = true
-			_say("Holding %s: click where it goes. %s or right-click rotates, Esc puts it back." % [_drag.name, GameSettings.key_label("rotate")])
+			_say("Holding %s: click where it goes. %s or %s rotates, %s puts it back." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("inspect"), GameSettings.key_label("cancel")])
 		elif not _carrying:
 			_drop()
 

@@ -205,6 +205,7 @@ func _build_controls() -> void:
 	for f in [["Left stick", "Move the cursor (D-pad: slowly)"], ["A", "Click (hold to drag)"],
 			["B / Start", "Back, cancel, this menu"], ["Y", "End turn"],
 			["LB / RB", "Combat: pick a card (A plays, D-pad aims)"], ["LB / RB", "Elsewhere: undo / rotate a part"],
+			["X", "Right-click (rotate / cancel a part, an enemy part's cards)"], ["Right stick press", "Show / hide the location map"],
 			["Back", "Show / hide the combat log"], ["Right stick", "Scroll"], ["RT (hold)", "Fast-forward (as Shift)"]]:
 		var row := _fixed_row(f[0], f[1])
 		row.custom_minimum_size.y = 30

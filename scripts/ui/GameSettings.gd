@@ -76,8 +76,45 @@ func is_key(event: InputEventKey, action: String) -> bool:
 	var k := key(action)
 	return event.keycode == k or (k == KEY_ENTER and event.keycode == KEY_KP_ENTER)
 
+## What to press for `action`, as hint text: the bound key, or the gamepad
+## button while the pad is in use (Gamepad.using_pad; Steam Deck names on a
+## Deck, Xbox names elsewhere). Besides KEY_ACTIONS it knows "cancel" (Esc),
+## "inspect" (right-click) and "shift" (Shift).
 func key_label(action: String) -> String:
+	var pad := get_node_or_null("/root/Gamepad")
+	if pad != null and pad.using_pad and PAD_BUTTONS.has(action):
+		var steam := get_node_or_null("/root/SteamService")
+		return pad_button_name(PAD_BUTTONS[action], steam != null and steam.on_deck)
+	if KEYBOARD_ONLY.has(action):
+		return KEYBOARD_ONLY[action]
 	return OS.get_keycode_string(key(action))
+
+## Gamepad buttons for actions (Gamepad.gd presses them).
+const PAD_BUTTONS := {
+	"end_turn": JOY_BUTTON_Y, "log": JOY_BUTTON_BACK, "map": JOY_BUTTON_RIGHT_STICK,
+	"rotate": JOY_BUTTON_RIGHT_SHOULDER, "undo": JOY_BUTTON_LEFT_SHOULDER,
+	"view_left": JOY_BUTTON_LEFT_SHOULDER, "view_right": JOY_BUTTON_RIGHT_SHOULDER,
+	"next_target": JOY_BUTTON_DPAD_RIGHT, "fire": JOY_BUTTON_A,
+	"cancel": JOY_BUTTON_B, "inspect": JOY_BUTTON_X, "shift": JOY_BUTTON_MAX, # (RT, a trigger)
+}
+const KEYBOARD_ONLY := {"cancel": "Esc", "inspect": "right-click", "shift": "Shift"}
+
+## A gamepad button's name as printed on it: the Steam Deck's, or an Xbox pad's.
+## JOY_BUTTON_MAX stands for the right trigger.
+static func pad_button_name(b: int, deck: bool) -> String:
+	match b:
+		JOY_BUTTON_A: return "A"
+		JOY_BUTTON_B: return "B"
+		JOY_BUTTON_X: return "X"
+		JOY_BUTTON_Y: return "Y"
+		JOY_BUTTON_LEFT_SHOULDER: return "L1" if deck else "LB"
+		JOY_BUTTON_RIGHT_SHOULDER: return "R1" if deck else "RB"
+		JOY_BUTTON_MAX: return "R2" if deck else "RT"
+		JOY_BUTTON_BACK: return "View"
+		JOY_BUTTON_START: return "Menu"
+		JOY_BUTTON_RIGHT_STICK: return "R3" if deck else "RS"
+		JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: return "D-pad"
+	return "?"
 
 ## Binds `action` to `keycode`; an action already on that key takes this
 ## one's old key (a swap). Returns false for a reserved key.

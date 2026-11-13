@@ -283,7 +283,7 @@ class MoreBadge extends Control:
 		mouse_filter = Control.MOUSE_FILTER_STOP
 		mouse_entered.connect(func(): row._set_expanded(true))
 		mouse_exited.connect(func(): if PassiveRow._pinned != row: row._set_expanded(false))
-		UIState.describe_on_hover(self, func(): return ["%d more" % hidden_count, "Right-click to keep them open and hover each one. Right-click again to close."])
+		UIState.describe_on_hover(self, func(): return ["%d more" % hidden_count, "Right-click to keep them open and hover each one. Right-click again to close." if not Gamepad.using_pad else "Press %s to keep them open and hover each one. %s again closes them." % [GameSettings.key_label("inspect"), GameSettings.key_label("inspect")]])
 
 	func _gui_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:

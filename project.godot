@@ -31,6 +31,7 @@ Sfx="*res://scripts/core/Sfx.gd"
 Tutorial="*res://scripts/core/Tutorial.gd"
 Gamepad="*res://scripts/core/Gamepad.gd"
 SteamService="*res://scripts/core/SteamService.gd"
+FocusPause="*res://scripts/core/FocusPause.gd"
 Capture="*res://scripts/core/Capture.gd"
 
 [debug]
