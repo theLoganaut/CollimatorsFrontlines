@@ -329,6 +329,7 @@ func _refresh() -> void:
 	_cargo_grid.temp_cells = temp
 	_cargo_title.text = "CARGO  ·  %d×%d  ·  carried through the mission" % [cg.rows, cg.cols] if real == Vector2i.ZERO \
 		else "CARGO  ·  %d×%d FOR THIS REFIT  ·  amber is scrapped" % [cg.rows, cg.cols]
+	UIKit.fit_font(_cargo_title, Vector2(RIGHT.size.x - 24, 0), 11, 8)
 	_cargo_grid.position = Vector2(floorf((RIGHT.size.x - _cargo_grid.size.x) / 2.0), 32)
 	var bench_top := 32.0 + CARGO_MAX.y + 22.0
 	_bench_title.position = Vector2(12, bench_top)
@@ -354,6 +355,7 @@ func _shown(parts: Array[ComponentData]) -> Array[ComponentData]:
 
 func _say(text: String, c: Color = Color("b9d8d4")) -> void:
 	_message.text = text
+	UIKit.fit_font(_message, _message.size, 12, 8) # two lines, whatever the text size
 	_message.add_theme_color_override("font_color", c)
 
 func _on_part_hovered(_g: PackingGrid, part: ComponentData) -> void:

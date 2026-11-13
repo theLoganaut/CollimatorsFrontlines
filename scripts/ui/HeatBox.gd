@@ -60,6 +60,7 @@ func _refresh_label() -> void:
 	if _label == null:
 		return
 	_label.text = "%d/%d" % [preview if preview >= 0 else current, max_value]
+	UIKit.fit_font(_label, Vector2(maxf(size.x, custom_minimum_size.x) - 6.0, 0), font_size, 9) # bigger text sizes
 	_label.add_theme_color_override("font_color", _state_color())
 
 ## The heat shown is at or past NEAR_SHARE of max (but not over).

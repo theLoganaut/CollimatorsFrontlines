@@ -63,10 +63,14 @@ func _build_left() -> void:
 	_left.add_child(services)
 	_sell_btn = GlassPanel.button("", 11)
 	_sell_btn.custom_minimum_size = Vector2(149, 30)
+	_sell_btn.clip_text = true # bigger text sizes: cut, not wider than the panel
+	_sell_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_sell_btn.pressed.connect(_sell)
 	services.add_child(_sell_btn)
 	_refine_btn = GlassPanel.button("", 11)
 	_refine_btn.custom_minimum_size = Vector2(149, 30)
+	_refine_btn.clip_text = true # bigger text sizes: cut, not wider than the panel
+	_refine_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_refine_btn.pressed.connect(_refine)
 	services.add_child(_refine_btn)
 	y += 56.0
@@ -93,6 +97,7 @@ func _build_left() -> void:
 func _title_at(text: String, y: float) -> Label:
 	var l := UIKit.label(text, 11, Color("b9d8d4"))
 	l.position = Vector2(12, y)
+	UIKit.fit_font(l, Vector2(LEFT.size.x - 24, 0), 11, 8) # bigger text sizes
 	return l
 
 func _after_build() -> void:
@@ -112,6 +117,7 @@ func _refresh_extra() -> void:
 	var price := run.cargo_upgrade_price()
 	var bought: bool = run.shop.get("upgrade_bought", false)
 	_upgrade_label.text = "CARGO  ·  %d scraps" % price if not bought else "CARGO EXPANDED"
+	UIKit.fit_font(_upgrade_label, Vector2(LEFT.size.x - 24 - 186, 0), 11, 8) # left of the +1 buttons
 	_row_btn.disabled = bought or run.scraps < price
 	_col_btn.disabled = bought or run.scraps < price
 	_refresh_services()
@@ -228,6 +234,7 @@ func _refresh_frame() -> void:
 	_frame_grid.set_offers(run.cell_options(), run.scraps >= price)
 	_frame_label.text = ("YOUR FRAME  ·  place parts on  ·  + buys a square (%d)" if run.can_rearrange(RunData.MECH) \
 		else "FRAME SQUARE  ·  %d scraps  ·  click a + beside the frame") % price
+	UIKit.fit_font(_frame_label, Vector2(LEFT.size.x - 24, 0), 11, 8)
 
 func _buy_cell(_grid: PackingGrid, cell: Vector2i) -> void:
 	if run.scraps < run.cell_price():

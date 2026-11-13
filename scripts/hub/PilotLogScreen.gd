@@ -179,8 +179,10 @@ func _run_row(h: Dictionary) -> Control:
 	var lines := VBoxContainer.new()
 	lines.add_theme_constant_override("separation", 2)
 	box.add_child(lines)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
+	# wraps onto a second line when it doesn't fit (Large text, the Deck's screen)
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 16)
+	row.add_theme_constant_override("v_separation", 2)
 	lines.add_child(row)
 	var detail := _run_detail(h)
 	if detail != "":

@@ -11,3 +11,13 @@ game's font sizes read as they did with Godot's default font (Logan,
 
 It imports as MSDF (pixel range 16) like the default font did, so it stays
 sharp at the stretched window sizes and outlined text stays clean.
+
+`VT323-Scaled-Large.ttf` and `VT323-Scaled-Larger.ttf` are the same font
+1.2× and 1.4× bigger again, for Settings → Text size (`GameSettings.text_size`
+swaps the theme's default font; Large is the default on a Steam Deck). Made
+the same way from `VT323-Scaled.ttf` (unitsPerEm 833):
+
+    head.unitsPerEm = round(833 / 1.2)   # Large: 694
+    head.unitsPerEm = round(833 / 1.4)   # Larger: 595
+
+Their `.import` files match `VT323-Scaled.ttf.import` (MSDF).

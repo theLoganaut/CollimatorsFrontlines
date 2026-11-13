@@ -21,7 +21,15 @@ extends Control
 
 signal pressed(card: PartCardUI)
 
-const SIZE := Vector2(216, 316)
+const BASE_SIZE := Vector2(216, 316)
+## The card's size: BASE_SIZE with the text box taller by the text size
+## setting (GameSettings.text_size; set by text_scaled), the same for every card.
+static var SIZE := BASE_SIZE
+const TEXT_BOX_H := 135.0 # the text box at BASE_SIZE
+
+## Grows the text box for a text size of `k` (1.0 Normal, 1.2 Large, ...).
+static func text_scaled(k: float) -> void:
+	SIZE = Vector2(BASE_SIZE.x, roundf(BASE_SIZE.y + TEXT_BOX_H * (k - 1.0)))
 const PAD := 9.0
 const HEADER_H := 22.0
 const ART_H := 96.0

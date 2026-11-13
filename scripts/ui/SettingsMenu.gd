@@ -297,6 +297,7 @@ func _build() -> void:
 	left.add_child(_toggle_row("Details only with Shift held", "describe_on_shift"))
 	left.add_child(_toggle_row("Operator tips", "operator_tips"))
 	left.add_child(_header("DISPLAY"))
+	left.add_child(_choice_row("Text size", ["Normal", "Large", "Larger"], "text_size", GameSettings.TEXT_SIZES, GlassPanel.HOLO))
 	left.add_child(_toggle_row("Fullscreen", "fullscreen"))
 	left.add_child(_toggle_row("VSync", "vsync"))
 	left.add_child(_header("ACCESSIBILITY"))

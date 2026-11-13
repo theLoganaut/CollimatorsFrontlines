@@ -122,3 +122,19 @@ static func seed_row(seed_value: int, font_size: int = 10, color: Color = Color(
 		Audio.play("ui"))
 	row.add_child(b)
 	return row
+
+## Steps `label`'s font down from `max_size` until its text fits `box` (its
+## width; and its height too when the label wraps), down to `min_size`. For
+## fixed boxes that bigger text sizes (GameSettings.text_size) would overflow.
+static func fit_font(label: Label, box: Vector2, max_size: int, min_size: int) -> void:
+	var font := label.get_theme_font("font")
+	var fs := max_size
+	var wraps := label.autowrap_mode != TextServer.AUTOWRAP_OFF
+	while fs > min_size:
+		if wraps:
+			if font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, box.x, fs).y <= box.y:
+				break
+		elif font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= box.x:
+			break
+		fs -= 1
+	label.add_theme_font_size_override("font_size", fs)

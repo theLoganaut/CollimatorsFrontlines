@@ -58,6 +58,15 @@ var reduce_motion: bool = false
 ## Gamepad cursor speed (Gamepad): one of PAD_SPEEDS.
 var pad_cursor_speed: float = 1.0
 const PAD_SPEEDS := [0.6, 1.0, 1.5]
+## Text size: 0 Normal, 1 Large (×1.2), 2 Larger (×1.4). Swaps the game's font
+## for a bigger cut of it (assets/fonts/README.md), so every label, card and
+## drawn string grows at once. Large on a Steam Deck until changed.
+var text_size: int = 0
+const TEXT_SIZES := [0, 1, 2]
+const TEXT_SCALES := [1.0, 1.2, 1.4] # each font's size against Normal (assets/fonts/README.md)
+const TEXT_FONTS := ["res://assets/fonts/VT323-Scaled.ttf", "res://assets/fonts/VT323-Scaled-Large.ttf",
+	"res://assets/fonts/VT323-Scaled-Larger.ttf"]
+var _font_applied: int = 0
 ## action -> keycode (only the ones changed from KEY_ACTIONS' defaults).
 var keys: Dictionary = {}
 
@@ -166,6 +175,7 @@ func volume(bus: String) -> float:
 func apply() -> void:
 	Engine.time_scale = speed
 	Palette.colorblind = colorblind
+	_apply_text_size()
 	for bus in ["Master"] + BUSES:
 		var i := AudioServer.get_bus_index(bus)
 		if i >= 0:
@@ -176,6 +186,18 @@ func apply() -> void:
 	# (tools/render_replay.sh sizes it), so the saved fullscreen never applies
 	if DisplayServer.get_name() == "headless" or Engine.get_write_movie_path() != "":
 		return
+	# FRONTLINES_WINDOW=1280x800 (the Steam Deck's screen): a window that size,
+	# whatever the saved fullscreen setting, to check layouts at another size
+	var forced := OS.get_environment("FRONTLINES_WINDOW").split("x")
+	if forced.size() == 2 and forced[0].is_valid_int() and forced[1].is_valid_int():
+		var win_size := Vector2i(int(forced[0]), int(forced[1]))
+		var w := get_window()
+		if w.mode != Window.MODE_WINDOWED or w.size != win_size:
+			w.mode = Window.MODE_WINDOWED
+			w.size = win_size
+			w.move_to_center()
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+		return
 	var win := get_window()
 	if fullscreen and win.mode != Window.MODE_FULLSCREEN:
 		win.mode = Window.MODE_FULLSCREEN
@@ -184,10 +206,34 @@ func apply() -> void:
 		win.move_to_center()
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 
+## The font of the chosen text size, as the theme default (every Control's
+## get_theme_default_font), then a theme refresh so open screens re-lay out.
+func _apply_text_size() -> void:
+	text_size = clampi(text_size, 0, TEXT_FONTS.size() - 1)
+	if text_size == _font_applied:
+		return
+	var font := load(TEXT_FONTS[text_size]) as Font
+	if font == null:
+		return
+	_font_applied = text_size
+	PartCardUI.text_scaled(TEXT_SCALES[text_size])
+	ThemeDB.fallback_font = font
+	var project := ThemeDB.get_project_theme()
+	if project != null:
+		project.default_font = font
+	ThemeDB.get_default_theme().default_font = font
+	if is_inside_tree():
+		get_tree().root.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)
+
 func _load() -> void:
 	var cfg := ConfigFile.new()
+	if OS.get_environment("SteamDeck") == "1" or OS.get_environment("FRONTLINES_DECK") == "1":
+		text_size = 1 # the Deck's small screen (until the player picks one)
 	if cfg.load(PATH) != OK:
 		return
+	text_size = int(cfg.get_value("display", "text_size", text_size))
+	if OS.get_environment("FRONTLINES_TEXT_SIZE").is_valid_int(): # 0/1/2, for layout checks
+		text_size = int(OS.get_environment("FRONTLINES_TEXT_SIZE"))
 	speed = float(cfg.get_value("game", "speed", speed))
 	if not SPEEDS.has(speed):
 		speed = 1.0
@@ -224,6 +270,7 @@ func _save() -> void:
 	cfg.set_value("audio", "ambience_volume", ambience_volume)
 	cfg.set_value("display", "fullscreen", fullscreen)
 	cfg.set_value("display", "vsync", vsync)
+	cfg.set_value("display", "text_size", text_size)
 	cfg.set_value("accessibility", "colorblind", colorblind)
 	cfg.set_value("accessibility", "reduce_motion", reduce_motion)
 	cfg.set_value("game", "pad_cursor_speed", pad_cursor_speed)
