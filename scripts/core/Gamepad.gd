@@ -29,6 +29,11 @@ signal changed()
 ## The last input came from a gamepad (or this is a Steam Deck, until the
 ## mouse or keyboard is used).
 var using_pad: bool = false
+## Which pad's button names to show (GameSettings.pad_button_name): "xbox",
+## "playstation", "nintendo" or "deck", from the name of the pad last used
+## (any platform; Steam Input's virtual pad reads as Xbox, or Deck on a Deck).
+var family: String = "xbox"
+const PAD_FAMILIES := ["xbox", "playstation", "nintendo", "deck"]
 
 ## The screen that sees buttons first (a node with pad_button(button) -> bool).
 var handler: Node = null
@@ -52,13 +57,44 @@ func _ready() -> void:
 		for ev in InputMap.action_get_events(action):
 			if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 				InputMap.action_erase_event(action, ev)
-	(func(): _set_using_pad(using_pad or SteamService.on_deck)).call_deferred() # SteamService starts after this
+	(func():
+		_set_family(Input.get_connected_joypads()[0] if not Input.get_connected_joypads().is_empty() else -1)
+		_set_using_pad(using_pad or SteamService.on_deck)).call_deferred() # SteamService starts after this
 	get_viewport().gui_focus_changed.connect(_on_focus)
+	Input.joy_connection_changed.connect(func(device: int, connected: bool):
+		if connected:
+			_set_family(device))
 
 func _set_using_pad(on: bool) -> void:
 	if on != using_pad:
 		using_pad = on
 		changed.emit()
+
+## The family of pad `device` (-1: none connected) by its name.
+static func family_of(pad_name: String, on_deck: bool) -> String:
+	var n := pad_name.to_lower()
+	for k in ["playstation", "dualsense", "dualshock", "ps3", "ps4", "ps5", "sony"]:
+		if k in n:
+			return "playstation"
+	for k in ["nintendo", "switch", "joy-con", "joycon", "pro controller"]:
+		if k in n:
+			return "nintendo"
+	if on_deck or "steam deck" in n:
+		return "deck"
+	return "xbox"
+
+func _set_family(device: int) -> void:
+	var on_deck: bool = SteamService.on_deck
+	var f := family_of(Input.get_joy_name(device) if device >= 0 else "", on_deck)
+	if OS.get_environment("FRONTLINES_PAD") in PAD_FAMILIES: # xbox / playstation / nintendo / deck, to check hints
+		f = OS.get_environment("FRONTLINES_PAD")
+	if f != family:
+		family = f
+		changed.emit()
+
+## A button's name as printed on the pad in use.
+func button_name(b: int) -> String:
+	return GameSettings.pad_button_name(b, family)
 
 ## A text box took focus with the pad in hand: Steam's keyboard over it.
 func _on_focus(c: Control) -> void:
@@ -75,6 +111,8 @@ func left_held() -> bool:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton:
+		if event.device != _device:
+			_set_family(event.device)
 		_device = event.device
 		_set_using_pad(true)
 		get_viewport().set_input_as_handled()

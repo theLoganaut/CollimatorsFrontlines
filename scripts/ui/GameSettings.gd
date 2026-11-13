@@ -86,14 +86,13 @@ func is_key(event: InputEventKey, action: String) -> bool:
 	return event.keycode == k or (k == KEY_ENTER and event.keycode == KEY_KP_ENTER)
 
 ## What to press for `action`, as hint text: the bound key, or the gamepad
-## button while the pad is in use (Gamepad.using_pad; Steam Deck names on a
-## Deck, Xbox names elsewhere). Besides KEY_ACTIONS it knows "cancel" (Esc),
+## button while the pad is in use (Gamepad.using_pad; named as on that pad,
+## Gamepad.family). Besides KEY_ACTIONS it knows "cancel" (Esc),
 ## "inspect" (right-click) and "shift" (Shift).
 func key_label(action: String) -> String:
 	var pad := get_node_or_null("/root/Gamepad")
 	if pad != null and pad.using_pad and PAD_BUTTONS.has(action):
-		var steam := get_node_or_null("/root/SteamService")
-		return pad_button_name(PAD_BUTTONS[action], steam != null and steam.on_deck)
+		return pad_button_name(PAD_BUTTONS[action], pad.family)
 	if KEYBOARD_ONLY.has(action):
 		return KEYBOARD_ONLY[action]
 	return OS.get_keycode_string(key(action))
@@ -108,22 +107,30 @@ const PAD_BUTTONS := {
 }
 const KEYBOARD_ONLY := {"cancel": "Esc", "inspect": "right-click", "shift": "Shift"}
 
-## A gamepad button's name as printed on it: the Steam Deck's, or an Xbox pad's.
-## JOY_BUTTON_MAX stands for the right trigger.
-static func pad_button_name(b: int, deck: bool) -> String:
-	match b:
-		JOY_BUTTON_A: return "A"
-		JOY_BUTTON_B: return "B"
-		JOY_BUTTON_X: return "X"
-		JOY_BUTTON_Y: return "Y"
-		JOY_BUTTON_LEFT_SHOULDER: return "L1" if deck else "LB"
-		JOY_BUTTON_RIGHT_SHOULDER: return "R1" if deck else "RB"
-		JOY_BUTTON_MAX: return "R2" if deck else "RT"
-		JOY_BUTTON_BACK: return "View"
-		JOY_BUTTON_START: return "Menu"
-		JOY_BUTTON_RIGHT_STICK: return "R3" if deck else "RS"
-		JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: return "D-pad"
-	return "?"
+## A gamepad button's name as printed on a `family` pad ("xbox", "playstation",
+## "nintendo", "deck"; Gamepad.family). Godot names the face buttons by where
+## they sit (JOY_BUTTON_A is the bottom one: Xbox A, PlayStation Cross,
+## Switch B). JOY_BUTTON_MAX stands for the right trigger.
+static func pad_button_name(b: int, family: String) -> String:
+	var names: Dictionary = PAD_NAMES.get(family, PAD_NAMES["xbox"])
+	if b in [JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN]:
+		return "D-pad"
+	return names.get(b, "?")
+
+const PAD_NAMES := {
+	"xbox": {JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y",
+		JOY_BUTTON_LEFT_SHOULDER: "LB", JOY_BUTTON_RIGHT_SHOULDER: "RB", JOY_BUTTON_MAX: "RT",
+		JOY_BUTTON_BACK: "View", JOY_BUTTON_START: "Menu", JOY_BUTTON_RIGHT_STICK: "RS"},
+	"deck": {JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y",
+		JOY_BUTTON_LEFT_SHOULDER: "L1", JOY_BUTTON_RIGHT_SHOULDER: "R1", JOY_BUTTON_MAX: "R2",
+		JOY_BUTTON_BACK: "View", JOY_BUTTON_START: "Menu", JOY_BUTTON_RIGHT_STICK: "R3"},
+	"playstation": {JOY_BUTTON_A: "Cross", JOY_BUTTON_B: "Circle", JOY_BUTTON_X: "Square", JOY_BUTTON_Y: "Triangle",
+		JOY_BUTTON_LEFT_SHOULDER: "L1", JOY_BUTTON_RIGHT_SHOULDER: "R1", JOY_BUTTON_MAX: "R2",
+		JOY_BUTTON_BACK: "Share", JOY_BUTTON_START: "Options", JOY_BUTTON_RIGHT_STICK: "R3"},
+	"nintendo": {JOY_BUTTON_A: "B", JOY_BUTTON_B: "A", JOY_BUTTON_X: "Y", JOY_BUTTON_Y: "X",
+		JOY_BUTTON_LEFT_SHOULDER: "L", JOY_BUTTON_RIGHT_SHOULDER: "R", JOY_BUTTON_MAX: "ZR",
+		JOY_BUTTON_BACK: "−", JOY_BUTTON_START: "+", JOY_BUTTON_RIGHT_STICK: "R-stick press"},
+}
 
 ## Binds `action` to `keycode`; an action already on that key takes this
 ## one's old key (a swap). Returns false for a reserved key.

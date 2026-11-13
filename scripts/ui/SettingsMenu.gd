@@ -41,6 +41,7 @@ var _confirming: String = "" # "restart" / "quit" / ""
 var _controls: GlassPanel
 var _key_buttons: Dictionary = {} # action -> Button
 var _listening: String = "" # the action waiting for its new key
+var _pad_rows: VBoxContainer # the gamepad page's button list (_fill_pad_rows)
 var _restart_text: String = "Restart fight"
 ## Saves a mid-run playtest report (only during a run).
 var _report_btn: Button
@@ -150,6 +151,26 @@ func _show_controls(on: bool) -> void:
 	_panel.visible = not on
 	_sync_keys()
 
+## The gamepad page's buttons, named as on the pad in use (Gamepad.family:
+## Xbox, PlayStation, Switch or Steam Deck).
+func _fill_pad_rows() -> void:
+	if _pad_rows == null:
+		return
+	for c in _pad_rows.get_children():
+		c.queue_free()
+	var n := func(b: int) -> String: return Gamepad.button_name(b)
+	for f in [["Left stick", "Move the cursor (D-pad: slowly)"], [n.call(JOY_BUTTON_A), "Click (hold to drag)"],
+			["%s / %s" % [n.call(JOY_BUTTON_B), n.call(JOY_BUTTON_START)], "Back, cancel, this menu"], [n.call(JOY_BUTTON_Y), "End turn"],
+			["%s / %s" % [n.call(JOY_BUTTON_LEFT_SHOULDER), n.call(JOY_BUTTON_RIGHT_SHOULDER)], "Combat: pick a card (%s plays, D-pad aims)" % n.call(JOY_BUTTON_A)],
+			["%s / %s" % [n.call(JOY_BUTTON_LEFT_SHOULDER), n.call(JOY_BUTTON_RIGHT_SHOULDER)], "Elsewhere: undo / rotate a part"],
+			[n.call(JOY_BUTTON_X), "Right-click (rotate / cancel a part, an enemy part's cards)"],
+			[n.call(JOY_BUTTON_RIGHT_STICK), "Show / hide the location map"],
+			[n.call(JOY_BUTTON_BACK), "Show / hide the combat log"], ["Right stick", "Scroll"],
+			["%s (hold)" % n.call(JOY_BUTTON_MAX), "Fast-forward (as Shift)"]]:
+		var row := _fixed_row(f[0], f[1])
+		row.custom_minimum_size.y = 30
+		_pad_rows.add_child(row)
+
 func _build_controls() -> void:
 	_controls = GlassPanel.new()
 	_controls.tint = 0.8
@@ -202,14 +223,10 @@ func _build_controls() -> void:
 	pad.visible = false
 	outer.add_child(pad)
 	pad.add_child(_header("GAMEPAD (the stick drives the cursor; buttons follow your keys)"))
-	for f in [["Left stick", "Move the cursor (D-pad: slowly)"], ["A", "Click (hold to drag)"],
-			["B / Start", "Back, cancel, this menu"], ["Y", "End turn"],
-			["LB / RB", "Combat: pick a card (A plays, D-pad aims)"], ["LB / RB", "Elsewhere: undo / rotate a part"],
-			["X", "Right-click (rotate / cancel a part, an enemy part's cards)"], ["Right stick press", "Show / hide the location map"],
-			["Back", "Show / hide the combat log"], ["Right stick", "Scroll"], ["RT (hold)", "Fast-forward (as Shift)"]]:
-		var row := _fixed_row(f[0], f[1])
-		row.custom_minimum_size.y = 30
-		pad.add_child(row)
+	_pad_rows = VBoxContainer.new()
+	pad.add_child(_pad_rows)
+	_fill_pad_rows()
+	Gamepad.changed.connect(_fill_pad_rows)
 	pad.add_child(_choice_row("Cursor speed", ["Slow", "Normal", "Fast"], "pad_cursor_speed", GameSettings.PAD_SPEEDS, GlassPanel.HOLO))
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)

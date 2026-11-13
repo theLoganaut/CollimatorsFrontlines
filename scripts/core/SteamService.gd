@@ -19,8 +19,8 @@ var status: String = ""
 ## Steam Cloud syncs the saves (Auto-Cloud, tools/steam/STEAMWORKS.md): on
 ## for this account and this app. Set at launch; logged in the crash trail.
 var cloud_on: bool = false
-## Running on a Steam Deck (Steam says so; or FRONTLINES_DECK=1 to try the
-## Deck's behaviour on a PC).
+## Running on a Steam Deck (Steam sets SteamDeck=1 there; or FRONTLINES_DECK=1
+## to try the Deck's behaviour on a PC).
 var on_deck: bool = false
 
 var _steam: Object = null
@@ -44,8 +44,8 @@ func _ready() -> void:
 	user_name = _steam.getPersonaName()
 	status = "" if available else "Steam user not logged on"
 	CrashLog.crumb("Steam: app %d, %s" % [app_id, user_name if available else status])
-	if available and _steam.isSteamRunningOnSteamDeck():
-		on_deck = true
+	# (this GodotSteam has no isSteamRunningOnSteamDeck; Steam sets SteamDeck=1 on a Deck, read above)
+	if on_deck:
 		CrashLog.crumb("Running on a Steam Deck")
 	if available:
 		cloud_on = _steam.isCloudEnabledForAccount() and _steam.isCloudEnabledForApp()
