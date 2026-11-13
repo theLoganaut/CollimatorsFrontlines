@@ -56,6 +56,42 @@ Upload `tools/steam/rich_presence.vdf`. The game sets `steam_display` to
 (a fight), with `%location%`, `%mission%` and `%fight%` filled in
 (`SteamService.update_presence`).
 
+## Steam Input (App Admin → Application → Steam Input)
+
+The game reads its controls through the Steam Input API with In-Game Actions
+(`scripts/core/SteamPad.gd`): `steam_input/game_actions_5441720.vdf` is the
+Action Manifest (the game's actions: Click, Back, End turn, Previous / Next
+card, Right-click, Fast-forward, Map, Log, Settings menu, the cursor and scroll
+sticks, the D-pad nudges). `tools/steam_release.sh` copies it next to each
+build's executable and the game points Steam at it
+(`setInputActionManifestFilePath`). Prompts show Steam's glyph for whatever
+button each action is bound to; players rebind in Steam's configurator (or
+Settings → Keys and controls → Gamepad → Rebind in Steam). A controller that
+goes away pauses the game.
+
+Until the game's actions are bound on a controller, it plays through Steam's
+Gamepad template as an ordinary pad (Godot reads it directly), so nothing
+breaks while this is set up.
+
+1. **Steam Input settings:** Steam Input default configuration →
+   **Custom configuration, bundled with the game** (it needs the Action
+   Manifest, which ships in the depots). Opt in the controller types:
+   Xbox, PlayStation, Nintendo Switch, generic gamepads and Steam Deck.
+2. **Default bindings, one per controller type:** launch the game from Steam
+   with that controller, open its controller layout (Big Picture, or the Steam
+   button on a Deck → Controller settings), bind each action, then
+   Export Layout → Save new template. The file lands in
+   `Steam/steamapps/common/Steam Controller Configs/<account id>/config/5441720/`.
+   Copy each into `steam_input/` (e.g. `xbox.vdf`, `ps5.vdf`,
+   `switch_pro.vdf`, `steamdeck.vdf`) and they get listed under
+   `"configurations"` in the manifest, so every player starts with them.
+   Suggested layout (matches the game's text): left stick cursor, right stick
+   scroll, A click, B back, Menu/Start settings, Y end turn, X right-click,
+   LB/RB previous/next card, RT (held) fast-forward, View/Back log, right
+   stick press map, D-pad nudges.
+3. **Store:** Controller support → **Full controller support**, with the
+   controller types above.
+
 ## Shipping a build
 
 `tools/ship.sh` does both steps from the Mac: pushes `main` to GitHub, then

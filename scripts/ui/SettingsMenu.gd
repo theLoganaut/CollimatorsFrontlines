@@ -159,17 +159,48 @@ func _fill_pad_rows() -> void:
 	for c in _pad_rows.get_children():
 		c.queue_free()
 	var n := func(b: int) -> String: return Gamepad.button_name(b)
-	for f in [["Left stick", "Move the cursor (D-pad: slowly)"], [n.call(JOY_BUTTON_A), "Click (hold to drag)"],
-			["%s / %s" % [n.call(JOY_BUTTON_B), n.call(JOY_BUTTON_START)], "Back, cancel, this menu"], [n.call(JOY_BUTTON_Y), "End turn"],
-			["%s / %s" % [n.call(JOY_BUTTON_LEFT_SHOULDER), n.call(JOY_BUTTON_RIGHT_SHOULDER)], "Combat: pick a card (%s plays, D-pad aims)" % n.call(JOY_BUTTON_A)],
-			["%s / %s" % [n.call(JOY_BUTTON_LEFT_SHOULDER), n.call(JOY_BUTTON_RIGHT_SHOULDER)], "Elsewhere: undo / rotate a part"],
-			[n.call(JOY_BUTTON_X), "Right-click (rotate / cancel a part, an enemy part's cards)"],
-			[n.call(JOY_BUTTON_RIGHT_STICK), "Show / hide the location map"],
-			[n.call(JOY_BUTTON_BACK), "Show / hide the combat log"], ["Right stick", "Scroll"],
-			["%s (hold)" % n.call(JOY_BUTTON_MAX), "Fast-forward (as Shift)"]]:
-		var row := _fixed_row(f[0], f[1])
+	# [pad ids, what it does]: each row shows Steam's glyphs for its buttons
+	# under Steam Input (rebound in Steam's configurator), else their names
+	for f in [[[], "Left stick: move the cursor (D-pad: slowly)"], [[JOY_BUTTON_A], "Click (hold to drag)"],
+			[[JOY_BUTTON_B, JOY_BUTTON_START], "Back, cancel, this menu"], [[JOY_BUTTON_Y], "End turn"],
+			[[JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER], "Combat: pick a card (%s plays, D-pad aims)" % n.call(JOY_BUTTON_A)],
+			[[JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER], "Elsewhere: undo / rotate a part"],
+			[[JOY_BUTTON_X], "Right-click (rotate / cancel a part, an enemy part's cards)"],
+			[[JOY_BUTTON_RIGHT_STICK], "Show / hide the location map"],
+			[[JOY_BUTTON_BACK], "Show / hide the combat log"], [[], "Right stick: scroll"],
+			[[JOY_BUTTON_MAX], "Fast-forward, held (as Shift)"]]:
+		var ids: Array = f[0]
+		var what: String = f[1]
+		var keys := " / ".join(ids.map(func(b): return n.call(b)))
+		if ids.is_empty(): # a stick: "Left stick: move ..." -> the stick, what it does
+			keys = what.get_slice(":", 0)
+			what = what.get_slice(": ", 1).capitalize().left(1) + what.get_slice(": ", 1).substr(1)
+		var row := _fixed_row(keys, what)
 		row.custom_minimum_size.y = 30
+		var glyphs: Array = ids.map(func(b): return Gamepad.glyph(b)).filter(func(t): return t != null)
+		if not glyphs.is_empty() and glyphs.size() == ids.size():
+			var k: Label = row.get_child(0)
+			k.text = ""
+			var icons := HBoxContainer.new()
+			icons.custom_minimum_size.x = k.custom_minimum_size.x
+			icons.add_theme_constant_override("separation", 4)
+			for t in glyphs:
+				var r := TextureRect.new()
+				r.texture = t
+				r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				r.custom_minimum_size = Vector2(28, 28)
+				icons.add_child(r)
+			row.remove_child(k)
+			k.queue_free()
+			row.add_child(icons)
+			row.move_child(icons, 0)
 		_pad_rows.add_child(row)
+	if Gamepad.steam_pad.live() and SteamService.api() != null:
+		var rebind := GlassPanel.button("Rebind in Steam", 13)
+		rebind.tooltip_text = "Opens Steam's controller configurator for this game: change any button there."
+		rebind.pressed.connect(func(): SteamService.api().showBindingPanel(Gamepad.steam_pad.handle))
+		_pad_rows.add_child(rebind)
 
 func _build_controls() -> void:
 	_controls = GlassPanel.new()

@@ -92,7 +92,7 @@ func is_key(event: InputEventKey, action: String) -> bool:
 func key_label(action: String) -> String:
 	var pad := get_node_or_null("/root/Gamepad")
 	if pad != null and pad.using_pad and PAD_BUTTONS.has(action):
-		return pad_button_name(PAD_BUTTONS[action], pad.family)
+		return pad.button_name(PAD_BUTTONS[action]) # Steam Input's name for the bound button, else the pad's
 	if KEYBOARD_ONLY.has(action):
 		return KEYBOARD_ONLY[action]
 	return OS.get_keycode_string(key(action))

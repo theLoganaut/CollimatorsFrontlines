@@ -138,3 +138,54 @@ static func fit_font(label: Label, box: Vector2, max_size: int, min_size: int) -
 			break
 		fs -= 1
 	label.add_theme_font_size_override("font_size", fs)
+
+## Fills `rich` with `text`, its {key:<action>} tokens (GameSettings actions,
+## plus "cancel", "inspect", "shift") shown as what to press: Steam's glyph
+## for the bound button while Steam Input drives the pad (Gamepad.glyph),
+## else the key or button name (GameSettings.key_label).
+static func set_prompt(rich: RichTextLabel, text: String) -> void:
+	rich.clear()
+	var root := (Engine.get_main_loop() as SceneTree).root
+	var pad := root.get_node_or_null("/root/Gamepad")
+	var settings := root.get_node_or_null("/root/GameSettings")
+	var fs := rich.get_theme_font_size("normal_font_size")
+	var at := 0
+	for m in RegEx.create_from_string("\\{key:(\\w+)\\}").search_all(text):
+		rich.add_text(text.substr(at, m.get_start() - at))
+		at = m.get_end()
+		var action := m.get_string(1)
+		var tex: Texture2D = null
+		if pad != null and pad.using_pad and settings != null and settings.PAD_BUTTONS.has(action):
+			tex = pad.glyph(settings.PAD_BUTTONS[action])
+		if tex != null:
+			rich.add_image(tex, 0, int(fs * 1.5), Color.WHITE, INLINE_ALIGNMENT_CENTER)
+		else:
+			rich.add_text(settings.key_label(action) if settings != null else action)
+	rich.add_text(text.substr(at))
+
+## A wrapping rich label for a hint with {key:...} tokens (set_prompt).
+static func prompt_label(text: String, font_size: int = 12, color: Color = Palette.TEXT) -> RichTextLabel:
+	var l := RichTextLabel.new()
+	l.fit_content = true
+	l.scroll_active = false
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_size_override("normal_font_size", font_size)
+	l.add_theme_color_override("default_color", color)
+	set_prompt(l, text)
+	return l
+
+## set_prompt, with the font stepped down from `max_size` (to `min_size`)
+## until the text fits `box` (a fixed hint line that bigger text sizes would
+## overflow). Glyphs are measured as their button names.
+static func fit_prompt(rich: RichTextLabel, text: String, box: Vector2, max_size: int, min_size: int) -> void:
+	var settings := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("/root/GameSettings")
+	var plain := text
+	for m in RegEx.create_from_string("\\{key:(\\w+)\\}").search_all(text):
+		plain = plain.replace(m.get_string(), settings.key_label(m.get_string(1)) if settings != null else "XX")
+	var font := rich.get_theme_font("normal_font")
+	var fs := max_size
+	while fs > min_size and font.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, box.x, fs).y > box.y:
+		fs -= 1
+	rich.add_theme_font_size_override("normal_font_size", fs)
+	set_prompt(rich, text)

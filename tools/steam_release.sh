@@ -67,6 +67,12 @@ if [[ -n "${DEPOT_LINUX:-}" ]]; then
 	"$GODOT" --headless --path "$ROOT" --export-release "Linux" "$OUT/linux/CollimatorsFrontlines.x86_64" > "$OUT/logs/export_linux.log" 2>&1 		|| { echo "Linux export failed, see $OUT/logs/export_linux.log" >&2; exit 1; }
 	[[ -f "$OUT/linux/libsteam_api.so" ]] || { echo "libsteam_api.so is missing from the Linux build" >&2; exit 1; }
 fi
+# Steam Input's Action Manifest (the game's controller actions) sits next to each
+# executable, where the game points Steam at it (SteamPad.manifest_path)
+MANIFEST="$ROOT/steam_input/game_actions_5441720.vdf"
+cp "$MANIFEST" "$OUT/windows/"
+[[ -d "$OUT/linux" ]] && cp "$MANIFEST" "$OUT/linux/"
+for app in "$OUT/macos/"*.app; do [[ -d "$app" ]] && cp "$MANIFEST" "$app/Contents/MacOS/"; done
 ls -la "$OUT/windows"
 
 [[ $UPLOAD == 1 ]] || { echo "== Exported to $OUT (no upload)"; exit 0; }

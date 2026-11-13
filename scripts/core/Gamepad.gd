@@ -19,12 +19,25 @@ extends Node
 ## bool): the combat screen does while a card is picked (A plays it, the
 ## D-pad steps its target, B puts it back). Joypad events are taken out of
 ## Godot's ui_* actions so its focus moves don't fight the cursor.
+## Two ways in, the same pad ids out (the JoyButton values above stand for
+## the game's pad actions everywhere): with Steam running and the game's
+## In-Game Actions bound on the controller, Steam Input (SteamPad; the
+## player rebinds any of them in Steam's configurator, and prompts show
+## Steam's glyph for whatever button an action is on); otherwise Godot reads
+## the pad directly (no Steam, or Steam's Gamepad template). A controller
+## that goes away mid-game pauses it (`disconnected`, FocusPause).
 ## A text box that takes focus while the pad is in use opens Steam's
 ## on-screen keyboard (SteamService.show_keyboard). `using_pad` says whether
 ## the pad or the mouse/keyboard was used last (key hints show its buttons;
 ## `changed` fires when it flips).
 
 signal changed()
+## The controller in use went away (FocusPause pauses the game).
+signal disconnected()
+
+## Steam Input (In-Game Actions); `steam_pad.live()` while it drives the pad.
+var steam_pad := SteamPad.new()
+var _steam_was_live: bool = false
 
 ## The last input came from a gamepad (or this is a Steam Deck, until the
 ## mouse or keyboard is used).
@@ -58,12 +71,19 @@ func _ready() -> void:
 			if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 				InputMap.action_erase_event(action, ev)
 	(func():
+		steam_pad.start(SteamService.api())
 		_set_family(Input.get_connected_joypads()[0] if not Input.get_connected_joypads().is_empty() else -1)
 		_set_using_pad(using_pad or SteamService.on_deck)).call_deferred() # SteamService starts after this
 	get_viewport().gui_focus_changed.connect(_on_focus)
 	Input.joy_connection_changed.connect(func(device: int, connected: bool):
 		if connected:
-			_set_family(device))
+			_set_family(device)
+		elif device == _device and not steam_pad.live():
+			_device = -1
+			_lost())
+
+func _exit_tree() -> void:
+	steam_pad.stop()
 
 func _set_using_pad(on: bool) -> void:
 	if on != using_pad:
@@ -92,9 +112,30 @@ func _set_family(device: int) -> void:
 		family = f
 		changed.emit()
 
-## A button's name as printed on the pad in use.
+## A button's name as printed on the pad in use: under Steam Input, Steam's
+## name for the button the action is bound to.
 func button_name(b: int) -> String:
+	if steam_pad.live():
+		var n := steam_pad.origin_name(b)
+		if n != "":
+			return n
 	return GameSettings.pad_button_name(b, family)
+
+## Steam's picture of the button for pad id `b` (Steam Input only; null otherwise).
+func glyph(b: int) -> Texture2D:
+	return steam_pad.glyph(b) if steam_pad.live() else null
+
+## The controller in use went away: let go of anything held and pause.
+func _lost() -> void:
+	if _a_down:
+		_a_down = false
+		_mouse_button(MOUSE_BUTTON_LEFT, false)
+	if _rt_down:
+		_rt_down = false
+		_key(KEY_SHIFT, false)
+	if using_pad:
+		CrashLog.crumb("Controller disconnected")
+		disconnected.emit()
 
 ## A text box took focus with the pad in hand: Steam's keyboard over it.
 func _on_focus(c: Control) -> void:
@@ -110,6 +151,9 @@ func left_held() -> bool:
 	return _a_down or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 
 func _input(event: InputEvent) -> void:
+	if (event is InputEventJoypadButton or event is InputEventJoypadMotion) and steam_pad.live():
+		get_viewport().set_input_as_handled() # Steam Input drives the pad: no second path
+		return
 	if event is InputEventJoypadButton:
 		if event.device != _device:
 			_set_family(event.device)
@@ -159,27 +203,46 @@ func _button(b: JoyButton, pressed: bool) -> void:
 			_tap(GameSettings.key("undo"), pressed, true)
 
 func _process(delta: float) -> void:
-	if _device < 0:
+	for e in steam_pad.poll(delta):
+		_set_using_pad(true)
+		if e[0] == JOY_BUTTON_MAX: # fast-forward, as Shift held
+			if e[1] != _rt_down:
+				_rt_down = e[1]
+				_key(KEY_SHIFT, e[1])
+		else:
+			_button(e[0], e[1])
+	var live := steam_pad.live()
+	if live != _steam_was_live:
+		_steam_was_live = live
+		changed.emit() # prompts switch between Steam's glyphs and plain names
+		if not live and steam_pad.handle == 0:
+			_lost()
+	if not live and _device < 0:
 		return
-	var v := Vector2(Input.get_joy_axis(_device, JOY_AXIS_LEFT_X), Input.get_joy_axis(_device, JOY_AXIS_LEFT_Y))
+	var v := steam_pad.stick("cursor") if live else Vector2(Input.get_joy_axis(_device, JOY_AXIS_LEFT_X), Input.get_joy_axis(_device, JOY_AXIS_LEFT_Y))
+	if live and v.length() > DEADZONE:
+		_set_using_pad(true)
 	var move := Vector2.ZERO
 	if v.length() > DEADZONE:
 		var k := (v.length() - DEADZONE) / (1.0 - DEADZONE)
 		move = v.normalized() * pow(minf(k, 1.0), 1.7) * SPEED * GameSettings.pad_cursor_speed
 	var claimed: bool = handler != null and is_instance_valid(handler) and handler.has_method("pad_dpad_claimed") and handler.pad_dpad_claimed()
 	if not claimed:
-		var d := Vector2(
-			float(Input.is_joy_button_pressed(_device, JOY_BUTTON_DPAD_RIGHT)) - float(Input.is_joy_button_pressed(_device, JOY_BUTTON_DPAD_LEFT)),
-			float(Input.is_joy_button_pressed(_device, JOY_BUTTON_DPAD_DOWN)) - float(Input.is_joy_button_pressed(_device, JOY_BUTTON_DPAD_UP)))
+		var d := Vector2(float(_held(JOY_BUTTON_DPAD_RIGHT)) - float(_held(JOY_BUTTON_DPAD_LEFT)),
+			float(_held(JOY_BUTTON_DPAD_DOWN)) - float(_held(JOY_BUTTON_DPAD_UP)))
 		move += d * DPAD_SPEED * GameSettings.pad_cursor_speed
 	if move != Vector2.ZERO:
 		_move_cursor(move * delta / maxf(Engine.time_scale, 0.01)) # the same speed whatever the game speed
-	var sy := Input.get_joy_axis(_device, JOY_AXIS_RIGHT_Y)
+	var sy := steam_pad.stick("scroll").y if live else Input.get_joy_axis(_device, JOY_AXIS_RIGHT_Y)
 	_scroll_t -= delta / maxf(Engine.time_scale, 0.01)
 	if absf(sy) > DEADZONE and _scroll_t <= 0.0:
 		_scroll_t = SCROLL_EVERY / absf(sy)
 		_mouse_button(MOUSE_BUTTON_WHEEL_DOWN if sy > 0 else MOUSE_BUTTON_WHEEL_UP, true)
 		_mouse_button(MOUSE_BUTTON_WHEEL_DOWN if sy > 0 else MOUSE_BUTTON_WHEEL_UP, false)
+
+## Pad id `b` held, from whichever path is driving the pad.
+func _held(b: int) -> bool:
+	return steam_pad.held(b) if steam_pad.live() else Input.is_joy_button_pressed(_device, b)
 
 ## Moves the cursor (logical pixels): the real mouse pointer goes there, and
 ## the screen gets a mouse motion (holding the left button while A is down).

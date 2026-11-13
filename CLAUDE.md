@@ -87,7 +87,13 @@ starts it and `SteamService.available` / `api()` say whether Steam is up; withou
 **Versions** (`project.godot` config/version, `export_presets.cfg`, `current` in `data/changelog.json`; validate_data checks they match): a release bumps them and adds its notes to `releases`. The What's Next?! roadmap (`next.updates`) has no version numbers, only minor/major and when, so bug-fix releases and moving items between updates never renumber it.
 **Achievements** (`data/achievements.json`, `Achievements`, earned in `Profile.record_run`, Pilot Log tab).
 **Gamepad** (`Gamepad` autoload): the stick drives the mouse cursor and A clicks, so screens need nothing of their own;
-buttons press the bound keys; a screen can take buttons first (`Gamepad.handler.pad_button`, combat does). Code that
+buttons press the bound keys; a screen can take buttons first (`Gamepad.handler.pad_button`, combat does). Input comes
+through the Steam Input API with In-Game Actions when Steam has the game's actions bound (`SteamPad`; the Action Manifest
+is `steam_input/game_actions_5441720.vdf`, copied next to each build's executable; setup steps in `tools/steam/STEAMWORKS.md`),
+else Godot reads the pad directly; both give the same pad ids (JoyButton values). Prompts with `{key:<action>}` tokens
+(`UIKit.set_prompt` / `prompt_label`, the Tutorial) show Steam's glyph for the bound button; a lost controller pauses
+(`FocusPause`). Steam Deck: `FocusPause` also pauses in the background, `GameSettings.text_size` (Large on a Deck),
+`FRONTLINES_WINDOW=1280x800` / `FRONTLINES_DECK=1` / `FRONTLINES_TEXT_SIZE` / `FRONTLINES_PAD` for checking layouts. Code that
 polls the left mouse button uses `Gamepad.left_held()`. Card text in part cards uses `UIKit.rich_label`
 (`StatusGlossary.annotate`: statuses and keywords tinted, with their rule as a hover hint).
 Mech sprites (PixelLab, 128×128, straight-on) are `assets/enemies/<id>.png` and `assets/mechs/<id>_front.png` /

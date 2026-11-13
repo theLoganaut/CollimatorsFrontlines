@@ -399,20 +399,27 @@ func _set_text(text: String, lit: bool) -> void:
 	_text.clear()
 	var marked := text.contains("{y}") or text.contains("{r}") or text.begins_with("{plain}")
 	text = text.trim_prefix("{plain}")
-	for km in RegEx.create_from_string("\\{key:(\\w+)\\}").search_all(text): # what to press, keys or pad
-		text = text.replace(km.get_string(), GameSettings.key_label(km.get_string(1)))
 	if lit and not marked:
 		var m := RegEx.create_from_string("^(.+?[.!?])(\\s|$)").search(text)
 		if m != null:
 			text = "{y}%s{/y}%s" % [m.get_string(1), text.substr(m.get_string(1).length())]
 	var at := 0
-	for m in RegEx.create_from_string("\\{(y|r|/y|/r|icon:\\w+)\\}").search_all(text):
+	for m in RegEx.create_from_string("\\{(y|r|/y|/r|icon:\\w+|key:\\w+)\\}").search_all(text):
 		_text.add_text(text.substr(at, m.get_start() - at))
 		var tag := m.get_string(1)
 		match tag:
 			"y": _text.push_color(Palette.LINK)
 			"r": _text.push_color(Palette.DANGER)
 			"/y", "/r": _text.pop()
+			_ when tag.begins_with("key:"): # what to press: Steam's glyph on a pad, else the key / button name
+				var action := tag.trim_prefix("key:")
+				var tex: Texture2D = null
+				if Gamepad.using_pad and GameSettings.PAD_BUTTONS.has(action):
+					tex = Gamepad.glyph(GameSettings.PAD_BUTTONS[action])
+				if tex != null:
+					_text.add_image(tex, 0, 24, Color.WHITE, INLINE_ALIGNMENT_CENTER)
+				else:
+					_text.add_text(GameSettings.key_label(action))
 			_:
 				var icon: Array = _icon(tag.trim_prefix("icon:"))
 				if not icon.is_empty():

@@ -1,0 +1,66 @@
+"Action Manifest"
+{
+	"actions"
+	{
+		"Play"
+		{
+			"title"	"#Set_Play"
+			"StickPadGyro"
+			{
+				"cursor"
+				{
+					"title"	"#Action_Cursor"
+					"input_mode"	"joystick_move"
+				}
+				"scroll"
+				{
+					"title"	"#Action_Scroll"
+					"input_mode"	"joystick_move"
+				}
+			}
+			"AnalogTrigger"
+			{
+			}
+			"Button"
+			{
+				"click"	"#Action_Click"
+				"back"	"#Action_Back"
+				"menu"	"#Action_Menu"
+				"end_turn"	"#Action_EndTurn"
+				"inspect"	"#Action_Inspect"
+				"prev"	"#Action_Prev"
+				"next"	"#Action_Next"
+				"fast_forward"	"#Action_FastForward"
+				"log"	"#Action_Log"
+				"map"	"#Action_Map"
+				"nudge_up"	"#Action_NudgeUp"
+				"nudge_down"	"#Action_NudgeDown"
+				"nudge_left"	"#Action_NudgeLeft"
+				"nudge_right"	"#Action_NudgeRight"
+			}
+		}
+	}
+	"localization"
+	{
+		"english"
+		{
+			"Set_Play"	"Play"
+			"Action_Cursor"	"Move the cursor"
+			"Action_Scroll"	"Scroll"
+			"Action_Click"	"Click / select (hold to drag)"
+			"Action_Back"	"Back / cancel"
+			"Action_Menu"	"Settings menu"
+			"Action_EndTurn"	"End turn"
+			"Action_Inspect"	"Right-click: rotate or cancel a part, an enemy part's cards"
+			"Action_Prev"	"Previous card / undo / turn left"
+			"Action_Next"	"Next card / rotate / turn right"
+			"Action_FastForward"	"Fast-forward the enemy turn (hold)"
+			"Action_Log"	"Show / hide the combat log"
+			"Action_Map"	"Show / hide the location map"
+			"Action_NudgeUp"	"Nudge the cursor up / previous target"
+			"Action_NudgeDown"	"Nudge the cursor down / next target"
+			"Action_NudgeLeft"	"Nudge the cursor left / previous target"
+			"Action_NudgeRight"	"Nudge the cursor right / next target"
+		}
+	}
+}

@@ -31,7 +31,24 @@ func _ready() -> void:
 	add_child(_end_turn_button)
 
 	UIState.describe_on_hover(_end_turn_button, _describe_end_turn)
+	# the End turn action's button, as Steam's glyph, while a pad drives the game
+	_glyph = TextureRect.new()
+	_glyph.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_glyph.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_glyph.size = Vector2(26, 26)
+	_glyph.position = Vector2(8, (PANEL_SIZE.y - 26.0) / 2.0)
+	_glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_end_turn_button.add_child(_glyph)
+	Gamepad.changed.connect(_sync_glyph)
+	_sync_glyph()
 	_apply()
+
+var _glyph: TextureRect
+
+func _sync_glyph() -> void:
+	var tex: Texture2D = Gamepad.glyph(JOY_BUTTON_Y) if Gamepad.using_pad else null
+	_glyph.texture = tex
+	_glyph.visible = tex != null
 
 ## What End Turn does, for the Description Box (naming the current key
 ## bindings, GameSettings.KEY_ACTIONS).

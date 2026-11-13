@@ -37,7 +37,7 @@ var _cargo_grid: PackingGrid
 var _bench_title: Label
 var _bench_grid: PackingGrid
 var _bench_note: Label
-var _message: Label
+var _message: RichTextLabel # the footer hint ({key:...} tokens show the pad's glyphs)
 var _leave: Button
 var _undo: Button
 ## Moves that can be undone, newest last: {part, from, steps, offset, to}.
@@ -227,7 +227,8 @@ func _build() -> void:
 		_right = _panel(RIGHT)
 		_build_right_panel()
 	var footer := _panel(FOOTER)
-	_message = UIKit.label("", 12, Color("b9d8d4"), true)
+	_message = UIKit.prompt_label("", 12, Color("b9d8d4"))
+	_message.fit_content = false
 	_message.position = Vector2(14, 10)
 	_message.size = Vector2(FOOTER.size.x - 28, 34)
 	footer.add_child(_message)
@@ -354,9 +355,8 @@ func _shown(parts: Array[ComponentData]) -> Array[ComponentData]:
 	return parts.filter(func(c): return not _hidden_parts.has(c))
 
 func _say(text: String, c: Color = Color("b9d8d4")) -> void:
-	_message.text = text
-	UIKit.fit_font(_message, _message.size, 12, 8) # two lines, whatever the text size
-	_message.add_theme_color_override("font_color", c)
+	_message.add_theme_color_override("default_color", c)
+	UIKit.fit_prompt(_message, text, _message.size, 12, 8) # two lines, whatever the text size
 
 func _on_part_hovered(_g: PackingGrid, part: ComponentData) -> void:
 	if _drag == null and part != null:
@@ -422,7 +422,7 @@ func _input(event: InputEvent) -> void:
 				_drop()
 		elif not _carrying and _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
 			_carrying = true
-			_say("Holding %s: click where it goes. %s or %s rotates, %s puts it back." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("inspect"), GameSettings.key_label("cancel")])
+			_say("Holding %s: click where it goes. {key:rotate} or {key:inspect} rotates, {key:cancel} puts it back." % _drag.name)
 		elif not _carrying:
 			_drop()
 

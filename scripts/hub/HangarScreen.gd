@@ -40,7 +40,7 @@ var _chassis_title: Label
 var _grid: PackingGrid
 var _info: Label
 var _bench: PackingGrid
-var _message: Label
+var _message: RichTextLabel # hints ({key:...} tokens show the pad's glyphs)
 var _select_btn: Button
 var _preview: PartPreview
 var _armory: ArmoryBrowser
@@ -136,7 +136,7 @@ func _build_left() -> void:
 	_bench.setup(bench_cells, Vector2i(BENCH_SIZE, BENCH_SIZE), CELL)
 	_bench.position = Vector2(((LEFT.size.x - _bench.size.x) / 2.0), 328)
 	panel.add_child(_bench)
-	_message = UIKit.label("Pick a part from the armory, or click one on the chassis or workbench to pick it up.  %s / %s rotates." % [GameSettings.key_label("rotate"), GameSettings.key_label("inspect")], 11, Color("9fb9b6"), true)
+	_message = UIKit.prompt_label("Pick a part from the armory, or click one on the chassis or workbench to pick it up.  {key:rotate} / {key:inspect} rotates.", 11, Color("9fb9b6"))
 	_message.position = Vector2(12, 560)
 	_message.size = Vector2(LEFT.size.x - 24, 36)
 	panel.add_child(_message)
@@ -254,7 +254,7 @@ func _reset() -> void:
 	Profile.loadouts.erase(_mech_id)
 	Profile.save()
 	_show_mech(_mech_id)
-	_message.text = "Default loadout restored. The workbench is untouched."
+	UIKit.set_prompt(_message, "Default loadout restored. The workbench is untouched.")
 
 func _on_part_hovered(_g: PackingGrid, part: ComponentData) -> void:
 	if part != null and _drag == null:
@@ -273,7 +273,7 @@ func _pick_from_armory(id: String) -> void:
 	_drag_rel = GridUtils.rotate_cells(_drag.cells, 0)[0]
 	_drag_from = null
 	_preview.show_part(_drag)
-	_message.text = "Placing %s: click a spot on the chassis or workbench (%s rotates, %s or %s cancels)." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("inspect"), GameSettings.key_label("cancel")]
+	UIKit.set_prompt(_message, "Placing %s: click a spot on the chassis or workbench ({key:rotate} rotates, {key:inspect} or {key:cancel} cancels)." % _drag.name)
 	_update_hints()
 	_update_ghost()
 
@@ -361,7 +361,7 @@ func _input(event: InputEvent) -> void:
 		elif _drag_from != null and not _carrying:
 			if _mouse.distance_to(_press_at) <= PackingGrid.CLICK_SLOP:
 				_carrying = true
-				_message.text = "Holding %s: click where it goes, or off the grids to remove it (%s rotates, %s puts it back)." % [_drag.name, GameSettings.key_label("rotate"), GameSettings.key_label("cancel")]
+				UIKit.set_prompt(_message, "Holding %s: click where it goes, or off the grids to remove it ({key:rotate} rotates, {key:cancel} puts it back)." % _drag.name)
 			else:
 				_drop()
 
@@ -377,7 +377,7 @@ func _drop() -> void:
 	if g != null:
 		var off := g.cell_at_global(_mouse) - _drag_rel
 		if not _fits(g, off):
-			_message.text = "It doesn't fit there."
+			UIKit.set_prompt(_message, "It doesn't fit there.")
 			if _drag_from == null or _carrying:
 				return # keep holding it
 			_end_drag()
@@ -388,10 +388,10 @@ func _drop() -> void:
 		if g == _grid:
 			_drag.set_instance_id(_free_id(_drag.library_id))
 		_parts_of(g).append(_drag)
-		_message.text = "%s %s." % [_drag.name, "installed" if g == _grid else "set on the workbench"]
+		UIKit.set_prompt(_message, "%s %s." % [_drag.name, "installed" if g == _grid else "set on the workbench"])
 	elif _drag_from != null:
 		_parts_of(_drag_from).erase(_drag)
-		_message.text = "%s removed." % _drag.name
+		UIKit.set_prompt(_message, "%s removed." % _drag.name)
 	_save()
 	_end_drag()
 
