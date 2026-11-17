@@ -10,7 +10,7 @@ APP_ID=5441720
 DEPOT_WINDOWS=5441721
 DEPOT_MACOS=""
 # Linux (and Steam Deck, native, Vulkan): a depot set to OS "Linux + SteamOS". Empty = skip.
-DEPOT_LINUX=""
+DEPOT_LINUX=5441722
 
 # Steam Playtest (a separate app with its own App ID and depot: Steamworks -> the game's
 # "Associated Packages & DLC" -> its Playtest -> SteamPipe -> Depots). When both are set,
