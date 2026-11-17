@@ -19,10 +19,14 @@ PLAIN="$ROOT/tools/steam/config.local.sh"
 ENC="$ROOT/tools/steam/secrets.enc"
 KEY="${FRONTLINES_SECRETS_KEY:-$HOME/.config/frontlines/secrets.key}"
 CIPHER=(-aes-256-cbc -pbkdf2 -iter 200000 -a -A)
+# Git Bash's openssl is a Windows program: it reads C:/... paths, and Git Bash doesn't
+# convert one that comes after "file:", so hand it the Windows form.
+KEY_ARG="$KEY"
+command -v cygpath > /dev/null && KEY_ARG="$(cygpath -m "$KEY")"
 
 die() { echo "secrets: $*" >&2; exit 1; }
 need_key() { [[ -s "$KEY" ]] || die "no key at $KEY. Copy it from the other machine: tools/secrets.sh key <key>"; }
-decrypt() { openssl enc -d "${CIPHER[@]}" -pass "file:$KEY" -in "$ENC"; }
+decrypt() { openssl enc -d "${CIPHER[@]}" -pass "file:$KEY_ARG" -in "$ENC"; }
 
 case "${1:-status}" in
 	lock)
@@ -32,7 +36,7 @@ case "${1:-status}" in
 		if [[ -f "$ENC" ]] && [[ "$(decrypt 2>/dev/null)" == "$(cat "$PLAIN")" ]]; then
 			echo "secrets: secrets.enc is already up to date"; exit 0
 		fi
-		openssl enc -e "${CIPHER[@]}" -salt -pass "file:$KEY" -in "$PLAIN" -out "$ENC"
+		openssl enc -e "${CIPHER[@]}" -salt -pass "file:$KEY_ARG" -in "$PLAIN" -out "$ENC"
 		echo >> "$ENC"
 		echo "secrets: locked into tools/steam/secrets.enc; commit and push it"
 		;;
