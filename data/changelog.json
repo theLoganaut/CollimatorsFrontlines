@@ -1,7 +1,56 @@
 {
   "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it; {\"label\", \"items\"} with no text is a category heading (Logan, 2026-10-16: New, Gameplay, UI, Balance, Bug Fixes, each entry \"Name - short description\"). A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
-  "current": "0.2.4",
+  "current": "0.2.5",
   "releases": [
+    {
+      "version": "0.2.5",
+      "title": "",
+      "items": [
+        {
+          "label": "New",
+          "items": [
+            {
+              "label": "Steam Deck",
+              "text": "- playable on the Deck: a Large text size by default, pauses when you suspend or open the overlay, and Steam's on-screen keyboard for text boxes."
+            },
+            {
+              "label": "Full Controller Support",
+              "text": "- rebind any control in Steam's controller settings, and button hints show the glyph for your pad: Xbox, PlayStation, Switch or Steam Deck."
+            },
+            {
+              "label": "Text Size",
+              "text": "- Settings → Display: Normal, Large or Larger."
+            }
+          ]
+        },
+        {
+          "label": "UI",
+          "items": [
+            {
+              "label": "Pause on Disconnect",
+              "text": "- the game pauses when your controller goes away, until you press something."
+            },
+            {
+              "label": "Pause in the Background",
+              "text": "- the game pauses and mutes when you tab out."
+            },
+            {
+              "label": "Gamepad",
+              "text": "- X right-clicks (rotate or cancel a held part, see an enemy part's cards); right stick opens the location map."
+            }
+          ]
+        },
+        {
+          "label": "Bug Fixes",
+          "items": [
+            {
+              "label": "Pilot Log",
+              "text": "- long mission rows wrap instead of running off the screen."
+            }
+          ]
+        }
+      ]
+    },
     {
       "version": "0.2.4",
       "title": "",
