@@ -1,0 +1,1241 @@
+song "frontlines (war)" tempo 120 profile nes
+
+play
+  cold -3
+  select -3
+  build -3
+  build2 -3
+  rise -3
+  shoot -3
+  shoot2 -3
+  heat -3
+  hush -3
+  front -3
+  boss -3
+  end -3
+
+pattern cold bars 2 grid 16
+
+lane pulse1 duty 25 vol 11
+  D4 x4 arp 0,3,7 vol 12
+  D4 x3 arp 0,3,7 vol 12 fade
+  - x3
+  - x22
+
+lane pulse2 duty 50 vol 8
+  D3 x3 vol 10
+  D3 x3 vol 10 fade
+  - x2
+  - x8
+  D3 x1 vol 4
+  D4 x1 vol 4
+  D3 x1 vol 4
+  D4 x1 vol 4
+  D3 x1 vol 4
+  D4 x1 vol 4
+  D3 x1 vol 4
+  D4 x1 vol 4
+  D3 x1 vol 6
+  D4 x1 vol 6
+  D3 x1 vol 6
+  D4 x1 vol 6
+  D3 x1 vol 6
+  D4 x1 vol 6
+  D3 x1 vol 6
+  D4 x1 vol 6
+
+lane triangle
+  D2 x2
+  - x14
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+  D2 x1
+  A1 x1
+
+lane noise vol 10
+  C4 x1 vol 15 fade
+  B4 x12 vol 13 fade
+  - x3
+  E4 x1 vol 3
+  E4 x1 vol 4
+  E4 x1 vol 4
+  E4 x1 vol 5
+  E4 x1 vol 6
+  E4 x1 vol 7
+  E4 x1 vol 7
+  E4 x1 vol 8
+  E4 x1 vol 9
+  E4 x1 vol 10
+  E4 x1 vol 10
+  E4 x1 vol 11
+  E4 x1 vol 12
+  E4 x1 vol 13
+  E4 x1 vol 13
+  E4 x1 vol 14
+
+pattern select bars 3 grid 16
+
+lane pulse1 duty 25 vol 8
+  D4 x3 vol 9 fade
+  - x13
+  E4 x3 vol 9 fade
+  - x13
+  C#4 x3 vol 10 fade
+  - x9
+  E4 x2 vol 7 fade
+  A3 x2 vol 8 fade
+
+lane pulse2 duty 50 vol 6
+  Bb2 x2 vol 5
+  D3 x2 vol 5
+  F3 x2 vol 5
+  Bb3 x2 vol 5
+  F3 x2 vol 5
+  D3 x2 vol 5
+  Bb2 x2 vol 5
+  D3 x2 vol 5
+  C3 x2 vol 5
+  E3 x2 vol 5
+  G3 x2 vol 5
+  C4 x2 vol 5
+  G3 x2 vol 5
+  E3 x2 vol 5
+  C3 x2 vol 5
+  E3 x2 vol 5
+  A2 x2 vol 6
+  C#3 x2 vol 6
+  E3 x2 vol 6
+  A3 x2 vol 6
+  E3 x2 vol 6
+  C#3 x2 vol 6
+  A2 x2 vol 6
+  C#3 x2 vol 6
+
+lane triangle
+  Bb1 x2
+  - x14
+  C2 x2
+  - x14
+  A1 x2
+  - x6
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+
+lane noise vol 6
+  C4 x2 vol 15 fade
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  C4 x2 vol 15 fade
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  C4 x2 vol 15 fade
+  B4 x2 vol 3
+  B4 x2 vol 3
+  B4 x2 vol 3
+  E4 x2 vol 5 fade
+  E4 x2 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+
+pattern build bars 2 grid 16
+
+lane pulse2 duty 50 vol 7
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  A3 x2 vol 7 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  A3 x2 vol 8 fade
+
+lane triangle
+  D2 x2
+  - x4
+  D2 x1
+  - x1
+  D2 x2
+  - x6
+  D2 x2
+  - x4
+  D2 x1
+  - x1
+  D2 x2
+  - x6
+
+lane noise vol 7
+  C4 x8 vol 15 fade
+  C4 x4 vol 15 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 5 fade
+  C4 x8 vol 15 fade
+  C4 x2 vol 15 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 5 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 5 fade
+
+pattern build2 bars 2 grid 16
+
+lane pulse1 duty 25 vol 9
+  A3 x3
+  A3 x1 vol 6
+  D4 x3
+  D4 x3 vol 9 fade
+  - x2
+  F4 x4
+  E4 x3
+  D4 x1
+  A3 x6
+  A3 x3 vol 9 fade
+  - x3
+
+lane pulse2 duty 50 vol 7
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  A3 x2 vol 8 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  A3 x2 vol 9 fade
+
+lane triangle
+  D2 x2
+  - x4
+  D2 x1
+  - x1
+  D2 x2
+  - x6
+  D2 x2
+  - x2
+  A1 x2
+  - x2
+  D2 x2
+  - x2
+  A1 x1
+  - x1
+  D2 x1
+  - x1
+
+lane noise vol 8
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+
+pattern rise bars 2 grid 16
+
+lane pulse1 duty 25 vol 10
+  Bb3 x3
+  Bb3 x3 vol 10 fade
+  - x2
+  C4 x3
+  C4 x3 vol 10 fade
+  - x2
+  C#4 x6 vol 12
+  C#4 x3 vol 12 fade
+  - x3
+  E4 x4
+
+lane pulse2 duty 50 vol 8
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  Bb2 x2 vol 9 fade
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  Bb2 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  C3 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  G3 x2 vol 9 fade
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+  A2 x1 vol 6
+  A3 x1 vol 6
+
+lane triangle
+  Bb1 x2
+  - x2
+  F1 x2
+  - x2
+  C2 x2
+  - x2
+  G1 x1
+  - x1
+  C2 x1
+  - x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+  A1 x1
+  E1 x1
+
+lane noise vol 9
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x1 vol 3
+  E4 x1 vol 4
+  E4 x1 vol 4
+  E4 x1 vol 5
+  E4 x1 vol 5
+  E4 x1 vol 6
+  E4 x1 vol 7
+  E4 x1 vol 7
+  E4 x1 vol 8
+  E4 x1 vol 8
+  E4 x1 vol 9
+  E4 x1 vol 10
+  E4 x1 vol 10
+  E4 x1 vol 11
+  E4 x1 vol 11
+  E4 x1 vol 12
+
+pattern shoot bars 4 grid 16
+
+lane pulse1 duty 25 vol 10
+  D4 x3
+  D4 x1 vol 7
+  A4 x4
+  G4 x2
+  F4 x2
+  E4 x2
+  F4 x2
+  D4 x6
+  D4 x3 vol 10 fade
+  - x3
+  C4 x2
+  D4 x2
+  E4 x3
+  E4 x1 vol 7
+  G4 x4
+  F4 x2
+  E4 x2
+  C4 x2
+  E4 x2
+  C#4 x3
+  C#4 x3 vol 10 fade
+  - x2
+  E4 x4
+  A4 x4
+
+lane pulse2 duty 50 vol 7
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  D3 x2 vol 8 fade
+  D3 x1 vol 7
+  D3 x1 vol 5
+  A3 x2 vol 8 fade
+  Bb2 x1 vol 7
+  Bb2 x1 vol 5
+  Bb2 x2 vol 8 fade
+  Bb2 x1 vol 7
+  Bb2 x1 vol 5
+  Bb2 x2 vol 8 fade
+  Bb2 x1 vol 7
+  Bb2 x1 vol 5
+  Bb2 x2 vol 8 fade
+  Bb2 x1 vol 7
+  Bb2 x1 vol 5
+  F3 x2 vol 8 fade
+  C3 x1 vol 7
+  C3 x1 vol 5
+  C3 x2 vol 8 fade
+  C3 x1 vol 7
+  C3 x1 vol 5
+  C3 x2 vol 8 fade
+  C3 x1 vol 7
+  C3 x1 vol 5
+  C3 x2 vol 8 fade
+  C3 x1 vol 7
+  C3 x1 vol 5
+  G3 x2 vol 8 fade
+  A2 x1 vol 7
+  A2 x1 vol 5
+  A2 x2 vol 8 fade
+  A2 x1 vol 7
+  A2 x1 vol 5
+  A2 x2 vol 8 fade
+  A2 x1 vol 7
+  A2 x1 vol 5
+  A2 x2 vol 8 fade
+  A2 x1 vol 7
+  A2 x1 vol 5
+  E3 x2 vol 8 fade
+
+lane triangle
+  D2 x2
+  - x4
+  D2 x1
+  - x1
+  D2 x2
+  - x6
+  Bb1 x2
+  - x4
+  Bb1 x1
+  - x1
+  Bb1 x2
+  - x6
+  C2 x2
+  - x4
+  C2 x1
+  - x1
+  C2 x2
+  - x6
+  A1 x2
+  - x2
+  E1 x2
+  - x2
+  A1 x2
+  - x2
+  E1 x1
+  - x1
+  A1 x1
+  - x1
+
+lane noise vol 9
+  B4 x2 vol 13 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+
+pattern shoot2 bars 4 grid 16
+
+lane pulse1 duty 25 vol 11
+  D5 x3
+  D5 x1 vol 7
+  A5 x4
+  G5 x2
+  F5 x2
+  E5 x2
+  F5 x2
+  D5 x6
+  D5 x3 vol 11 fade
+  - x3
+  C5 x2
+  D5 x2
+  E5 x3
+  E5 x1 vol 7
+  G5 x4
+  F5 x2
+  E5 x2
+  C5 x2
+  E5 x2
+  C#5 x3
+  C#5 x3 vol 11 fade
+  - x2
+  E5 x4
+  A5 x4
+
+lane pulse2 duty 50 vol 8
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  D3 x2 vol 9 fade
+  D3 x1 vol 8
+  D3 x1 vol 6
+  A3 x2 vol 9 fade
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  Bb2 x2 vol 9 fade
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  Bb2 x2 vol 9 fade
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  Bb2 x2 vol 9 fade
+  Bb2 x1 vol 8
+  Bb2 x1 vol 6
+  F3 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  C3 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  C3 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  C3 x2 vol 9 fade
+  C3 x1 vol 8
+  C3 x1 vol 6
+  G3 x2 vol 9 fade
+  A2 x1 vol 8
+  A2 x1 vol 6
+  A2 x2 vol 9 fade
+  A2 x1 vol 8
+  A2 x1 vol 6
+  A2 x2 vol 9 fade
+  A2 x1 vol 8
+  A2 x1 vol 6
+  A2 x2 vol 9 fade
+  A2 x1 vol 8
+  A2 x1 vol 6
+  E3 x2 vol 9 fade
+
+lane triangle
+  D2 x2
+  - x2
+  A1 x2
+  - x2
+  D2 x2
+  - x2
+  A1 x1
+  - x1
+  D2 x1
+  - x1
+  Bb1 x2
+  - x2
+  F1 x2
+  - x2
+  Bb1 x2
+  - x2
+  F1 x1
+  - x1
+  Bb1 x1
+  - x1
+  C2 x2
+  - x2
+  G1 x2
+  - x2
+  C2 x2
+  - x2
+  G1 x1
+  - x1
+  C2 x1
+  - x1
+  A1 x2
+  - x2
+  E1 x2
+  - x2
+  A1 x2
+  - x2
+  E1 x1
+  - x1
+  A1 x1
+  - x1
+
+lane noise vol 10
+  B4 x2 vol 13 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x1 vol 6
+  E4 x1 vol 7
+  E4 x1 vol 9
+  E4 x1 vol 10
+  E4 x1 vol 11
+  E4 x1 vol 12
+  E4 x1 vol 14
+  E4 x1 vol 15
+
+pattern heat bars 4 grid 16
+
+lane pulse1 duty 25 vol 10
+  F4 x9
+  F4 x3 vol 10 fade
+  - x4
+  G4 x9
+  G4 x3 vol 10 fade
+  - x4
+  A4 x6 vol 10
+  A4 x3 vol 10 fade
+  - x3
+  Bb4 x4 vol 11
+  A4 x4 vol 13 fade
+  - x12
+
+lane pulse2 duty 50 vol 7
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  Bb2 x1 vol 6
+  Bb3 x1 vol 6
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C3 x1 vol 7
+  C4 x1 vol 7
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  C#3 x1 vol 6
+  C#4 x1 vol 6
+  D3 x2 vol 10 fade
+  - x14
+
+lane triangle
+  Bb1 x2
+  - x2
+  F1 x2
+  - x2
+  Bb1 x2
+  - x2
+  F1 x1
+  - x1
+  Bb1 x1
+  - x1
+  C2 x2
+  - x2
+  G1 x2
+  - x2
+  C2 x2
+  - x2
+  G1 x1
+  - x1
+  C2 x1
+  - x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  C#2 x1
+  Ab1 x1
+  D2 x2
+  - x14
+
+lane noise vol 9
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x1 vol 2
+  E4 x1 vol 3
+  E4 x1 vol 3
+  E4 x1 vol 4
+  E4 x1 vol 4
+  E4 x1 vol 5
+  E4 x1 vol 6
+  E4 x1 vol 6
+  E4 x1 vol 7
+  E4 x1 vol 7
+  E4 x1 vol 8
+  E4 x1 vol 9
+  E4 x1 vol 9
+  E4 x1 vol 10
+  E4 x1 vol 10
+  E4 x1 vol 11
+  C4 x1 vol 15 fade
+  B4 x6 vol 12 fade
+  - x9
+
+pattern hush bars 1 grid 16
+
+lane noise vol 6
+  - x12
+  E4 x1 vol 2
+  E4 x1 vol 4
+  E4 x1 vol 5
+  E4 x1 vol 7
+
+pattern front bars 4 grid 16
+
+lane pulse1 duty 25 vol 10
+  A3 x3
+  A3 x1 vol 6
+  D4 x4
+  D4 x3 vol 8
+  D4 x1 vol 6
+  F4 x4
+  E4 x3
+  E4 x3 vol 10 fade
+  - x2
+  D4 x4
+  C4 x4
+  Bb3 x3
+  Bb3 x1 vol 6
+  D4 x4
+  G4 x4
+  F4 x4
+  E4 x6
+  E4 x3 vol 10 fade
+  - x3
+  A3 x4
+
+lane pulse2 duty 50 vol 6
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  D3 x2 vol 7 fade
+  D3 x1 vol 6
+  D3 x1 vol 4
+  A3 x2 vol 7 fade
+  C3 x1 vol 6
+  C3 x1 vol 4
+  C3 x2 vol 7 fade
+  C3 x1 vol 6
+  C3 x1 vol 4
+  C3 x2 vol 7 fade
+  C3 x1 vol 6
+  C3 x1 vol 4
+  C3 x2 vol 7 fade
+  C3 x1 vol 6
+  C3 x1 vol 4
+  G3 x2 vol 7 fade
+  G2 x1 vol 6
+  G2 x1 vol 4
+  G2 x2 vol 7 fade
+  G2 x1 vol 6
+  G2 x1 vol 4
+  G2 x2 vol 7 fade
+  G2 x1 vol 6
+  G2 x1 vol 4
+  G2 x2 vol 7 fade
+  G2 x1 vol 6
+  G2 x1 vol 4
+  D3 x2 vol 7 fade
+  A2 x1 vol 6
+  A2 x1 vol 4
+  A2 x2 vol 7 fade
+  A2 x1 vol 6
+  A2 x1 vol 4
+  A2 x2 vol 7 fade
+  A2 x1 vol 6
+  A2 x1 vol 4
+  A2 x2 vol 7 fade
+  A2 x1 vol 6
+  A2 x1 vol 4
+  E3 x2 vol 7 fade
+
+lane triangle
+  D2 x2
+  - x4
+  D2 x1
+  - x1
+  D2 x2
+  - x6
+  C2 x2
+  - x4
+  C2 x1
+  - x1
+  C2 x2
+  - x6
+  G1 x2
+  - x4
+  G1 x1
+  - x1
+  G1 x2
+  - x6
+  A1 x2
+  - x4
+  A1 x1
+  - x1
+  A1 x2
+  - x6
+
+lane noise vol 9
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  E4 x1 vol 5 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x1 vol 5
+  E4 x1 vol 6
+  E4 x1 vol 7
+  E4 x1 vol 8
+  E4 x1 vol 10
+  E4 x1 vol 11
+  E4 x1 vol 12
+  E4 x1 vol 13
+
+pattern boss bars 4 grid 16
+
+lane pulse1 duty 25 vol 12
+  D4 x3
+  D4 x1 vol 8
+  Eb4 x4
+  D4 x3
+  D4 x3 vol 12 fade
+  - x2
+  Eb4 x3
+  Eb4 x1 vol 8
+  G4 x4
+  F4 x4
+  Eb4 x4
+  D4 x3
+  D4 x1 vol 8
+  F4 x4
+  A4 x3
+  A4 x3 vol 12 fade
+  - x2
+  C#4 x3
+  C#4 x3 vol 12 fade
+  - x2
+  E4 x4
+  A3 x4
+
+lane pulse2 duty 50 vol 9
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  A3 x2 vol 10 fade
+  Eb3 x1 vol 9
+  Eb3 x1 vol 7
+  Eb3 x2 vol 10 fade
+  Eb3 x1 vol 9
+  Eb3 x1 vol 7
+  Eb3 x2 vol 10 fade
+  Eb3 x1 vol 9
+  Eb3 x1 vol 7
+  Eb3 x2 vol 10 fade
+  Eb3 x1 vol 9
+  Eb3 x1 vol 7
+  Bb3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  D3 x2 vol 10 fade
+  D3 x1 vol 9
+  D3 x1 vol 7
+  A3 x2 vol 10 fade
+  A2 x1 vol 9
+  A2 x1 vol 7
+  A2 x2 vol 10 fade
+  A2 x1 vol 9
+  A2 x1 vol 7
+  A2 x2 vol 10 fade
+  A2 x1 vol 9
+  A2 x1 vol 7
+  A2 x2 vol 10 fade
+  A2 x1 vol 9
+  A2 x1 vol 7
+  E3 x2 vol 10 fade
+
+lane triangle
+  D2 x2
+  - x2
+  A1 x2
+  - x2
+  D2 x2
+  - x2
+  A1 x1
+  - x1
+  D2 x1
+  - x1
+  Eb2 x2
+  - x2
+  Bb1 x2
+  - x2
+  Eb2 x2
+  - x2
+  Bb1 x1
+  - x1
+  Eb2 x1
+  - x1
+  D2 x2
+  - x2
+  A1 x2
+  - x2
+  D2 x2
+  - x2
+  A1 x1
+  - x1
+  D2 x1
+  - x1
+  A1 x2
+  - x2
+  E1 x2
+  - x2
+  A1 x2
+  - x2
+  E1 x1
+  - x1
+  A1 x1
+  - x1
+
+lane noise vol 10
+  B4 x2 vol 13 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  C4 x2 vol 15 fade
+  C4 x1 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x2 vol 5 fade
+  E4 x2 vol 12 fade
+  E4 x1 vol 7
+  E4 x1 vol 8
+  E4 x1 vol 9
+  E4 x1 vol 10
+  E4 x1 vol 12
+  E4 x1 vol 13
+  E4 x1 vol 14
+  E4 x1 vol 15
+
+pattern end bars 2 grid 16
+
+lane pulse1 duty 25 vol 12
+  D4 x2 vol 12 fade
+  - x2
+  D4 x2 vol 12 fade
+  - x2
+  A3 x2 vol 12 fade
+  - x2
+  C#4 x2 vol 12 fade
+  - x2
+  D4 x14 arp 0,3,7 vol 13 fade
+  - x2
+
+lane pulse2 duty 50 vol 9
+  D3 x2 vol 11 fade
+  - x2
+  D3 x2 vol 11 fade
+  - x2
+  A2 x2 vol 11 fade
+  - x2
+  A2 x2 vol 11 fade
+  - x2
+  D3 x14 vol 12 fade
+  - x2
+
+lane triangle
+  D2 x2
+  - x2
+  D2 x2
+  - x2
+  A1 x2
+  - x2
+  A1 x1
+  - x1
+  A1 x1
+  - x1
+  D2 x2
+  - x14
+
+lane noise vol 10
+  C4 x4 vol 15 fade
+  C4 x4 vol 15 fade
+  C4 x4 vol 15 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+  E4 x1 vol 12 fade
+  C4 x1 vol 15 fade
+  B4 x14 vol 13 fade
+  - x1
+

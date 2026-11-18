@@ -7,10 +7,11 @@ Working files behind shipped art, kept in git so they're on every machine.
   (stamps the logo and lettering), candidates. The shipped art is `assets/warroom/discord_sign.png`.
 - `steam_capsules/` — Steam store art: `header_capsule_920x430.png`, `main_capsule_1232x706.png`,
   `small_capsule_462x174.png`, `vertical_capsule_748x896.png`, `library_capsule_600x900.png`,
-  `library_hero_3840x1240.png` (no title; Steam lays the logo over it), `library_logo.png` (transparent title),
+  `library_hero_3840x1240.png` (no title; Steam lays the logo over it), `library_logo_1280x720.png` (transparent title, centered), `library_header_920x430.png` (same as the header capsule),
   `old/` (earlier A/B), `src/` (PixelLab scenes `scene_*.png` at half size, guides, scripts). Capsules are a
   half-size PixelLab Pro scene (main scene `sceneA2.png` as reference), cropped, titled by `holo3.py`'s
-  `compose(..., panel=False)`, then ×2 nearest; the hero is ×5; `logo.py` draws the logo.
+  `compose(..., panel=False)`, then ×2 nearest (the small capsule uses `holo_small.py scene_small.png out.png`:
+  the library logo's look drawn straight on the 462×174 grid, as wide as the capsule allows (font pixels 6–7 px), FRONTLINES on the bottom edge under the horizon, with a soft dark shadow behind it); the hero is ×5; `logo.py` draws the logo (1262×346), centered on a transparent 1280×720 canvas.
 - `steam_screenshots/` — the Steam page's screenshots at 1920×1080, made by `tools/steam_screenshots.sh`
   (`tools/Screenshot.tscn --store`).
 - `warroom_right/` — the War Room's side-wall stations (Directives screen, Livery Bay, Pilot Log and Info Bay

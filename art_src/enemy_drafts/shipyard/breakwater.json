@@ -1,0 +1,124 @@
+{
+  "id": "breakwater",
+  "name": "Breakwater",
+  "tier": "elite",
+  "weight_class": "heavy",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "heavy",
+    "targets": "random",
+    "rhythm": "charge, assault",
+    "_why": "Artillery: Creeping Fire lands this turn and next, Ballast pays for the big shots and smokes it."
+  },
+  "_note": "Claude's draft (2026-11-17), Proposed: from Frontlines Enemy Ideas - Shipyard. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "components": [
+    {
+      "id": "fire_control_relay",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "siege_mortar",
+      "offset": [
+        0,
+        3
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "ballast_tank",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "heat_sink_array",
+      "offset": [
+        2,
+        2
+      ],
+      "rotation": 0
+    }
+  ]
+}

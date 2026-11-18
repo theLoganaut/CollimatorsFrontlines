@@ -1,0 +1,96 @@
+{
+  "id": "deck_gunner",
+  "name": "Deck Gunner",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "status",
+    "targets": "hardpoints",
+    "rhythm": "afflict, assault",
+    "_why": "Suppression: jams whatever you attack with, so the harder you swing the more you jam."
+  },
+  "_note": "Claude's draft (2026-11-17), Proposed: from Frontlines Enemy Ideas - Shipyard. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "twin_linked_autocannon",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "exhaust_fans",
+      "offset": [
+        2,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "coolant_loop",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 1
+    }
+  ]
+}

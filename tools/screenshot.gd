@@ -5,6 +5,7 @@ extends Node
 ##        [--colorblind] [--reduce-motion] [--tutorial=<step> (the training coach at that step of Tutorial.STEPS)]
 ##        [--feedback-dry (also writes what Send feedback would post: <out>.txt and <out>.zip)] [--pad-page (with _settings: the gamepad controls page)]
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
+##        [--mech=redline (the player's mech, default bastion)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
 ##        [--store (Steam page shots: no Feedback buttons or build label; tools/steam_screenshots.sh takes the set)]
 ##        [--category=reactor (reward_parts / reward_mech: the category picked; default hardpoint)]
@@ -247,15 +248,18 @@ func _ready() -> void:
 		return
 	var mission := GameData.mission("assault").duplicate(true)
 	var location_id := "shipyard"
+	var mech_id := "bastion"
 	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--enemies="):
+		if a.begins_with("--mech="): # the player's mech (redline, bastion, jackal)
+			mech_id = a.trim_prefix("--mech=")
+		elif a.begins_with("--enemies="):
 			mission["encounter"] = a.trim_prefix("--enemies=").split(",")
 		elif a.begins_with("--location="):
 			location_id = a.trim_prefix("--location=")
 		elif a.begins_with("--background="): # keep only this background, so the fight uses it
 			var bg_id := a.trim_prefix("--background=")
 			GameData._backgrounds = GameData.backgrounds().filter(func(b): return b.get("id", "") == bg_id)
-	var run := RunData.new(GameData.sector(location_id), GameData.player_mech("bastion"), 12345, mission)
+	var run := RunData.new(GameData.sector(location_id), GameData.player_mech(mech_id), 12345, mission)
 	RunState.run = run
 	var scene := ""
 	match what:
