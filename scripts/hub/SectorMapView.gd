@@ -224,6 +224,7 @@ func _draw_overlay() -> void:
 	_draw_front()
 	for u in map.units:
 		_draw_unit(_proj(u["uv"], 0.03), u["hostile"], u["kind"], 1.0)
+	_draw_threat_units()
 	for f in _flashes:
 		_draw_flash(f)
 	_draw_hq(font)
@@ -254,6 +255,19 @@ func _draw_front() -> void:
 			_overlay.draw_arc(a + dir * (next - dist), 4.0, ang - PI / 2.0, ang + PI / 2.0, 8, Color("ff9a6a"), 1.5, true)
 			next += 22.0
 		dist += seg
+
+## The threat level picked for each location (Profile.threat_picked): that
+## many more enemy units dug in around it, so a higher level looks it.
+func _draw_threat_units() -> void:
+	var kinds := ["mech", "armor", "artillery"]
+	for m in _markers:
+		var id: String = m["location"]["id"]
+		var n := Profile.threat_picked(id)
+		var turn := float(absi(hash(id)) % 628) / 100.0
+		for i in range(n):
+			var a := turn + TAU * float(i) / 5.0
+			var uv: Vector2 = m["uv"] + Vector2(cos(a) * 0.05, sin(a) * 0.08)
+			_draw_unit(_proj(uv, 0.03), true, kinds[i % kinds.size()], 0.85)
 
 ## A unit counter: ours a blue rectangle, theirs a red diamond (NATO style),
 ## with its kind drawn inside.

@@ -1,0 +1,83 @@
+{
+  "id": "cable_rat",
+  "name": "Cable Rat",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "status",
+    "targets": "focus",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Builds Shock on one part, then Discharges it all at once."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ]
+  ],
+  "components": [
+    {
+      "id": "coil_whip",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "static_collector",
+      "offset": [
+        1,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "capacitor_bank",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 2
+    }
+  ]
+}

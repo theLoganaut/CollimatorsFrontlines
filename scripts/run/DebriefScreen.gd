@@ -67,7 +67,7 @@ func _can_run_again(run: RunData) -> bool:
 func _run_again(run: RunData) -> void:
 	if SceneRouter.is_busy():
 		return
-	RunState.start_run(str(run.location.get("id", "")))
+	RunState.start_run(str(run.location.get("id", "")), -1, "", Threat.level(run.mission))
 	RunState.advance()
 
 func _build(run: RunData) -> void:
@@ -76,7 +76,8 @@ func _build(run: RunData) -> void:
 	_content.add_child(UIKit.label("Sector cleared" if cleared else "Pilot ejected", 34, Palette.OK if cleared else Palette.DANGER))
 	var where := HBoxContainer.new()
 	where.add_theme_constant_override("separation", 12)
-	where.add_child(UIKit.label("%s  ·  %s  ·  %d / %d encounters" % [run.location.get("name", ""), run.mission_name(), run.path.size(), run.encounter_count()], 14, Color("9fb9b6")))
+	var lv := Threat.level(run.mission)
+	where.add_child(UIKit.label("%s  ·  %s%s  ·  %d / %d encounters" % [run.location.get("name", ""), run.mission_name(), "  ·  Threat %d" % lv if lv > 0 else "", run.path.size(), run.encounter_count()], 14, Color("9fb9b6")))
 	where.add_child(FeedbackDialog.button())
 	where.add_child(UIKit.seed_row(run.seed_value, 14, Color("9fb9b6")))
 	_content.add_child(where)
@@ -84,6 +85,9 @@ func _build(run: RunData) -> void:
 		_content.add_child(UIKit.label("Training doesn't count toward your record.", 16, Palette.TEXT_MUTED))
 	else:
 		var report: Dictionary = Profile.last_report
+		if report.has("threat_unlocked"):
+			var n := int(report["threat_unlocked"])
+			_content.add_child(UIKit.label("Threat %d unlocked at %s: %s (%s)." % [n, run.location.get("name", ""), Threat.level_name(n), Threat.chips_text(n)], 16, Palette.WARNING))
 		if report.has("daily_score"):
 			_content.add_child(UIKit.label("Daily Operation score: %d%s" % [int(report["daily_score"]), "  ·  a new best!" if report.get("daily_best", false) else "  ·  best %d" % int(Profile.daily.get("best", 0))], 16, Palette.LINK))
 	var gap := Control.new()

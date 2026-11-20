@@ -1,0 +1,87 @@
+{
+  "id": "redactor",
+  "name": "Redactor",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "spread",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Wipes your waiting protocols and arcs between packed parts."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "arc_thrower",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "signal_interceptor",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "coolant_flush",
+      "offset": [
+        2,
+        2
+      ],
+      "rotation": 2
+    }
+  ]
+}

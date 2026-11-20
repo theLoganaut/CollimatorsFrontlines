@@ -13,6 +13,12 @@ var preview: int = -1 # -1 = no preview
 ## Show "vents to N" under the box (the player's); vent_at_max is the mech's own (< 0 = balance.json).
 var show_forecast: bool = false
 var vent_at_max: float = -1.0
+## Heat banking (CombatManager.bank_projection), the player's: what ending
+## the turn at the shown heat would save (-1 = banking off, the vent
+## forecast shows instead), and the Heat saved last turn that's in this
+## turn's max (a "+N" tag on the box).
+var saves: int = -1
+var banked: int = 0
 const NEAR_SHARE := 0.75
 var _label: Label
 var _t: float = 0.0
@@ -39,6 +45,14 @@ func set_heat(p_current: int, p_max: int) -> void:
 	max_value = p_max
 	if is_inside_tree():
 		_refresh_label()
+	queue_redraw()
+
+## The banking readouts (see `saves` / `banked`).
+func set_bank(p_saves: int, p_banked: int) -> void:
+	if saves == p_saves and banked == p_banked:
+		return
+	saves = p_saves
+	banked = p_banked
 	queue_redraw()
 
 func set_preview(p_preview: int) -> void:
@@ -84,7 +98,19 @@ func _draw() -> void: # holo glass, lit by the preview / overheat colour
 		var k := 0.55 + 0.25 * sin(_t * 3.0) if not GameSettings.reduce_motion else 0.7
 		draw_rect(rect, Color(Palette.WARNING, k), false, 2.0)
 		draw_rect(rect.grow(2.0), Color(Palette.WARNING, k * 0.3), false, 2.0)
-	if show_forecast:
+	if banked > 0: # last turn's saved Heat is in this max
+		var tag := "+%d" % banked
+		var f := get_theme_default_font()
+		var w := f.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 8.0
+		var tr := Rect2(Vector2(size.x - w + 6.0, -9.0), Vector2(w, 16.0))
+		draw_rect(tr, Color(0.0, 0.05, 0.06, 0.92), true)
+		draw_rect(tr, Palette.LINK, false, 1.0)
+		draw_string(f, tr.position + Vector2(4.0, 12.5), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Palette.LINK)
+	if show_forecast and saves >= 0:
+		var stext := "%d saved" % saves if saves > 0 else "nothing saved"
+		draw_string(get_theme_default_font(), Vector2(-40, size.y + 15), stext, HORIZONTAL_ALIGNMENT_CENTER, size.x + 80, 12,
+			Palette.LINK if saves > 0 else Color("9fb9b6"))
+	elif show_forecast:
 		var shown := preview if preview >= 0 else current
 		var after := shown - HeatRules.amount_vented(shown, max_value, vent_at_max)
 		var text := "vents to %d" % after if after < shown else ("too cool to vent" if shown > 0 else "cool")

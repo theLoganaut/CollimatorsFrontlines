@@ -1,0 +1,80 @@
+{
+  "id": "mimic",
+  "name": "Mimic",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "hardpoints",
+    "rhythm": "combo, assault",
+    "_why": "Steals the protocol you have waiting and uses it on you."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Data Archives. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "echo_buffer",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "autocannon",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "coolant_flush",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 2
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": "ghostnode",
+  "name": "Ghostnode",
+  "tier": "regular",
+  "weight_class": "light",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "status",
+    "targets": "random",
+    "role": "support",
+    "rhythm": "guard, guard",
+    "_why": "Almost no damage: makes your attacks go where you didn't aim."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Data Archives. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "components": [
+    {
+      "id": "flare_array",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "scatter_link",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "exhaust_fans",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 2
+    }
+  ]
+}

@@ -27,6 +27,12 @@ static func line(report: Dictionary, runs: int, saved: Dictionary = {}) -> Strin
 			"stops": int(saved.get("stops", 0)) + 1, "boss": ""}
 	return text.format(fill)
 
+## Combat: a line for the analyzed parts (operator.json "analysis"), at random.
+static func analysis_line() -> String:
+	var lines = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	var pool: Array = lines.get("analysis", []) if typeof(lines) == TYPE_DICTIONARY else []
+	return "Found a weak point." if pool.is_empty() else str(pool[randi() % pool.size()])
+
 ## Which pool of lines fits: paused, first_time, boss_first, recon_intel,
 ## rescue_hot, cleared, or ejected_early / ejected / ejected_late (under 30%
 ## of the way, or 2 encounters or fewer; 70% or more; the rest).

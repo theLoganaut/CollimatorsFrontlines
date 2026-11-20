@@ -1,7 +1,68 @@
 {
   "_note": "The War Room's What's New?! board (WhatsNewDialog). `current` is this build's version (project.godot application/config/version must match; validate_data checks). Releases newest first. An item is a line of text, or {\"label\", \"text\"} for a bold lead-in, with optional \"items\" indented under it; {\"label\", \"items\"} with no text is a category heading (Logan, 2026-10-16: New, Gameplay, UI, Balance, Bug Fixes, each entry \"Name - short description\"). A release can carry a `note` {title, text, button, link}: a lit box under its version with a button that opens the link (0.2.2: the Discord is open). `next` is the What's Next?! roadmap: `updates` (kind \"minor\"/\"major\", when, items; no version number, it gets one when it ships) in planned order, then loose `items`. Text: Logan, 2026-10-14; the roadmap follows the one posted on Discord (Logan, 2026-10-15).",
-  "current": "0.2.5",
+  "current": "0.3.0",
   "releases": [
+    {
+      "version": "0.3.0",
+      "title": "",
+      "items": [
+        {
+          "label": "New",
+          "items": [
+            {
+              "label": "New Enemies",
+              "text": "- 27 new enemies, nine for each location: the Shipyard's harpooners, pressure-cookers and frogmen, the Mining Grounds' crushers, powder monkeys and moles, and the Data Archives' firewalls, mimics and redactors. Each location's own crews are a little more likely there, with roamers still about."
+            },
+            {
+              "label": "Boss Phase 2",
+              "text": "- at half HP a boss transforms into a bigger, meaner form, says its piece, and the whole scene turns: a storm and crashing waves at the Shipyard, a red-hot borer or erupting lava in the Mining Grounds, glitching servers in the Data Archives."
+            },
+            {
+              "label": "Threat Levels",
+              "text": "- replay a location at Threat 1-5 for more Chips: veteran enemies, elites that expect you, captured repair bays, bosses on alert from the start, and cut supply lines."
+            },
+            {
+              "label": "Heat Banking",
+              "text": "- Heat you don't spend is saved, up to half your max, and raises next turn's max."
+            },
+            {
+              "label": "Analyzed Parts",
+              "text": "- each turn the Operator finds a weak point on one enemy part: your hits on it deal ×1.5."
+            }
+          ]
+        },
+        {
+          "label": "Gameplay",
+          "items": [
+            {
+              "label": "Smarter Enemies",
+              "text": "- enemies now fire Salvos, wipe your waiting protocol with Scramble Signal, swap Heat with you using Invert, and spread statuses with Chain."
+            },
+            {
+              "label": "Fewer, Bigger Intents",
+              "text": "- enemies play fewer cards a turn (regulars 2, elites 3, bosses 4), so each one counts."
+            },
+            {
+              "label": "Boss Phase 2",
+              "text": "- a boss pushed past half HP on your turn shows its new plan straight away."
+            },
+            {
+              "label": "Utility Cards",
+              "text": "- cards that deal no damage cost 1 less Heat, and their Deflect and Absorb are 25% stronger."
+            }
+          ]
+        },
+        {
+          "label": "UI",
+          "items": [
+            {
+              "label": "New Looks",
+              "text": "- Arc Sentry and Relay Sentinel are redrawn to fit the Data Archives, and some enemies are animated."
+            }
+          ]
+        }
+      ]
+    },
     {
       "version": "0.2.5",
       "title": "",

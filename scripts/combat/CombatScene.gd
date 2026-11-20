@@ -101,6 +101,7 @@ var feedback_button: Button
 var map_button: MapButton
 var settings_menu: SettingsMenu
 var hit_fx: HitFx
+var analysis_overlay: AnalysisOverlay
 ## Attack animations (AttackFx), on one layer over the enemies and under
 ## the player's mech: an enemy's shot lands on its front, and the player's
 ## leave from its front (they come out from behind it).
@@ -352,6 +353,17 @@ func _build_ui_and_start() -> void:
 
 	hit_fx = HitFx.new()
 	add_child(hit_fx)
+
+	# Analyzed parts: their outlines, and the Operator calling them out on
+	# a fight's first turn (not over the training coach).
+	analysis_overlay = AnalysisOverlay.new()
+	analysis_overlay.combat = combat
+	analysis_overlay.grid_for = _grid_for
+	analysis_overlay.keep_clear = player_panel._heat_box
+	analysis_overlay.health_bar = player_panel._health_bar
+	analysis_overlay.end_turn = turn_panel
+	add_child(analysis_overlay)
+	combat.analyzed_changed.connect(func(): analysis_overlay.announce(combat.turn_number == 1 and not Tutorial.active))
 
 	_overheat_glow = ColorRect.new()
 	_overheat_glow.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -708,6 +720,8 @@ func _end_passive_reveal() -> void:
 	if _in_run():
 		for line in RunState.run.apply_fight_start_effects(player_mech, enemy_mechs):
 			combat_log.log_line(line)
+		if RunState.run.is_ambush():
+			show_banner("CAPTURED BAY", "Enemies were waiting at the repair bay. Win to use it.", Palette.WARNING)
 		_refresh_all_panels()
 		if not _record.is_empty():
 			FightRecord.set_opening(_record, player_mech, enemy_mechs)
@@ -715,6 +729,7 @@ func _end_passive_reveal() -> void:
 		if m.tier == "boss" and m.lines.has("intro"):
 			combat_log.log_line("%s: \"%s\"" % [m.title if m.title != "" else m.name, m.lines["intro"]], CombatLog.CAT_ENEMY)
 			show_banner("%s  ·  %s" % [m.title.to_upper(), m.name.to_upper()] if m.title != "" else m.name.to_upper(), m.lines["intro"], Palette.HARDPOINT)
+	_open_in_phase2(_generation)
 
 ## Hotkeys: E ends the turn, V vents (same rules as the buttons); 1–9 play
 ## the cards in the fan (attacks aim first: Tab cycles, Enter / Space
@@ -1966,13 +1981,45 @@ func _on_passive_triggered(mech: MechData, component: ComponentData) -> void:
 		var text := "+%d %s" % [int(component.passive.get("stacks", 0)), str(component.passive.get("status", "")).capitalize()]
 		hit_fx.float_text(icon.get_global_rect().get_center() + Vector2(0, -8), text, Palette.LINK, 16)
 
-## A boss at half HP changes how it fights: its line, big.
+## A boss at half HP changes how it fights: it transforms into its phase-2
+## form, the scene turns ominous, and its line goes up big.
 func _on_boss_phase(mech: MechData) -> void:
 	var who := mech.title if mech.title != "" else _label_for(mech)
 	var line: String = mech.lines.get("phase2", "")
 	Audio.play("boss_phase", 0.0)
 	combat_log.log_line("%s changes tactics.%s" % [who, "" if line == "" else " \"%s\"" % line], CombatLog.CAT_ENEMY)
 	show_banner(who.to_upper(), line if line != "" else "changes tactics", Palette.DANGER)
+	if mech.is_defeated():
+		return # the same hit finished it: the defeat plays instead
+	var panel := _panel_for(mech)
+	if panel != null:
+		panel.play_phase2(true, play_field.phase2_tint())
+	play_field.set_phase2(true)
+	if hit_fx != null:
+		hit_fx.shake(0.6)
+
+## How long the opening waits on the boss's intro banner before a threat
+## level 4 boss transforms (its banner holds 2.6 s).
+const THREAT_P2_DELAY := 2.2
+## How long the transformation runs (EnemyPanel P2_CHARGE_TIME + P2_BURN_TIME + its flash).
+const P2_SEQUENCE_TIME := 2.6
+
+## Threat level 4 (On alert): the boss starts in phase 2, so the fight opens
+## on its transformation, its phase-2 line and the scene turning, as if it
+## had just fallen to half HP. Input waits until it's done.
+func _open_in_phase2(gen: int) -> void:
+	var bosses := enemy_mechs.filter(func(m): return m.tier == "boss" and m.phase2_reached)
+	if bosses.is_empty():
+		return
+	UIState.input_locked = true
+	await _wait(THREAT_P2_DELAY)
+	if gen != _generation:
+		return
+	for m in bosses:
+		_on_boss_phase(m)
+	await _wait(P2_SEQUENCE_TIME)
+	if gen == _generation:
+		UIState.input_locked = false
 
 ## A chance effect didn't land: say so where it would have, like a MISS.
 func _on_chance_failed(mech: MechData, component: ComponentData) -> void:

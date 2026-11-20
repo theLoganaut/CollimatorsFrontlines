@@ -34,7 +34,8 @@ master for refactors (seeded sim traces must stay identical); rerecord (`record`
 `command_log`, replayable). `RunData` likewise delegates to `RunEvents`, `RunShop`, `RunParts`, `RunSave`. Enemy turns (Phase 6): `data/enemy_ai.json` gives each enemy two-turn rhythms of themes (assault/guard/charge/afflict/recover/combo),
 openers, squad roles, on_lost and phase 2; `EnemyAI.plan_all` plays every affordable card in theme order, `EnemyAI.repair` updates
 the shown plan after each player command, and a Charge fires free at `enemy_ai.charge_mult` next enemy turn unless its part is stopped. Location rules and
-mission variants are `Conditions` (`data/conditions.json`); the seeded daily run is `Daily`.
+mission variants are `Conditions` (`data/conditions.json`); the seeded daily run is `Daily`. Threat levels 1-5 (`Threat`, `data/threat.json`, balance.json "threat")
+stack per location, picked in the War Table pop-up; the run's mission carries `threat`, Profile `threat` keeps what's unlocked.
 **Combat scaling:** `balance.json` "combat" (`damage_mult`, `heat_add`, `hp_mult`, `heat_mult`) is applied to every Refit Bay
 part as it loads (`ComponentLibrary.make`), player and enemy alike, so the game shows the scaled numbers while Refit Bay and
 components.json keep the originals (target: about 6 turns a fight). Tests run with it off (`tests/run_tests.gd`), so rule tests
@@ -42,7 +43,7 @@ use Refit Bay's numbers; rule tests that need a kit use `tests/fixtures/*_classi
 Surplus, about 50 damage a turn; the Hangar and saved loadouts are Surplus only).
 **Combat rules to know:** each card plays once per turn and is back next turn (`CombatManager.spent`; Logan: nothing
 more, nothing less). The Vent action (player before any card; enemies with nothing to play) vents a flat
-`heat.vent_action_share` at the next dispersal. An enemy that started with cards and can never play one again (all its card parts destroyed or Offline) retreats as its turn starts; that counts as a kill, bosses included. One protocol waits at a time (no stacking): priming another replaces it, for the player and enemies alike. Pointing parts (Coolant Flush) give their status only at the start of
+`heat.vent_action_share` at the next dispersal. An enemy that started with cards and can never play one again (all its card parts destroyed or Offline) retreats as its turn starts; that counts as a kill, bosses included. One protocol waits at a time (no stacking): priming another replaces it, for the player and enemies alike. Turn variety trials (2026-11-19, switches in balance.json): unspent player Heat is saved into next turn's max (`heat.bank`, `MechData.banked_heat`); each turn one part across all regular/elite enemies is analyzed and takes ×1.5 from the player (`analysis`, `CombatManager.analyzed`, `AnalysisOverlay`); enemies play at most `enemy_ai.max_cards` a turn by tier; no-damage cards skip `heat_add` and get ×`utility_shield_mult` Deflect/Absorb. Tests run with all four off (`TestTurnVariety` turns them on). Pointing parts (Coolant Flush) give their status only at the start of
 combat. Event buttons are built from their outcome (`EventOutcome`: the label, then one short sentence per effect, gains first: "+70 Scraps. Hardpoints Jam 1 next fight."); every gain needs a cost. A run's frame grows at most
 one ring past the chassis' original bounds (`RunData.base_bounds`). Run saves go through `SafeFile` (atomic, with a backup),
 are versioned (`RunData.SAVE_VERSION`, `SaveMigration`; `SaveMigration.problems` refuses a save that names parts/enemies/events
@@ -97,7 +98,7 @@ else Godot reads the pad directly; both give the same pad ids (JoyButton values)
 polls the left mouse button uses `Gamepad.left_held()`. Card text in part cards uses `UIKit.rich_label`
 (`StatusGlossary.annotate`: statuses and keywords tinted, with their rule as a hover hint).
 Mech sprites (PixelLab, 128×128, straight-on) are `assets/enemies/<id>.png` and `assets/mechs/<id>_front.png` /
-`_back.png`, loaded through `MechArt`; a mech without one keeps the placeholder.
+`_back.png`, loaded through `MechArt`; a mech without one keeps the placeholder. An enemy with `assets/enemies/<id>_anim.png` (square frames side by side, frame 0 = the still) loops it in combat (`MechArt.enemy_sprite`; still with Reduce motion). A boss's phase-2 form is `assets/enemies/<id>_p2.png` (its idle loop `<id>_p2_anim.png` is built from it by `tools/boss_p2_anim.py`, which animates the sprite's own pixels; rerun it after replacing a `_p2.png`): at half HP (or from the start at threat level 4) `EnemyPanel.play_phase2` burns it in over the old sprite, and `PlayField.set_phase2` turns the background ominous for its location (grade shader, doubled weather, an `Omen` layer: lightning, glitches, embers).
 Component art is `assets/components/<library id>.png` (32 px per cell of the unrotated shape), drawn tile by tile over
 the part's cells, turned with the part, by `PartArt`. Grid squares have no fill: `PartArt.draw_part_cell` /
 `draw_empty_cell` draw every grid's squares as see-through edges in the category color (a part without art keeps a faint tint).

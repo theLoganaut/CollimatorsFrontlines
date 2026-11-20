@@ -259,6 +259,8 @@ func _refresh() -> void:
 		var cover := mech.cover_for(component) if mech != null else null
 		if cover != null:
 			effect_lines.append("Redirected to %s: damage aimed here goes to it while it stands." % cover.name)
+		if component.analyzed and not component.destroyed:
+			effect_lines.append("Analyzed: your hits on it deal ×%s damage this turn." % AnalysisOverlay._fmt(Balance.get_num("analysis", "damage_mult", 1.5)))
 		_effect_label.text = "\n".join(effect_lines)
 		_effect_label.visible = effect_lines.size() > 0
 		var status_lines: Array[String] = []

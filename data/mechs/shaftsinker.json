@@ -1,0 +1,91 @@
+{
+  "id": "shaftsinker",
+  "name": "Shaftsinker",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "heavy",
+    "targets": "strongest",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "One enormous blow a turn; Breaker makes shielding against it a trap."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      1
+    ]
+  ],
+  "components": [
+    {
+      "id": "pile_driver",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "hydraulic_ram",
+      "offset": [
+        1,
+        1
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "plated_housing",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 0
+    }
+  ]
+}

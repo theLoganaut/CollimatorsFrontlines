@@ -18,7 +18,7 @@ extends RefCounted
 ##            "not optimal" part.
 ## - protocols: the chance it primes a protocol it owns before its best
 ##            attack (Lock On, Overdrive, Split Feed, Catalyze, Standby,
-##            Replay).
+##            Replay, and Salvo: see _plan_salvo).
 ## - guard:   below this share of its HP, a self card that shields it
 ##            (Deflect / Absorb) is worth playing.
 ## - phase2:  a boss's overrides once it falls to half HP.
@@ -36,7 +36,11 @@ extends RefCounted
 ## Protocols enemies know how to use.
 const ENEMY_PROTOCOLS := ["lock_on", "overdrive", "split_feed", "catalyze", "standby", "replay",
 	"pierce", "chain", "knockback", "double_hits", "execute", "max_roll", "last_stand", "siphon", "vent_on_hit",
-	"grant", "steal"]
+	"grant", "steal", "invert", "clear_enemy"]
+
+## Protocols that act when played instead of waiting for a card: an opener
+## or threat level never primes these.
+const UNPRIMED := ["replay", "steal", "clear_enemy", "standby"]
 
 const DEFAULT_AI := {"heat": "careful", "cards": "random", "targets": "random", "slip": 0.3, "protocols": 0.7, "guard": 0.5}
 
@@ -318,6 +322,20 @@ static func plan_all(cm: CombatManager) -> void:
 		if (cm.enemy_plans[w] as Array).is_empty() and w.current_heat > 0:
 			cm.venting[w] = true
 
+## Remakes one enemy's shown plan mid-turn (a boss entering phase 2): a new
+## theme from its rhythms now, then a fresh plan, as plan_all would.
+static func replan(cm: CombatManager, w: MechData) -> void:
+	if w.is_defeated():
+		return
+	var theme := next_theme(cm, w, cm.rng)
+	if theme == "charge" and (cm.enemy_charged.has(w) or charge_card(cm, w) == null):
+		theme = "afflict"
+	cm.enemy_theme[w] = theme
+	cm.enemy_plans[w] = plan_turn(w, cm.rng, cm, cm.player_mech)
+	cm.venting.erase(w)
+	if (cm.enemy_plans[w] as Array).is_empty() and w.current_heat > 0:
+		cm.venting[w] = true
+
 static func _role(mech: MechData) -> String:
 	return str(design(mech).get("squad_role", ""))
 
@@ -411,13 +429,17 @@ static func plan_turn(warden: MechData, rng: RandomNumberGenerator, cm: CombatMa
 	var firing: CardData = cm.enemy_charged.get(warden, {}).get("card", null) if cm != null else null
 	var desperate := warden.max_hp() > 0 and float(warden.current_hp()) / warden.max_hp() < float(design(warden).get("desperate", 0.3))
 	var protocols: Array = []
+	var salvos: Array = []
 	var pool: Array = []
 	for component in act_order(warden):
 		for c in component.cards:
 			if (cm != null and cm.is_spent(c)) or c == charged or c == firing:
 				continue
+			if c.protocol() == "salvo":
+				salvos.append({"component": component, "card": c})
+				continue
 			if c.protocol() != "":
-				if ENEMY_PROTOCOLS.has(c.protocol()) and not (c.protocol() == "grant" and str(c.rule.get("on", "attack")) != "attack"):
+				if ENEMY_PROTOCOLS.has(c.protocol()) and not (c.protocol() == "grant" and not str(c.rule.get("on", "attack")) in ["attack", "status"]):
 					protocols.append({"component": component, "card": c})
 				continue
 			if _self_offline(c) and not desperate:
@@ -426,8 +448,21 @@ static func plan_turn(warden: MechData, rng: RandomNumberGenerator, cm: CombatMa
 			if sc >= 0.0:
 				pool.append({"component": component, "card": c, "score": sc})
 	pool.sort_custom(func(a, b): return a["score"] > b["score"])
+	var excluded := [charged, firing]
+	var salvo := _plan_salvo(salvos, warden, theme, p, rng, cm, limit - sim_heat, excluded)
+	var cap := max_cards(warden)
+	var room_left := cap # cards still allowed (cap 0 = no cap)
+	if not salvo.is_empty():
+		plan.append_array(salvo)
+		for step in salvo:
+			if step.has("salvo_relay"):
+				sim_heat += cost_of.call(step["card"])
+		pool = pool.filter(func(e): return not salvo.any(func(st): return st["card"] == e["card"]))
+		room_left = cap - 1 # the Salvo is one intent
 	var picked := []
 	for e in pool:
+		if cap > 0 and picked.size() >= room_left:
+			break
 		var cost: int = cost_of.call(e["card"])
 		if sim_heat + cost <= limit:
 			picked.append(e)
@@ -441,12 +476,78 @@ static func plan_turn(warden: MechData, rng: RandomNumberGenerator, cm: CombatMa
 			_add_protocol(plan, [pr], p, rng, sim_heat, limit)
 	if defender != null:
 		var memory: Dictionary = cm.ai_memory if cm != null else {}
+		var salvo_target: ComponentData = null
 		for step in plan:
 			if (step["card"] as CardData).is_attack() and (step["card"] as CardData).protocol() == "" and not step.get("charge", false):
+				if step.has("salvo_relay") and salvo_target != null:
+					step["target"] = salvo_target # a Salvo's guns all fire at one part
+					continue
 				step["target"] = choose_target(defender, rng, warden, step["card"], memory)
+				if step.has("salvo_relay"):
+					salvo_target = step["target"]
 				if cm != null and _role(warden) == "marker" and not memory.has("squad_mark"):
 					memory["squad_mark"] = step["target"]
 	return plan
+
+## Fewer, bigger intents (Logan, 2026-11-19): the most cards `mech` plays a
+## turn by its tier (balance.json enemy_ai.max_cards; protocols and a charged
+## shot don't count). 0 = no cap.
+static func max_cards(mech: MechData) -> int:
+	return int(Balance.get_dict("enemy_ai", "max_cards").get(mech.tier, 0))
+
+## Steps that count against max_cards (a Salvo counts once: its relay step).
+static func _counts(step: Dictionary) -> bool:
+	if step.get("salvo", false):
+		return true
+	if step.has("salvo_relay"):
+		return false
+	return (step["card"] as CardData).protocol() == "" and not step.get("charge", false)
+
+## Whether a planned step can still happen: its part can act, and for a
+## Salvo's gun, so can the relay that fires it (stop the relay, stop the Salvo).
+static func step_usable(step: Dictionary) -> bool:
+	if not (step["component"] as ComponentData).is_usable():
+		return false
+	var relay = step.get("salvo_relay", null)
+	return relay == null or (relay as ComponentData).is_usable()
+
+## The guns a Salvo from `relay` fires, as the player's does (CombatProtocols.
+## play_salvo): each hardpoint its link reaches, its cheapest attack card not
+## yet used or in `excluded`. [{component, card}], in link order.
+static func salvo_chain(cm: CombatManager, mech: MechData, relay: ComponentData, excluded: Array = []) -> Array:
+	var chain := []
+	for hp in Links.linked(mech, relay):
+		if hp.category != ComponentData.CATEGORY_HARDPOINT or not hp.is_usable():
+			continue
+		var cheapest: CardData = null
+		for c in hp.cards:
+			if not c.is_attack() or c.hits <= 0 or c.protocol() != "" or excluded.has(c) or (cm != null and cm.is_spent(c)):
+				continue
+			var cost := cm.effective_cost(c, mech) if cm != null else c.heat_cost
+			if cheapest == null or cost < (cm.effective_cost(cheapest, mech) if cm != null else cheapest.heat_cost):
+				cheapest = c
+		if cheapest != null:
+			chain.append({"component": hp, "card": cheapest})
+	return chain
+
+## Salvo (Fire Control Relay) for enemies (Logan, 2026-11-20): on an
+## assault or combo turn, with its protocols chance, a relay whose link
+## reaches a gun fires them all: the relay's step, then each gun's
+## cheapest attack (paying its own Heat, careful enemies only as far as
+## `room` allows), all at one part. [] if it doesn't salvo this turn.
+static func _plan_salvo(salvos: Array, mech: MechData, theme: String, p: Dictionary, rng: RandomNumberGenerator, cm: CombatManager, room: int, excluded: Array) -> Array:
+	if salvos.is_empty() or not theme in ["assault", "combo"] or rng.randf() >= float(p.get("protocols", 0.7)):
+		return []
+	var pick: Dictionary = salvos[rng.randi() % salvos.size()]
+	var relay: ComponentData = pick["component"]
+	var steps := [{"component": relay, "card": pick["card"], "salvo": true}]
+	for g in salvo_chain(cm, mech, relay, excluded):
+		var cost := cm.effective_cost(g["card"], mech) if cm != null else (g["card"] as CardData).heat_cost
+		if cost > room:
+			continue
+		room -= cost
+		steps.append({"component": g["component"], "card": g["card"], "salvo_relay": relay})
+	return steps if steps.size() >= 2 else []
 
 static func _self_stops(c: CardData) -> bool:
 	return c.statuses.any(func(st): return st.target == StatusEffectData.TARGET_SELF and st.status in ["disabled", "offline", "freeze"])
@@ -462,9 +563,12 @@ static func repair(cm: CombatManager, w: MechData) -> void:
 	var sim_heat := w.current_heat
 	var cancelled := false
 	var used := {}
+	var live := 0
 	for step in plan:
 		used[step["card"]] = true
-		if not (step["component"] as ComponentData).is_usable():
+		if step_usable(step) and _counts(step):
+			live += 1
+		if not step_usable(step):
 			if not step.get("refilled", false):
 				cancelled = true
 				step["refilled"] = true
@@ -487,10 +591,14 @@ static func repair(cm: CombatManager, w: MechData) -> void:
 			if sc >= 0.0:
 				pool.append({"component": comp, "card": c, "score": sc})
 	pool.sort_custom(func(a, b): return a["score"] > b["score"])
+	var cap := max_cards(w)
 	for e in pool:
+		if cap > 0 and live >= cap:
+			break
 		var cost := cm.effective_cost(e["card"], w)
 		if sim_heat + cost <= limit:
 			sim_heat += cost
+			live += 1
 			var step := {"component": e["component"], "card": e["card"], "added": true}
 			if (e["card"] as CardData).is_attack():
 				step["target"] = choose_target(cm.player_mech, cm.rng, w, e["card"], cm.ai_memory)
@@ -502,7 +610,11 @@ static func apply_openers(cm: CombatManager) -> void:
 	for w in cm.enemies:
 		var op = design(w).get("opener", [])
 		var notes := []
-		for o in (op if op is Array else [op]):
+		var list: Array = (op if op is Array else [op]).duplicate()
+		list.append_array(w.threat_openers) # a threat level's extra moves (Threat.apply_to_enemies), after its own
+		for entry in list:
+			# level 2's extra move is picked once its own openers are on, so it adds something new
+			var o: Dictionary = _threat_opener(cm, w, entry) if str(entry.get("type", "")) == "threat_extra" else entry
 			match str(o.get("type", "")):
 				"charged":
 					var c := charge_card(null, w)
@@ -511,7 +623,7 @@ static func apply_openers(cm: CombatManager) -> void:
 				"primed":
 					for comp in w.non_destroyed_components():
 						for c in comp.cards:
-							if c.protocol() != "" and (str(o.get("card", "")) == c.id or (not o.has("card") and ENEMY_PROTOCOLS.has(c.protocol()))) and not cm.enemy_primed.has(w):
+							if c.protocol() != "" and (str(o.get("card", "")) == c.id or (not o.has("card") and ENEMY_PROTOCOLS.has(c.protocol()) and not UNPRIMED.has(c.protocol()))) and not cm.enemy_primed.has(w):
 								cm.enemy_primed[w] = [{"type": c.protocol(), "card": c, "component": comp}]
 				"player_status":
 					var part := _opener_target(cm, str(o.get("target", "any")))
@@ -525,6 +637,19 @@ static func apply_openers(cm: CombatManager) -> void:
 				notes.append(str(o["note"]))
 		if not notes.is_empty():
 			cm.ai_note.emit(w, "%s: %s." % [w.name, ", ".join(notes)])
+
+## Threat level 2's extra move for an elite (they're expecting you): it lays
+## its charge if it has one and none is laid, else primes a protocol if
+## none waits, else braces with threat.elite_deflect Deflect.
+static func _threat_opener(cm: CombatManager, w: MechData, _t: Dictionary) -> Dictionary:
+	if not cm.enemy_charged.has(w) and charge_card(null, w) != null:
+		return {"type": "charged", "note": "expecting you, a charge is already laid"}
+	if not cm.enemy_primed.has(w):
+		for comp in w.non_destroyed_components():
+			for c in comp.cards:
+				if ENEMY_PROTOCOLS.has(c.protocol()) and not UNPRIMED.has(c.protocol()):
+					return {"type": "primed", "card": c.id, "note": "expecting you, %s is primed" % c.name}
+	return {"type": "self_status", "status": "deflect", "stacks": Balance.get_int("threat", "elite_deflect", 3), "note": "expecting you, braced"}
 
 static func _opener_target(cm: CombatManager, kind: String) -> ComponentData:
 	var parts := cm.player_mech.non_destroyed_components()
@@ -559,7 +684,7 @@ static func _shuffle(list: Array, rng: RandomNumberGenerator) -> void:
 ## protocol it owns gets its own roll, so a protocol-heavy boss spreads them
 ## over its attacks; one waits at a time, so never two before the same attack).
 static func _add_protocol(plan: Array, protocols: Array, p: Dictionary, rng: RandomNumberGenerator, sim_heat: int, limit: int) -> void:
-	var attacks := plan.filter(func(s): return (s["card"] as CardData).hits > 0 and not _primed_before(plan, s))
+	var attacks := plan.filter(func(s): return (s["card"] as CardData).hits > 0 and not s.has("salvo_relay") and not _primed_before(plan, s))
 	if protocols.is_empty() or attacks.is_empty() or rng.randf() >= float(p.get("protocols", 0.7)):
 		return
 	var pick: Dictionary = protocols[rng.randi() % protocols.size()]
@@ -574,6 +699,17 @@ static func _add_protocol(plan: Array, protocols: Array, p: Dictionary, rng: Ran
 			if with_status.is_empty():
 				return
 			best = with_status[0]
+		"grant":
+			# Chain (on: status) goes before a card that puts a status on you.
+			if str((pick["card"] as CardData).rule.get("on", "attack")) == "status":
+				var fits := attacks.filter(func(s): return CombatProtocols.grant_fits(pick["card"], s["card"]))
+				if fits.is_empty():
+					return
+				best = fits[0]
+		"invert":
+			# Swap Heat with you: worth it only once it's running hot.
+			if sim_heat * 2 < limit:
+				return
 		"replay":
 			# plays the last card again for its heat +2: after the best attack
 			# that leaves its part able to act (Wrap Up Disables its own

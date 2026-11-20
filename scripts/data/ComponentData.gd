@@ -53,6 +53,9 @@ var cards: Array[CardData] = []
 var passive: Dictionary = {} # see PASSIVE_*; {} = none
 
 var destroyed: bool = false
+## Analyzed this turn (CombatManager: the Operator's weak point; the
+## player's hits on it deal balance.json analysis.damage_mult).
+var analyzed: bool = false
 var statuses: Array[StatusInstance] = [] # Shock / Acid / Disabled / Offline / Coolant / Jam / Burn / Freeze
 
 ## Renames this instance (and re-points its cards at it), so two copies of

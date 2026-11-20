@@ -30,7 +30,7 @@ static func chips_for_run(run: RunData) -> int:
 		+ bosses * Balance.get_int("meta", "chips_per_boss", 25)
 	if run.result == RunData.Result.CLEARED:
 		chips += Balance.get_int("meta", "chips_for_clear", 30)
-	return chips
+	return roundi(chips * Threat.chips_mult(Threat.level(run.mission))) # +10% a threat level
 
 # ---------- memorial wall ----------
 

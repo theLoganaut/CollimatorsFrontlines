@@ -217,9 +217,13 @@ static func _after_hit(cm: CombatManager, aimed_mech: MechData, aimed: Component
 		emit_destroyed_if(cm, defender, hit_component)
 
 ## A boss that has just fallen to half HP changes tactics (once), however
-## the damage got there.
+## the damage got there. On the player's turn its shown plan is remade at
+## once, so phase 2 starts with the enemy turn that follows (not a turn
+## late); one that crosses during the enemy turn finishes the steps it has.
 static func check_boss_phase(cm: CombatManager, mech: MechData) -> void:
 	if mech != cm.player_mech and not mech.phase2_reached and mech.in_phase2():
+		if cm.phase == CombatManager.Phase.PLAYER_TURN and cm.enemy_plans.has(mech):
+			EnemyAI.replan(cm, mech)
 		cm.boss_phase_changed.emit(mech)
 
 ## Spiked Plating (the hit part) and Mirror Plating (the whole mech) bite back.
@@ -620,6 +624,11 @@ static func preview_plan(cm: CombatManager, card: CardData, defender: MechData, 
 		var a: Dictionary = actions[i]
 		var comp: ComponentData = a.get("component", null)
 		var e: Dictionary = effects.get(comp, {})
+		var relay = a.get("salvo_relay", null)
+		if relay != null and not e.get("stop", false):
+			var re: Dictionary = effects.get(relay, {})
+			if re.get("stop", false) or re.get("maybe", false): # stopping the relay stops its Salvo's guns
+				e = {"stop": re.get("stop", false), "maybe": re.get("maybe", false)}
 		if e.is_empty() or a.get("cancelled", false):
 			continue
 		var shot: CardData = a["card"]

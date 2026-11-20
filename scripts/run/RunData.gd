@@ -129,6 +129,11 @@ var orders: Dictionary = {}
 ## wider_fights / _options, free_parts, fog (rows seen ahead), map_odds
 ## (MapGenerator "odds"). Counters count down as they're used.
 var mods: Dictionary = {}
+## Threat level 3, captured bays (Threat.ambush_roll): the chance the next
+## repair bay has enemies waiting (-1 = no bay rolled yet), and the bays
+## that had them (node ids; their fight leads into the repair once won).
+var ambush_chance: float = -1.0
+var ambushes: Array = []
 
 ## `p_mission`: a mission type (data/missions.json, with "id"); {} = a plain
 ## map from the location's own enemy_ramp (tests).
@@ -157,6 +162,8 @@ func build_map() -> void:
 		"repair_before_boss": mission.get("repair_before_boss", false) and float(mods.get("map_odds", {}).get("repair_chance", 1.0)) > 0.0,
 		"regulars": location.get("regulars", [location.get("enemy", "scrap_warden")]),
 		"elites": location.get("elites", []),
+		"local": location.get("local", []),
+		"local_weight": Balance.get_num("encounters", "local_weight", 1.0),
 		"boss_id": location.get("boss", "anchor"),
 		"elite_escort_from_row": int(mission.get("elite_escort_from_row", 4)),
 		"max_shops": int(mission.get("max_shops", 0)), # 0 = no cap (older saves' missions)
@@ -234,9 +241,14 @@ func choose_node(id: int) -> bool:
 				phase = PHASE_EVENT
 				event = {"id": RunEvents.pick(self), "step": "", "resolved": false, "result": ""}
 		RunMap.KIND_REPAIR:
-			phase = PHASE_REPAIR
-			repair_pool = Economy.repair_pool(player_mech.max_hp(), float(mod("repair_mult", 1.0)))
-			stats.add("repair_bays")
+			if Threat.ambush_roll(self, current_node()): # captured: win the fight to use it
+				ambushes.append(id)
+				current_node()["ambush"] = true
+				phase = PHASE_FIGHT
+				_set_fight_enemies(id, roll_encounter(id) if location.has("encounters") else [location.get("enemy", "scrap_warden")])
+				stats.add("bays_retaken")
+			else:
+				_open_repair()
 		RunMap.KIND_SHOP:
 			phase = PHASE_SHOP
 			_stock_shop()
@@ -248,6 +260,15 @@ func choose_node(id: int) -> bool:
 		_:
 			phase = PHASE_FIGHT
 	return true
+
+func _open_repair() -> void:
+	phase = PHASE_REPAIR
+	repair_pool = Economy.repair_pool(player_mech.max_hp(), float(mod("repair_mult", 1.0)))
+	stats.add("repair_bays")
+
+## Whether the stop being played is a repair bay enemies were waiting at.
+func is_ambush() -> bool:
+	return current_node_id >= 0 and ambushes.has(current_node_id)
 
 ## Regular fights done so far on this run.
 func regular_fights_done() -> int:
@@ -280,16 +301,29 @@ func roll_encounter(node_id: int) -> Array:
 	roll.seed = hash([seed_value, node_id, done])
 	var total := 0.0
 	for e in options:
-		total += float(e.get("weight", 1))
+		total += encounter_weight(e)
 	var r := roll.randf() * total
 	var chosen: Dictionary = options[-1]
 	for e in options:
-		r -= float(e.get("weight", 1))
+		r -= encounter_weight(e)
 		if r < 0.0:
 			chosen = e
 			break
 	encounter_history.append(",".join(chosen["enemies"]))
 	return (chosen["enemies"] as Array).duplicate()
+
+## An encounter's pool weight, raised by its share of the location's own
+## enemies (`local` in sectors.json): an all-local fight weighs
+## encounters.local_weight times as much, a roamers-only one is unchanged.
+func encounter_weight(e: Dictionary) -> float:
+	return float(e.get("weight", 1)) * local_factor(e["enemies"], location.get("local", []), Balance.get_num("encounters", "local_weight", 1.0))
+
+## 1.0 for no local enemies, `local_weight` when all of `ids` are local.
+static func local_factor(ids: Array, local: Array, local_weight: float) -> float:
+	if ids.is_empty() or local.is_empty():
+		return 1.0
+	var n := ids.filter(func(id): return local.has(id)).size()
+	return 1.0 + (local_weight - 1.0) * float(n) / ids.size()
 
 func _set_fight_enemies(node_id: int, ids: Array) -> void:
 	fight_rolls[node_id] = ids
@@ -343,6 +377,7 @@ func encounter_enemies() -> Array[MechData]:
 		ids.append(regs[(seed_value + int(node["id"])) % regs.size()])
 	for id in ids:
 		out.append(DataLoader.load_mech_from_file("res://data/mechs/%s.json" % id))
+	Threat.apply_to_enemies(mission, out)
 	if node["kind"] == RunMap.KIND_BOSS and not ids.is_empty() and not bosses_met.has(ids[0]):
 		bosses_met.append(ids[0])
 		stats.add("bosses_reached")
@@ -383,6 +418,8 @@ func apply_fight_start_effects(player: MechData, enemies: Array[MechData]) -> Ar
 			e.vent_at_max = (e.vent_at_max if e.vent_at_max >= 0.0 else base) - drop
 	for id in Conditions.modifiers(location, mission):
 		log.append("%s: %s" % [Conditions.modifier_name(id), Conditions.modifier_text(id)])
+	if is_ambush():
+		log.append("Captured bay: enemies were waiting at the repair bay. Win to use it.")
 	if int(mod("cold_start_fights")) > 0:
 		effects.append({"side": "player", "status": "coolant", "stacks": int(mod("cold_start_stacks", 2)), "parts": "hardpoints"})
 		_use_mod("cold_start_fights")
@@ -439,7 +476,7 @@ func fight_won(fight_stats: RunStats = null) -> void:
 	var options := {}
 	for cat in Economy.CATEGORIES:
 		options[cat] = Economy.roll_options(cat, rng, better, player_mech.weight_class, "", count)
-	var scraps_won := int(round((Economy.scraps_for_fight(int(current_node().get("enemy_count", 1)), rng, kind) + magnet) * float(mod("scraps_mult", 1.0)) * Conditions.scraps_mult(mission)))
+	var scraps_won := int(round((Economy.scraps_for_fight(int(current_node().get("enemy_count", 1)), rng, kind) + magnet) * float(mod("scraps_mult", 1.0)) * Conditions.scraps_mult(mission) * Threat.scraps_mult(mission)))
 	var note := ""
 	if int(mod("unpaid_fights")) > 0: # Loan Shark
 		scraps_won = 0
@@ -580,6 +617,9 @@ func finish_reward() -> void:
 	if phase != PHASE_REWARD:
 		return
 	reward = {}
+	if is_ambush(): # the bay's retaken: now it repairs
+		_open_repair()
+		return
 	_finish_node()
 
 # ---------- parts, Cargo and refits ----------

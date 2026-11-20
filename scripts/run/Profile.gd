@@ -59,6 +59,10 @@ var seen_orders: Array = []
 var enemy_record: Dictionary = {}
 var lifetime: Dictionary = {}
 var achievements: Dictionary = {}
+## Threat levels per location id: {"cleared": the highest level cleared
+## (-1 = never cleared), "picked": the level the pop-up shows}. Level 0 is
+## always open; clearing level n opens n + 1 (Logan, 2026-11-19).
+var threat: Dictionary = {}
 ## The training run (or its skip) is behind this pilot.
 var tutorial_done: bool = false
 ## The War Room's name, chosen the first time the game opens (Logan,
@@ -112,6 +116,7 @@ func load_profile() -> void:
 	daily = d.get("daily", {})
 	enemy_record = d.get("enemy_record", {})
 	achievements = d.get("achievements", {})
+	threat = d.get("threat", {})
 	if d.has("lifetime"):
 		lifetime = d["lifetime"]
 	else: # a profile from before lifetime totals: sum what its history shows
@@ -146,6 +151,7 @@ func save() -> void:
 		"history": history, "boss_record": boss_record, "tutorial_done": tutorial_done, "base_name": base_name, "seen_hints": seen_hints,
 		"memorial_points": memorial_points, "daily": daily, "mech_record": mech_record, "enemy_record": enemy_record,
 		"seen_enemies": seen_enemies, "seen_orders": seen_orders, "lifetime": lifetime, "achievements": achievements,
+		"threat": threat,
 	})
 
 func reroll_sector() -> void:
@@ -199,6 +205,12 @@ func record_run(run: RunData) -> void:
 	runs += 1
 	if run.result == RunData.Result.CLEARED:
 		clears += 1
+		var loc_id := str(run.location.get("id", ""))
+		var before := threat_unlocked(loc_id)
+		if not Daily.is_daily(run):
+			_clear_threat(loc_id, Threat.level(run.mission))
+		if threat_unlocked(loc_id) > before:
+			last_report["threat_unlocked"] = threat_unlocked(loc_id)
 		if run.mission.get("grants_boss_intel", false):
 			recon_intel = true
 	if run.boss_intel_used:
@@ -279,6 +291,33 @@ func _earn_achievements(run: RunData) -> Array:
 	if steam != null:
 		steam.unlock_achievements(out.map(func(a): return a["id"]))
 	return out
+
+# ---------- threat levels ----------
+
+## The highest threat level cleared at a location (-1 = none yet).
+func threat_cleared(location_id: String) -> int:
+	return int(threat.get(location_id, {}).get("cleared", -1))
+
+## The highest level the pilot can pick there: one past the highest cleared.
+func threat_unlocked(location_id: String) -> int:
+	return clampi(threat_cleared(location_id) + 1, 0, Threat.max_level())
+
+## The level the location's pop-up is set to (the last one picked).
+func threat_picked(location_id: String) -> int:
+	return clampi(int(threat.get(location_id, {}).get("picked", 0)), 0, threat_unlocked(location_id))
+
+func pick_threat(location_id: String, level: int) -> void:
+	var rec: Dictionary = threat.get(location_id, {}).duplicate()
+	rec["picked"] = clampi(level, 0, threat_unlocked(location_id))
+	threat[location_id] = rec
+	save()
+
+func _clear_threat(location_id: String, level: int) -> void:
+	if location_id == "" or level <= threat_cleared(location_id):
+		return
+	var rec: Dictionary = threat.get(location_id, {}).duplicate()
+	rec["cleared"] = level
+	threat[location_id] = rec
 
 ## Whether today's Daily Operation has been launched already.
 func daily_played_today() -> bool:

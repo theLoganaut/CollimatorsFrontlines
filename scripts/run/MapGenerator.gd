@@ -304,13 +304,30 @@ static func _assign_enemies(map: RunMap, rng: RandomNumberGenerator, enemy_ramp:
 				for i in range(int(enemy_ramp[n["row"]])):
 					list.append(regulars[rng.randi() % regulars.size()])
 			RunMap.KIND_ELITE:
-				list.append(elites[rng.randi() % elites.size()] if not elites.is_empty() else regulars[0])
+				list.append(_pick_elite(rng, elites, opts) if not elites.is_empty() else regulars[0])
 				if n["row"] >= escort_from:
 					list.append(regulars[rng.randi() % regulars.size()])
 			RunMap.KIND_BOSS:
 				list.append(opts.get("boss_id", "anchor"))
 		n["enemies"] = list
 		n["enemy_count"] = list.size()
+
+## An elite for an elite stop: the location's own (`local`) weigh
+## `local_weight` each, roaming ones 1.
+static func _pick_elite(rng: RandomNumberGenerator, elites: Array, opts: Dictionary) -> String:
+	var local: Array = opts.get("local", [])
+	var lw := float(opts.get("local_weight", 1.0))
+	if local.is_empty() or is_equal_approx(lw, 1.0):
+		return elites[rng.randi() % elites.size()]
+	var total := 0.0
+	for id in elites:
+		total += lw if local.has(id) else 1.0
+	var r := rng.randf() * total
+	for id in elites:
+		r -= lw if local.has(id) else 1.0
+		if r < 0.0:
+			return id
+	return elites[-1]
 
 ## Whether a node linked to `n` (into it or out of it) is already `kind`.
 static func _neighbour_has_kind(map: RunMap, n: Dictionary, kind: String) -> bool:

@@ -23,10 +23,11 @@ func is_active() -> bool:
 
 ## `seed_value` < 0 picks a random seed; `mission_id` "" = this sector
 ## roll's mission for the location, with its variant.
-func start_run(location_id: String, seed_value: int = -1, mission_id: String = "") -> RunData:
+func start_run(location_id: String, seed_value: int = -1, mission_id: String = "", threat: int = 0) -> RunData:
 	if seed_value < 0:
 		seed_value = randi() % 1000000000
 	var mission := Profile.sector_mission(location_id) if mission_id == "" else GameData.mission(mission_id)
+	mission = Threat.with_level(mission, mini(threat, Profile.threat_unlocked(location_id)))
 	var mech := GameData.player_mech(Profile.mech, Profile.loadouts.get(Profile.mech, []))
 	run = RunData.new(GameData.sector(location_id), mech, seed_value, mission)
 	run.boss_intel = Profile.recon_intel

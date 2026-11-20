@@ -115,15 +115,15 @@ static func _statuses(t: TestContext) -> void:
 	t.group("Coolant / Jam: −1 / +1 heat on the part's cards, a stack used per play")
 	var cp := _mech([])
 	cp.components.append(_gun("g", 5, 1, 3))
-	var ccm := _cm(cp, [_dummy()] as Array[MechData])
+	var chcm := _cm(cp, [_dummy()] as Array[MechData])
 	var cg := cp.components[0]
 	cg.add_status("coolant", 1)
-	t.assert_eq(ccm.effective_cost(cg.cards[0]), 2, "Coolant: 3 heat costs 2")
-	ccm.play_attack_card(cg.cards[0], ccm.enemies[0], ccm.enemies[0].components[0])
+	t.assert_eq(chcm.effective_cost(cg.cards[0]), 2, "Coolant: 3 heat costs 2")
+	chcm.play_attack_card(cg.cards[0], chcm.enemies[0], chcm.enemies[0].components[0])
 	t.assert_eq(cp.current_heat, 2, "and it paid 2")
 	t.assert_eq(cg.status_stacks("coolant"), 0, "Coolant used up")
 	cg.add_status("jam", 2)
-	t.assert_eq(ccm.effective_cost(cg.cards[0]), 4, "Jam: 3 heat costs 4")
+	t.assert_eq(chcm.effective_cost(cg.cards[0]), 4, "Jam: 3 heat costs 4")
 
 	t.group("Smoke: venting is reduced by its stacks, each point vented clearing one")
 	var sp := _mech([])
@@ -377,9 +377,9 @@ static func _protocols(t: TestContext) -> void:
 	t.group("Catalyze: +2 stacks of every status the next card applies")
 	var cp := _mech([["catalyst_injector", Vector2i(0, 0)], ["voltage_spike", Vector2i(3, 0)]])
 	var ce := _dummy()
-	var ccm := _cm(cp, [ce] as Array[MechData])
-	ccm.play_self_card(_card(cp, "catalyst_injector", "catalyze"))
-	ccm.play_attack_card(_card(cp, "voltage_spike", "spike_em"), ce, ce.components[0])
+	var chcm := _cm(cp, [ce] as Array[MechData])
+	chcm.play_self_card(_card(cp, "catalyst_injector", "catalyze"))
+	chcm.play_attack_card(_card(cp, "voltage_spike", "spike_em"), ce, ce.components[0])
 	t.assert_eq(ce.components[0].status_stacks("shock"), 4, "Shock 2 + 2")
 
 	t.group("Reroute: swaps the next card's status for the one picked")
@@ -436,6 +436,82 @@ static func _protocols(t: TestContext) -> void:
 	fcm.play_attack_card(_card(fp, "fire_control_relay", "salvo"), fe, fe.components[0])
 	t.assert_eq(fe.components[0].max_hp - fe.components[0].current_hp, 9, "4 + 5 from the two guns in its row")
 	t.assert_eq(fp.current_heat, 3, "paying their heat (1 + 2)")
+
+	t.group("Enemy Salvo: the relay's guns fire their cheapest attacks at one part; stop the relay, stop the Salvo")
+	for stop_relay in [false, true]:
+		var sm := _mech([["fire_control_relay", Vector2i(0, 2)]])
+		sm.components.append(_gun("left", 4, 1, 1, Vector2i(0, 0)))
+		sm.components.append(_gun("right", 5, 1, 2, Vector2i(0, 5)))
+		sm.ai = {"protocols": 1.0, "slip": 0.0}
+		var sp_target := _dummy(9999)
+		var scm2 := _cm(sp_target, [sm] as Array[MechData])
+		var plan: Array = scm2.enemy_plans[sm]
+		if not stop_relay:
+			t.assert_eq(plan.size(), 3, "planned: the relay, then its two guns")
+			t.assert_true(plan[0].get("salvo", false) and plan[1].has("salvo_relay") and plan[2].has("salvo_relay"), "the guns are the Salvo's")
+			t.assert_true(plan[1]["target"] == plan[2]["target"], "both at one part")
+		else:
+			CardResolver.add_status_to(sm, sm.get_component("fire_control_relay"), "disabled", 1, true)
+			t.assert_true(scm2.upcoming_enemy_actions(sm).slice(1).all(func(a): return a["cancelled"]), "a stopped relay shows its guns cancelled")
+		var hp_before := sp_target.current_hp()
+		scm2.end_player_turn()
+		t.assert_eq(hp_before - sp_target.current_hp(), 0 if stop_relay else 9, "Disabled relay: nothing fires" if stop_relay else "4 + 5 from the two guns")
+
+	t.group("Enemy Scramble Signal wipes your waiting protocol; enemy Invert swaps Heat with you")
+	var xm := _mech([["signal_interceptor", Vector2i(0, 0)], ["polarity_inverter", Vector2i(3, 0)]])
+	xm.components.append(_gun("rgun", 3, 1, 1, Vector2i(5, 5)))
+	var xp := _dummy(9999)
+	var xcm := _cm(xp, [xm] as Array[MechData])
+	xcm.primed = [{"type": "lock_on", "card": _card(xm, "signal_interceptor", "intercept"), "component": xp.components[0]}]
+	var scr := _card(xm, "signal_interceptor", "scramble_signal")
+	CombatEnemyTurn.begin_attack(xcm, {"mech": xm, "component": xm.get_component("signal_interceptor"), "card": scr, "target": null})
+	xcm.finish_attack()
+	t.assert_eq(xcm.primed.size(), 0, "Scramble Signal: your waiting protocol is gone")
+	t.assert_true(not xcm.enemy_primed.has(xm), "and nothing waits on the enemy's side")
+	var inv_c := _card(xm, "polarity_inverter", "invert")
+	CombatEnemyTurn.begin_attack(xcm, {"mech": xm, "component": xm.get_component("polarity_inverter"), "card": inv_c, "target": null})
+	xcm.finish_attack()
+	xm.current_heat = 5
+	xp.current_heat = 0
+	CombatEnemyTurn.begin_attack(xcm, {"mech": xm, "component": xm.get_component("rgun"), "card": xm.get_component("rgun").cards[0], "target": xp.components[0]})
+	xcm.finish_attack()
+	t.assert_eq([xm.current_heat, xp.current_heat], [0, 6], "Invert: the enemy's 6 Heat (5 + the shot's 1) is now yours")
+
+	t.group("Enemy Chain is planned before a card that puts a status on you")
+	var cm_m := _mech([["chain_relay", Vector2i(0, 0)]])
+	var shock_list: Array[StatusEffectData] = [StatusEffectData.new("shock", 1, StatusEffectData.TARGET_ENEMY)]
+	var zap_c := TestFixtures.make_card("zap", "zapper", 1, 1, 2, 2, shock_list)
+	var zapper_c := TestFixtures.make_component("zapper", 40, [zap_c] as Array[CardData])
+	zapper_c.library_id = "zapper"
+	zapper_c.placed_cells = [Vector2i(5, 5)]
+	cm_m.components.append(zapper_c)
+	cm_m.ai = {"protocols": 1.0, "slip": 0.0}
+	var chain_cm := _cm(_dummy(9999), [cm_m] as Array[MechData])
+	var chained_ok := false
+	for s in range(20):
+		chain_cm.enemy_theme[cm_m] = "afflict"
+		var plan := EnemyAI.plan_turn(cm_m, TestFixtures.rng(s + 1), chain_cm, chain_cm.player_mech)
+		var i := plan.find(plan.filter(func(st): return st["card"] == zap_c)[0])
+		if i > 0 and (plan[i - 1]["card"] as CardData).id == "chain":
+			chained_ok = true
+	t.assert_true(chained_ok, "Chain goes right before the Shock card")
+
+	t.group("A boss pushed past half HP on your turn shows its phase-2 plan at once")
+	var bm := DataLoader.load_mech_from_file("res://data/mechs/anchor.json")
+	var bp_player := _mech([])
+	bp_player.components.append(_gun("cannon", 12, 1, 1, Vector2i(0, 0)))
+	var bcm2 := _cm(bp_player, [bm] as Array[MechData])
+	t.assert_true(str(bcm2.enemy_rhythm[bm]["r"]["name"]) != "Breach", "phase 1 to start")
+	for c in bm.components:
+		c.current_hp = int(c.max_hp * 0.51) + 1
+	var lower := bm.non_destroyed_components()[0]
+	for c in bm.components:
+		if c.current_hp > lower.current_hp:
+			lower = c # the biggest part: the hit takes it past half HP without destroying anything
+	bcm2.play_attack_card(bp_player.get_component("cannon").cards[0], bm, lower)
+	t.assert_true(bm.phase2_reached, "past half HP")
+	t.assert_eq(str(bcm2.enemy_rhythm[bm]["r"]["name"]), "Breach", "its rhythm is phase 2's now, before its turn")
+	t.assert_true(not (bcm2.enemy_plans[bm] as Array).is_empty(), "with a fresh plan to show")
 
 	t.group("Bleed Off: the next card's heat is paid in HP by the part linked above")
 	var bp := _mech([["thermal_transfer_bus", Vector2i(2, 0)]])

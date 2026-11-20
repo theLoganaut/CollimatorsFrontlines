@@ -103,6 +103,158 @@
   "squad_role": "support",
   "opener": [{"type": "self_status", "status": "absorb", "stacks": 5}, {"type": "primed", "card": "catalyze", "note": "shielded, Catalyze primed"}]
  },
+ "gaffhook": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Harpoon", "turns": ["afflict", "assault"], "weight": 2},
+   {"name": "Gut it", "turns": ["assault", "afflict"], "weight": 1, "when": "player_damaged"}
+  ],
+  "squad_role": "marker",
+  "on_lost": {"hook_lance": {"rhythms": [{"name": "Stab", "turns": ["assault", "recover"], "weight": 1}], "note": "no harpoon: just stabs"}}
+ },
+ "kettle": {
+  "archetype": "Heat-pressure",
+  "rhythms": [
+   {"name": "Scald", "turns": ["afflict", "recover"], "weight": 2},
+   {"name": "Boil over", "turns": ["afflict", "afflict"], "weight": 1, "when": "player_hot"}
+  ],
+  "squad_role": "pressure"
+ },
+ "weldwright": {
+  "archetype": "Support",
+  "rhythms": [
+   {"name": "Weld shut", "turns": ["afflict", "recover"], "weight": 2},
+   {"name": "Patch up", "turns": ["recover", "guard"], "weight": 1, "when": "self_hurt"},
+   {"name": "Cover", "turns": ["guard", "afflict"], "weight": 1, "when": "ally_hurt"}
+  ],
+  "squad_role": "support"
+ },
+ "stevedore": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Pin and crush", "turns": ["afflict", "assault"], "weight": 2},
+   {"name": "Haul", "turns": ["assault", "guard"], "weight": 1, "when": "self_hurt"}
+  ],
+  "squad_role": "striker"
+ },
+ "deck_gunner": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Suppress", "turns": ["afflict", "assault"], "weight": 2},
+   {"name": "Twin burst", "turns": ["assault", "afflict"], "weight": 1, "when": "player_primed"}
+  ],
+  "squad_role": "pressure"
+ },
+ "hull_ripper": {
+  "archetype": "Bruiser",
+  "rhythms": [
+   {"name": "Rip plating", "turns": ["afflict", "assault"], "weight": 2, "when": "player_shielded"},
+   {"name": "Grind", "turns": ["assault", "afflict"], "weight": 1}
+  ],
+  "squad_role": "striker"
+ },
+ "frogman": {
+  "archetype": "Pack",
+  "rhythms": [
+   {"name": "Peck", "turns": ["afflict", "assault"], "weight": 2},
+   {"name": "Dive", "turns": ["recover", "afflict"], "weight": 1, "when": "self_hurt"}
+  ],
+  "squad_role": "pressure"
+ },
+ "pile_driver": {
+  "archetype": "Juggernaut",
+  "rhythms": [
+   {"name": "Drive", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"},
+   {"name": "Pound", "turns": ["assault", "guard"], "weight": 1}
+  ],
+  "on_lost": {"demolition_hammer": {"rhythms": [{"name": "Ram", "turns": ["assault", "guard"], "weight": 1}], "note": "no hammer: rams and braces"}}
+ },
+ "breakwater": {
+  "archetype": "Artillery",
+  "rhythms": [
+   {"name": "Bombard", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"},
+   {"name": "Creeping fire", "turns": ["assault", "combo"], "weight": 1},
+   {"name": "Dig in", "turns": ["guard", "assault"], "weight": 1, "when": "self_hurt"}
+  ]
+ },
+ "crusher": {
+  "archetype": "Bruiser",
+  "rhythms": [
+   {"name": "Chew", "turns": ["assault", "recover"], "weight": 2},
+   {"name": "Grind", "turns": ["assault", "assault"], "weight": 1, "when": "player_damaged"}
+  ],
+  "squad_role": "striker"
+ },
+ "powder_monkey": {
+  "archetype": "Artillery",
+  "rhythms": [
+   {"name": "Blast", "turns": ["assault", "assault"], "weight": 2},
+   {"name": "Breach", "turns": ["combo", "assault"], "weight": 1, "when": "player_shielded"}
+  ],
+  "squad_role": "pressure"
+ },
+ "leacher": {
+  "archetype": "Controller",
+  "rhythms": [
+   {"name": "Soak", "turns": ["afflict", "combo"], "weight": 2},
+   {"name": "Flay", "turns": ["afflict", "assault"], "weight": 1, "when": "player_damaged"}
+  ],
+  "squad_role": "marker"
+ },
+ "shaftsinker": {
+  "archetype": "Juggernaut",
+  "rhythms": [
+   {"name": "Drive", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"},
+   {"name": "Stamp", "turns": ["assault", "guard"], "weight": 1}
+  ],
+  "on_lost": {"pile_driver": {"rhythms": [{"name": "Ram", "turns": ["assault", "guard"], "weight": 1}], "note": "no drop-hammer: rams and braces"}}
+ },
+ "dust_devil": {
+  "archetype": "Sniper",
+  "rhythms": [
+   {"name": "Blind fire", "turns": ["assault", "afflict"], "weight": 2},
+   {"name": "Quick draw", "turns": ["assault", "assault"], "weight": 1}
+  ],
+  "squad_role": "striker"
+ },
+ "fuse": {
+  "archetype": "Artillery",
+  "rhythms": [
+   {"name": "Countdown", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"},
+   {"name": "Salvo", "turns": ["assault", "afflict"], "weight": 1}
+  ],
+  "squad_role": "pressure",
+  "on_lost": {"queue_processor": {"rhythms": [{"name": "Salvo", "turns": ["assault", "assault"], "weight": 1}], "note": "can't set a charge any more"}}
+ },
+ "mole": {
+  "archetype": "Driller",
+  "rhythms": [
+   {"name": "Surface", "turns": ["assault", "guard"], "weight": 2},
+   {"name": "Finish", "turns": ["assault", "assault"], "weight": 1, "when": "player_damaged"}
+  ],
+  "squad_role": "striker"
+ },
+ "excavator": {
+  "archetype": "Juggernaut",
+  "rhythms": [
+   {"name": "Wind up", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"},
+   {"name": "Demolish", "turns": ["assault", "recover"], "weight": 1},
+   {"name": "Brace", "turns": ["guard", "assault"], "weight": 1, "when": "self_hurt"}
+  ],
+  "on_lost": {
+   "colossus_fist": {"rhythms": [{"name": "Hammer", "turns": ["assault", "guard"], "weight": 1}], "note": "no fist: swings the hammer and braces"},
+   "demolition_hammer": {"rhythms": [{"name": "Punch", "turns": ["assault", "recover"], "weight": 1}], "note": "no hammer: punches and cools"}
+  }
+ },
+ "detonator": {
+  "archetype": "Artillery",
+  "rhythms": [
+   {"name": "Spot and burn", "turns": ["afflict", "charge"], "weight": 2},
+   {"name": "Call it in", "turns": ["charge", "assault"], "weight": 1, "when": "has_charge"},
+   {"name": "Drop zone", "turns": ["afflict", "assault"], "weight": 1, "when": "player_damaged"}
+  ],
+  "on_lost": {"cataclysm_mortar": {"rhythms": [{"name": "Napalm", "turns": ["afflict", "assault"], "weight": 1}], "note": "no mortar: burns and drops"}}
+ },
  "anchor": {
   "archetype": "Juggernaut",
   "rhythms": [
@@ -136,5 +288,50 @@
    "targeting_computer": {"rhythms": [{"name": "Cover", "turns": ["guard", "afflict"], "weight": 1}, {"name": "Cash in", "turns": ["combo", "assault"], "weight": 1}], "note": "can't calibrate any more"},
    "echo_buffer": {"protocols": 0.4, "note": "no more Replays"}
   }
+ },
+ "firewall": {
+  "archetype": "Turtle",
+  "rhythms": [{"name": "Static wall", "turns": ["guard", "afflict"], "weight": 2}, {"name": "Backlash", "turns": ["guard", "guard"], "weight": 1, "when": "squad"}],
+  "squad_role": "support"
+ },
+ "mimic": {
+  "archetype": "Thief",
+  "rhythms": [{"name": "Copycat", "turns": ["combo", "assault"], "weight": 2, "when": "player_primed"}, {"name": "Burst", "turns": ["assault", "assault"], "weight": 1}],
+  "squad_role": "striker"
+ },
+ "coldline": {
+  "archetype": "Controller",
+  "rhythms": [{"name": "Frostbite", "turns": ["afflict", "recover"], "weight": 2}, {"name": "Cold snap", "turns": ["afflict", "assault"], "weight": 1, "when": "player_hot"}],
+  "squad_role": "pressure"
+ },
+ "cable_rat": {
+  "archetype": "Controller",
+  "rhythms": [{"name": "Build and discharge", "turns": ["afflict", "assault"], "weight": 2}, {"name": "Charge up", "turns": ["afflict", "afflict"], "weight": 1}],
+  "squad_role": "marker"
+ },
+ "watchdog": {
+  "archetype": "Sniper",
+  "rhythms": [{"name": "Overwatch", "turns": ["charge", "assault"], "weight": 2, "when": "has_charge"}, {"name": "Snap shot", "turns": ["assault", "combo"], "weight": 1}],
+  "squad_role": "striker",
+  "opener": {"type": "primed", "card": "lock_on", "note": "Lock On primed"}
+ },
+ "redactor": {
+  "archetype": "Controller",
+  "rhythms": [{"name": "Purge", "turns": ["afflict", "assault"], "weight": 2, "when": "player_primed"}, {"name": "Burn the files", "turns": ["assault", "assault"], "weight": 1}],
+  "squad_role": "pressure"
+ },
+ "ghostnode": {
+  "archetype": "Turtle",
+  "rhythms": [{"name": "Ghosting", "turns": ["guard", "guard"], "weight": 2}, {"name": "Static", "turns": ["guard", "afflict"], "weight": 1}],
+  "squad_role": "support"
+ },
+ "archivist": {
+  "archetype": "Learner",
+  "rhythms": [{"name": "Study", "turns": ["assault", "combo"], "weight": 2}, {"name": "Recall", "turns": ["combo", "combo"], "weight": 1, "when": "self_hurt"}]
+ },
+ "cryovault": {
+  "archetype": "Turtle",
+  "rhythms": [{"name": "Deep freeze", "turns": ["afflict", "guard"], "weight": 2}, {"name": "Seal", "turns": ["guard", "guard"], "weight": 1, "when": "self_hurt"}],
+  "squad_role": "support"
  }
 }

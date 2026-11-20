@@ -5,7 +5,10 @@
     "damage_mult": 0.75,
     "heat_add": 1,
     "heat_mult": 1.0,
-    "hp_mult": 1.25
+    "hp_mult": 1.25,
+    "_why_utility": "Counter/utility buff (Logan, 2026-11-19: make players want them). A card that deals no damage skips heat_add (1 Heat cheaper than before), and its Deflect and Absorb stacks are times utility_shield_mult (rounded).",
+    "utility_skip_heat_add": true,
+    "utility_shield_mult": 1.25
   },
   "heat": {
     "_why": "Ratio venting: at max heat (or over) this share vents; below max it scales down with the heat % (Logan, 2026-09-28).",
@@ -13,7 +16,16 @@
     "_why_vent_action": "The Vent action (Proposed default, 2026-09-30): a mech that spends its turn venting (the player before playing any card; an enemy with nothing it can play) vents this share of its heat at its next dispersal, as if it were at max.",
     "vent_action_share": 0.8,
     "_why_full_reset": "Trial (Logan, 2026-10-02): every mech's heat resets to 0 at its dispersal, player and enemies alike, so enemies aren't stuck playing one card a turn. Smoke still holds back a point per stack, and Overpressure Valve still vents 1 less. false goes back to ratio venting (vent_at_max).",
-    "full_reset": true
+    "full_reset": true,
+    "_why_bank": "Heat banking (Logan, 2026-11-19: turns felt solved because each one starts the same). Heat the player leaves unspent at the end of a turn (bank_share of it, rounded down) is saved, up to bank_max_share of the mech's max Heat (rounded down), and raises the next turn's max Heat by that much. Saved Heat the next turn leaves unspent carries again, under the same cap. Player only. bank false turns it off.",
+    "bank": true,
+    "bank_share": 1.0,
+    "bank_max_share": 0.5
+  },
+  "analysis": {
+    "_why": "Analyzed parts (Logan, 2026-11-19): as each of your turns starts, the Operator analyzes one living part of each regular and elite enemy (not bosses; never the same part two turns running if it has another). Your hits on it deal damage_mult damage. enabled false turns it off.",
+    "enabled": true,
+    "damage_mult": 1.5
   },
   "economy": {
     "rarity_weights": {
@@ -74,9 +86,10 @@
     "event_shop_chance": 0.1
   },
   "encounters": {
-    "_note": "Slay-the-Spire style: a run's first `weak_fights` regular fights draw from the location's weak pool, the rest from its strong pool (a mission can override). An encounter isn't repeated within `no_repeat` fights.",
+    "_note": "Slay-the-Spire style: a run's first `weak_fights` regular fights draw from the location's weak pool, the rest from its strong pool (a mission can override). An encounter isn't repeated within `no_repeat` fights. `local_weight` (Logan 2026-11-19: the location's own enemies a little more likely, at most about 20%, so roamers still show up): an encounter's weight is multiplied by 1 + (local_weight - 1) x its share of the location's `local` enemies (sectors.json), and each local elite weighs local_weight against a roaming one's 1.",
     "weak_fights": 6,
-    "no_repeat": 2
+    "no_repeat": 2,
+    "local_weight": 1.2
   },
   "enemy_ai": {
     "reckless_overheat": 4,
@@ -85,6 +98,13 @@
     "self_offline_penalty": 30,
     "self_disable_penalty": 0,
     "charge_mult": 1.5,
+    "_why_max_cards": "Fewer, bigger intents (Logan, 2026-11-19): each turn an enemy plays at most this many cards by tier (protocols and a charged shot don't count), its theme's best first, and its attacks deal intent_damage_mult damage (scaled as the enemy loads, so intents show it). 0 = no cap. Sim 2026-11-19 (20 runs a bot): 1.2 made fights harder (win rates 5-17 points down), 1.1 about even, 1.0 a little easier (Logan wants slightly easier), so 1.0 for now.",
+    "max_cards": {
+      "regular": 2,
+      "elite": 3,
+      "boss": 4
+    },
+    "intent_damage_mult": 1.0,
     "_why_charge_mult": "Phase 6 (2026-10-13): a charged attack fires free at the start of the enemy's next turn at this multiple, unless its part is Disabled, Frozen or destroyed first."
   },
   "meta": {
@@ -274,6 +294,22 @@
       "low_visibility": 1,
       "blackout": 1
     }
+  },
+  "threat": {
+    "_note": "Threat levels (data/threat.json; Logan, 2026-11-08 and 11-19): levels 1-5 per location, each unlocked by clearing the one before; each level adds its effect and keeps the ones below. Numbers are Logan's except the captured-bay odds and the elite fallback (Proposed, Claude 2026-11-19).",
+    "max_level": 5,
+    "chips_per_level": 0.1,
+    "_chips_note": "Each level pays +10% Chips (Logan, 2026-11-08), added: level 5 pays +50%.",
+    "veteran_hp_mult": 1.1,
+    "_veteran_note": "Level 1 Veterans: every enemy part's HP x this (Logan: enemy HP +10%) until each enemy has its own upgraded-part swap.",
+    "elite_deflect": 3,
+    "_elite_note": "Level 2: an elite's extra opener lays its charge, else primes a protocol, else braces with this much Deflect.",
+    "ambush_start": 0.2,
+    "ambush_step": 0.15,
+    "ambush_after": 0.05,
+    "_ambush_note": "Level 3 captured bays (Logan, 2026-11-19): rolled on arrival, never the bay before the boss. The chance starts at ambush_start, rises ambush_step after each free bay and drops to ambush_after after a taken one. On a path with 3 bays: none taken 26%, one 68%, two 6%.",
+    "scraps_mult": 0.75,
+    "_scraps_note": "Level 5 supply lines cut: 25% fewer scraps from fights (Logan, 2026-11-19)."
   },
   "daily": {
     "_note": "Daily Operation score (Claude's draft, 2026-09-30, Proposed): points per stop, elite and boss, a bonus for clearing, and 1 point per damage_per_point damage dealt.",

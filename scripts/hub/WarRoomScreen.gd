@@ -893,6 +893,6 @@ func _on_daily_launch() -> void:
 func _on_launch(location: Dictionary) -> void:
 	if SceneRouter.is_busy():
 		return
-	RunState.start_run(location.get("id", ""), popup.seed_value(), Tutorial.TRAINING_MISSION if Tutorial.active else "")
+	RunState.start_run(location.get("id", ""), popup.seed_value(), Tutorial.TRAINING_MISSION if Tutorial.active else "", popup.threat_value())
 	Tutorial.event("launched")
 	RunState.advance()

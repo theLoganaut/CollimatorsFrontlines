@@ -35,6 +35,7 @@ extends SceneTree
 ##   --events=random|first   event choices (default random)
 ##   --variants=random|none|<id>  mission variants (default random, by the
 ##                           weights in balance.json conditions)
+##   --threat=<0-5>          every run at this threat level (default 0; data/threat.json)
 ##   --seed-start=<n>        first run seed (default 1)
 ##   --sweeps=<k>            k blocks of <runs> seeds each; prints the spread
 ##                           of clear rates between blocks
@@ -56,6 +57,7 @@ var pilot := "bastion"
 var orders_mode := "random"
 var events_mode := "random"
 var variants_mode := "random"
+var threat_level := 0
 var seed_start := 1
 var sweeps := 1
 ## --mech overrides: enemy id -> [[key, value]].
@@ -96,6 +98,8 @@ func _initialize() -> void:
 			events_mode = a.trim_prefix("--events=")
 		elif a.begins_with("--variants="):
 			variants_mode = a.trim_prefix("--variants=")
+		elif a.begins_with("--threat="):
+			threat_level = int(a.trim_prefix("--threat="))
 		elif a.begins_with("--seed-start="):
 			seed_start = int(a.trim_prefix("--seed-start="))
 		elif a.begins_with("--sweeps="):
@@ -152,7 +156,7 @@ func _run() -> void:
 					var vrng := RandomNumberGenerator.new()
 					vrng.seed = run_seed * 13 + 1
 					var variant := "standard" if variants_mode == "none" else (Conditions.roll_variant(vrng) if variants_mode == "random" else variants_mode)
-					var run := RunData.new(loc, DataLoader.load_mech_from_file("res://data/mechs/%s.json" % pilot), run_seed, Conditions.with_variant(mdef, variant))
+					var run := RunData.new(loc, DataLoader.load_mech_from_file("res://data/mechs/%s.json" % pilot), run_seed, Threat.with_level(Conditions.with_variant(mdef, variant), threat_level))
 					var pick := RandomNumberGenerator.new()
 					pick.seed = run_seed * 31
 					var choices := RandomNumberGenerator.new() # orders and events: kept apart so `pick` rolls the same map path
@@ -459,8 +463,8 @@ func _write_report() -> void:
 	var date := Time.get_date_string_from_system()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://tools/reports"))
 	var path := "res://tools/reports/sim_%s.md" % date
-	var md := "# Balance sim, %s\n\n%d runs per mission per bot%s, seeds from %d, pilot %s, orders %s, events %s.%s\n\n" % [date, N * sweeps,
-		"" if sweeps == 1 else " (%d blocks of %d)" % [sweeps, N], seed_start, pilot, orders_mode, events_mode,
+	var md := "# Balance sim, %s\n\n%d runs per mission per bot%s, seeds from %d, pilot %s, orders %s, events %s, threat %d.%s\n\n" % [date, N * sweeps,
+		"" if sweeps == 1 else " (%d blocks of %d)" % [sweeps, N], seed_start, pilot, orders_mode, events_mode, threat_level,
 		"" if _overrides.is_empty() else " Overrides: " + ", ".join(_overrides) + "."]
 	md += "## Clear rates\n\n| Mission | Bot | Clear | Boss won/reached | By boss | Most deaths | Chips/run |\n|---|---|---|---|---|---|---|\n"
 	md += "\n".join(_lines) + "\n\n"

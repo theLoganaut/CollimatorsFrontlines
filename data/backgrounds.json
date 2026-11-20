@@ -1,5 +1,5 @@
 {
-  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `floor` is the flat ground feet may stand on ({x: [from, to], y: [from, to]} as fractions of the image, `avoid`: [x0, y0, x1, y1] spots on it that aren't, like a hole); each fight stands every enemy near its slot's x, nudged a little sideways and anywhere in that y band, on the floor (Logan, 2026-10-16: a little different each fight). `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` draws weather over the background (PlayField): \"rain\" falls and splashes, \"snow\" floats down and settles, \"dust\" blows in gusts and lifts off the ground, all on the ground from `ground` (the y fraction of the image where the ground starts) down.",
+  "_note": "Combat backgrounds (PixelLab, Logan 2026-09-28). A fight uses its location's backgrounds for its tier (the strongest enemy: boss > elite > regular), picked per fight when there's more than one. `slots` are where enemies' feet stand for 1, 2 or 3 enemies, as [x, y] fractions of the image, measured on the art so every enemy stands on the floor. `floor` is the flat ground feet may stand on ({x: [from, to], y: [from, to]} as fractions of the image, `avoid`: [x0, y0, x1, y1] spots on it that aren't, like a hole); each fight stands every enemy near its slot's x, nudged a little sideways and anywhere in that y band, on the floor (Logan, 2026-10-16: a little different each fight). `zoom` enlarges the image from its bottom edge (1 = cover the screen) to lift a floor that starts too low for the enemy row. A fight with no background here keeps the plain field and the default enemy row. `weather` draws weather over the background (PlayField): \"rain\" falls and splashes, \"snow\" floats down and settles, \"dust\" blows in gusts and lifts off the ground, all on the ground from `ground` (the y fraction of the image where the ground starts) down. `sea` (a mask image the size of the background, white = water) rolls those pixels in waves the whole fight, bigger and faster once a boss is in phase 2. `lamps` ([x, y] fractions) each cast a pool of `lamp_color` light, faint until phase 2, then pulsing like alarms down the pier (instead of the whole screen pulsing). `spray` ([x0, y0, x1, y1] fractions: the edges the water breaks over) throws spray up in phase 2. `lamp_style` \"bulbs\" makes them strung bulbs that sway and, in phase 2, stutter instead of pulsing. `rockfall` drops rocks in phase 2: from the ceiling (true) or off cliff edges ({\"from\": [[x0, x1, y], ...]}). `lamp_style` \"work\": floodlights, the bulbs' stutter without the sway. `fps_phase2` alone (no `frames_phase2`) plays `frames` at that speed in phase 2. `grade_darken` (0.7) and `grade_vignette` (0.6) set how dark phase 2 turns the image (an open pit needs its machines readable). `lava` ([{path: [[x, y], ...] from the crack down, width, pool, delay}]) erupts in phase 2, runs down its path and drains into a pool (LavaFlow). `frames` (a strip of whole-background frames, `frame_width` wide each, frame 0 = the image) animates the background at `fps`; `frames_phase2` at `fps_phase2` takes over in phase 2 (tools/sea_frames.py builds both from PixelLab-animated crops of the water).",
   "backgrounds": [
     {
       "id": "shipyard_regular",
@@ -85,7 +85,16 @@
       },
       "floor": {"x": [0.44, 0.56], "y": [0.58, 0.62]},
       "weather": "rain",
-      "ground": 0.38
+      "ground": 0.38,
+      "sea": "res://assets/backgrounds/shipyard_boss_alt_sea.png",
+      "lamps": [[0.4327, 0.3667], [0.4215, 0.3846], [0.4103, 0.4], [0.3942, 0.4256], [0.3782, 0.4513], [0.3542, 0.4872], [0.3141, 0.5513], [0.2612, 0.6308], [0.1843, 0.7564], [0.0657, 0.9436], [0.5657, 0.3667], [0.5769, 0.3846], [0.5897, 0.4], [0.6042, 0.4231], [0.6218, 0.4513], [0.6442, 0.4872], [0.6843, 0.5513], [0.7372, 0.6308], [0.8141, 0.7564], [0.9327, 0.9436]],
+      "lamp_color": "#ffa035",
+      "frames": "res://assets/backgrounds/shipyard_boss_alt_frames.png",
+      "frame_width": 624,
+      "fps": 6,
+      "frames_phase2": "res://assets/backgrounds/shipyard_boss_alt_frames_p2.png",
+      "fps_phase2": 5,
+      "spray": [[0.4263, 0.3615, 0.0321, 1.0], [0.5737, 0.3615, 0.9679, 1.0]]
     },
     {
       "id": "data_archives_regular",
@@ -240,7 +249,7 @@
       "image": "res://assets/backgrounds/mining_grounds_boss.png",
       "zoom": 1.0,
       "weather": "dust",
-      "ground": 0.42,
+      "ground": 0.42, "lamps": [[0.0064, 0.2974], [0.0657, 0.3359], [0.0801, 0.4205], [0.1058, 0.3846], [0.1378, 0.4051], [0.1635, 0.4154], [0.1843, 0.4128], [0.2051, 0.4308], [0.2276, 0.4436], [0.2468, 0.4436], [0.2804, 0.4564], [0.7244, 0.4538], [0.7436, 0.441], [0.774, 0.4436], [0.8141, 0.4256], [0.8429, 0.4103], [0.875, 0.3846], [0.8958, 0.3462], [0.9888, 0.2769]], "lamp_color": "#ffb04a", "lamp_style": "bulbs", "rockfall": true, "frames": "res://assets/backgrounds/mining_grounds_boss_frames.png", "frame_width": 624, "fps": 5, "frames_phase2": "res://assets/backgrounds/mining_grounds_boss_frames_p2.png", "fps_phase2": 12,
       "slots": {
         "1": [[0.5, 0.62]]
       },
@@ -253,7 +262,7 @@
       "image": "res://assets/backgrounds/mining_grounds_boss_alt.png",
       "zoom": 1.0,
       "weather": "dust",
-      "ground": 0.45,
+      "ground": 0.45, "lamps": [[0.0593, 0.1872], [0.0545, 0.2154], [0.1474, 0.0436], [0.2179, 0.3897], [0.7997, 0.3179], [0.8045, 0.3718], [0.8766, 0.4333]], "lamp_color": "#ffe0a0", "lamp_style": "work", "lava": [{"path": [[0.3526, 0.2718], [0.3526, 0.3103], [0.3622, 0.3154], [0.3622, 0.3513], [0.3702, 0.3564], [0.3702, 0.3923], [0.3638, 0.3974], [0.3638, 0.4333], [0.3718, 0.4385], [0.3718, 0.4718]], "width": 8, "pool": 13}, {"path": [[0.6394, 0.2872], [0.6394, 0.3256], [0.6314, 0.3308], [0.6314, 0.3667], [0.6378, 0.3718], [0.6378, 0.4077], [0.6298, 0.4128], [0.6298, 0.4487], [0.6346, 0.4538], [0.6346, 0.4821]], "width": 6, "pool": 10, "delay": 0.5}], "rockfall": {"from": [[0.02, 0.26, 0.17], [0.03, 0.3, 0.4], [0.72, 0.97, 0.24], [0.76, 0.98, 0.46]]}, "grade_darken": 0.95, "grade_vignette": 0.35,
       "slots": {
         "1": [[0.5, 0.60]]
       },

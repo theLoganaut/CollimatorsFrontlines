@@ -7,6 +7,7 @@ extends Node
 ##        [--enemies=needle_drone,scrap_warden (combat: fight these)]
 ##        [--mech=redline (the player's mech, default bastion)]
 ##        [--location=mining_grounds (the run's location, default shipyard)] [--background=<id> (combat: use this one)]
+##        [--threat=4 (the run's threat level; 4 opens a boss fight on its phase-2 transformation)]
 ##        [--store (Steam page shots: no Feedback buttons or build label; tools/steam_screenshots.sh takes the set)]
 ##        [--category=reactor (reward_parts / reward_mech: the category picked; default hardpoint)]
 ## reward_surprise <out folder>: presses Surprise me and saves frames of the rolls.
@@ -20,6 +21,8 @@ extends Node
 ## "whats_new" opens the War Room with the What's New?! board up.
 ## "warroom_left" / "warroom_right" [station id | arrow_left | arrow_right] turn the War Room to a side wall (hovering that);
 ## "warroom_pan" catches the pan to the right wall halfway.
+## "threat" <out> [seconds] [level] opens the War Table with the Shipyard's pop-up at
+## that threat level (the levels below it cleared; the profile isn't saved).
 ## "daily" opens the War Room, zooms into the War Table and opens the Daily
 ## Operation's pop-up (it reads the real profile but never saves it).
 ## combat_keys does the same with key presses (number keys, Tab, Enter, E).
@@ -225,6 +228,25 @@ func _ready() -> void:
 		print("saved ", out)
 		get_tree().quit()
 		return
+	if what == "threat": # the War Table with a location's pop-up open at a threat level: threat <out> [seconds] [level]
+		Profile.saving_off = true
+		var level := int(args[3]) if args.size() > 3 else 3
+		var loc: Dictionary = GameData.sector("shipyard")
+		Profile.threat["shipyard"] = {"cleared": maxi(level - 1, -1), "picked": level}
+		var room: Node = load(SceneRouter.WAR_ROOM).instantiate()
+		get_tree().root.add_child.call_deferred(room)
+		get_tree().set_deferred("current_scene", room)
+		await get_tree().create_timer(1.0).timeout
+		room._zoom_in()
+		await get_tree().create_timer(2.5).timeout
+		for d in _all(get_tree().root, "WhatsNewDialog"):
+			d.queue_free()
+		room._on_location_chosen(loc)
+		await get_tree().create_timer(wait).timeout
+		get_viewport().get_texture().get_image().save_png(out)
+		print("saved ", out)
+		get_tree().quit()
+		return
 	if what == "replay": # a recorded fight, played back
 		var rec = JSON.parse_string(FileAccess.get_file_as_string(args[3]))
 		GameSettings.speed = 3.0
@@ -256,6 +278,8 @@ func _ready() -> void:
 			mission["encounter"] = a.trim_prefix("--enemies=").split(",")
 		elif a.begins_with("--location="):
 			location_id = a.trim_prefix("--location=")
+		elif a.begins_with("--threat="): # the run's threat level (4: a boss opens in phase 2)
+			mission["threat"] = int(a.trim_prefix("--threat="))
 		elif a.begins_with("--background="): # keep only this background, so the fight uses it
 			var bg_id := a.trim_prefix("--background=")
 			GameData._backgrounds = GameData.backgrounds().filter(func(b): return b.get("id", "") == bg_id)

@@ -12,6 +12,49 @@ const PLAYER_BACK_PATH := "res://assets/mechs/%s_back.png"
 static func enemy(mech_id: String) -> Texture2D:
 	return _load(ENEMY_PATH % mech_id)
 
+## An enemy's sprite as a TextureRect (`sprite`), or null without art. An
+## enemy with `assets/enemies/<id>_anim.png` (a strip of square frames, side
+## by side, frame 0 = its still sprite) plays it in a loop at ANIM_FPS; with
+## Reduce motion on it holds frame 0.
+const ENEMY_ANIM_PATH := "res://assets/enemies/%s_anim.png"
+const ANIM_FPS := 8.0
+
+## A boss's phase-2 form (`assets/enemies/<id>_p2.png`, with an optional
+## `<id>_p2_anim.png` strip), or null: it keeps its phase-1 sprite.
+const ENEMY_P2_SUFFIX := "_p2"
+
+static func enemy_phase2(mech_id: String) -> Texture2D:
+	return enemy(mech_id + ENEMY_P2_SUFFIX)
+
+static func enemy_sprite(mech_id: String, rect_size: Vector2, phase2: bool = false) -> TextureRect:
+	if phase2 and enemy_phase2(mech_id) != null:
+		mech_id += ENEMY_P2_SUFFIX
+	var tex := enemy(mech_id)
+	if tex == null:
+		return null
+	var r := sprite(tex, rect_size)
+	var strip := _load(ENEMY_ANIM_PATH % mech_id)
+	if strip == null or strip.get_height() <= 0:
+		return r
+	var side := strip.get_height()
+	var frames := strip.get_width() / side
+	if frames < 2:
+		return r
+	var atlas := AtlasTexture.new()
+	atlas.atlas = strip
+	atlas.region = Rect2(0, 0, side, side)
+	r.texture = atlas
+	r.ready.connect(func() -> void:
+		var frame := [0]
+		var tw := r.create_tween().set_loops()
+		tw.tween_interval(1.0 / ANIM_FPS)
+		tw.tween_callback(func() -> void:
+			var settings := r.get_node_or_null("/root/GameSettings")
+			var still: bool = settings != null and settings.reduce_motion
+			frame[0] = 0 if still else (frame[0] + 1) % frames
+			atlas.region = Rect2(frame[0] * side, 0, side, side)))
+	return r
+
 static func player_front(mech_id: String) -> Texture2D:
 	return _load(PLAYER_FRONT_PATH % mech_id)
 

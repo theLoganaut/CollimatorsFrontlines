@@ -1,0 +1,83 @@
+{
+  "id": "crusher",
+  "name": "Crusher",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "weakest",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Chews a part, heals off the damage and cools down whenever it finishes one off."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "grinder_maw",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "heat_sink_array",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "nano_bots",
+      "offset": [
+        3,
+        0
+      ],
+      "rotation": 0
+    }
+  ]
+}

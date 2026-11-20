@@ -108,6 +108,7 @@ func refresh() -> void:
 		return
 	_heat_box.vent_at_max = mech.vent_at_max # Rain lowers it
 	_heat_box.set_heat(mech.current_heat, mech.heat_capacity())
+	_refresh_bank(mech.current_heat)
 	_health_bar.set_hp(mech.current_hp(), mech.max_hp())
 	grid.refresh_all()
 	passive_row.refresh()
@@ -117,12 +118,14 @@ func refresh() -> void:
 func _refresh_preview() -> void:
 	var card: CardData = UIState.dragging_card if UIState.dragging_card != null else UIState.hovered_card
 	if card == null or UIState.input_locked:
+		_refresh_bank(mech.current_heat)
 		_heat_box.set_preview(-1)
 		_health_bar.set_preview_loss(0)
 		_set_warning(false)
 		return
 	var cost: int = combat.effective_cost(card) if combat != null else card.heat_cost
 	var projected := maxi(0, mech.current_heat + cost)
+	_refresh_bank(projected)
 	_heat_box.set_preview(projected)
 	_health_bar.set_preview_loss(0)
 	_set_warning(false)
@@ -130,6 +133,19 @@ func _refresh_preview() -> void:
 	if HeatRules.is_overheated(projected, mech.heat_capacity()) and mech.heat_check_timing != MechData.HEAT_CHECK_END_OF_TURN:
 		_health_bar.set_preview_loss(HeatRules.backlash_for(mech))
 		_set_warning(true)
+
+## Heat banking under the heat box: what ending the turn at `heat` saves,
+## and the "+N" of saved Heat in this turn's max.
+func _refresh_bank(heat: int) -> void:
+	_heat_box.show_forecast = combat != null and CombatManager.banking()
+	if not _heat_box.show_forecast:
+		_heat_box.set_bank(-1, 0)
+		_heat_box.tooltip_text = ""
+		return
+	_heat_box.set_bank(combat.bank_projection(heat), mech.banked_heat)
+	_heat_box.tooltip_text = "Heat you leave unspent is saved (up to %d) and raises next turn's max Heat.%s" % [
+		combat.bank_cap(), "
++%d saved from last turn is in this turn's max." % mech.banked_heat if mech.banked_heat > 0 else ""]
 
 ## A hovered part's HP lit on the health bar (0 clears it).
 func highlight_hp(amount: int) -> void:

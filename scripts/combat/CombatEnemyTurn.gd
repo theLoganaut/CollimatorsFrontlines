@@ -6,7 +6,9 @@ extends RefCounted
 ## protocols the player's way (Phase 6): Lock On, Overdrive, Split Feed and
 ## Catalyze prime for the enemy's next card; Replay plays its last attack
 ## this turn again for its heat +2; Standby sets its next attack aside to
-## fire for 0 heat at the start of its next turn. A protocol step still goes
+## fire for 0 heat at the start of its next turn; Salvo fires every gun its
+## relay's link reaches, as the plan's next steps (stopping the relay stops
+## them all). A protocol step still goes
 ## through the paced enemy turn as an attack with no hits. Static and
 ## stateless: plans, AI memory and primed protocols live on the
 ## CombatManager passed in.
@@ -29,7 +31,7 @@ static func next_action(cm: CombatManager) -> Dictionary:
 			continue
 		var step: Dictionary = plan[cm._enemy_step]
 		cm._enemy_step += 1
-		if not step["component"].is_usable():
+		if not EnemyAI.step_usable(step):
 			continue
 		var card: CardData = step["card"]
 		if card.protocol() != "" or step.get("charge", false):
@@ -76,13 +78,14 @@ static func upcoming_actions(cm: CombatManager, mech: MechData) -> Array:
 			out.append({"card": ch["card"], "active": false, "target": null, "component": cc, "charged": true, "cancelled": not cc.is_usable()})
 	for i in range(first, plan.size()):
 		var step: Dictionary = plan[i]
-		var usable: bool = step["component"].is_usable()
+		var usable: bool = EnemyAI.step_usable(step)
 		# During the player's turn a cancelled step stays on show, struck out.
 		if not usable and step != cm._in_flight and (not player_turn or (step["component"] as ComponentData).destroyed):
 			continue
 		out.append({"card": step["card"], "active": step == cm._in_flight and not cm._in_flight.is_empty(),
 			"target": step.get("target", null), "component": step["component"], "charge": step.get("charge", false),
-			"cancelled": not usable and step != cm._in_flight, "added": step.get("added", false)})
+			"cancelled": not usable and step != cm._in_flight, "added": step.get("added", false),
+			"salvo": step.get("salvo", false), "salvo_relay": step.get("salvo_relay", null)})
 	return out
 
 ## Whether an enemy's plan for this turn takes it over its max heat (a
@@ -92,7 +95,7 @@ static func will_overheat(cm: CombatManager, mech: MechData) -> bool:
 		return false
 	var heat := mech.current_heat
 	for step in cm.enemy_plans.get(mech, []):
-		if (step["component"] as ComponentData).is_usable():
+		if EnemyAI.step_usable(step):
 			heat += cm.effective_cost(step["card"], mech)
 	return heat > mech.heat_capacity()
 
@@ -134,6 +137,16 @@ static func _protocol(cm: CombatManager, warden: MechData, comp: ComponentData, 
 					CombatAttack.start(cm, last["card"], warden, last["component"], cm.player_mech, t, {})
 					cm._after_use(comp)
 					return
+		# Salvo: nothing waits; the guns it fires are the plan's next steps
+		# (EnemyAI._plan_salvo), each paying its own Heat.
+		"salvo":
+			cm.ai_note.emit(warden, "%s's %s fires a Salvo." % [warden.name, comp.name])
+		# Scramble Signal: every protocol you have waiting is wiped.
+		"clear_enemy":
+			if not cm.primed.is_empty():
+				cm.primed.clear()
+				cm.primed_changed.emit()
+				cm.ai_note.emit(warden, "%s scrambles your waiting protocol." % warden.name)
 		# Echo: the player's waiting protocol becomes this enemy's.
 		"steal":
 			if not cm.primed.is_empty():

@@ -1,5 +1,5 @@
 {
-  "_note": "Sector map locations (names: Logan, 2026-09-27; descriptions: Claude's drafts, approved by Logan 2026-10-13). Enemy pools use the roster in data/mechs (Claude's drafts to vet). Regular fights draw from `encounters` (Slay-the-Spire style, Logan 2026-09-28): the run's first few fights from `weak`, the rest from `strong`, weighted; three-enemy fights only come from `strong`. Compositions and weights are Proposed. Each visit to the sector map rolls a mission type per location (data/missions.json). On the War Table's theater map (WarMap, regenerated with each sector roll) `map_zone` places a location: coast (on the shore), flank (mountain foothills, an open-pit mine), backline (a mesa deep behind the enemy front); `map_icon` is its map glyph (anchor, pick, data). `modifiers` (Claude's drafts, 2026-09-30): rules always on at that location (data/conditions.json): rain at the Shipyard, jamming at the Data Archives, dust at the Mining Grounds.",
+  "_note": "Sector map locations (names: Logan, 2026-09-27; descriptions: Claude's drafts, approved by Logan 2026-10-13). Enemy pools use the roster in data/mechs (Claude's drafts to vet). Regular fights draw from `encounters` (Slay-the-Spire style, Logan 2026-09-28): the run's first few fights from `weak`, the rest from `strong`, weighted; three-enemy fights only come from `strong`. Compositions and weights are Proposed. Each visit to the sector map rolls a mission type per location (data/missions.json). On the War Table's theater map (WarMap, regenerated with each sector roll) `map_zone` places a location: coast (on the shore), flank (mountain foothills, an open-pit mine), backline (a mesa deep behind the enemy front); `map_icon` is its map glyph (anchor, pick, data). `modifiers` (Claude's drafts, 2026-09-30): rules always on at that location (data/conditions.json): rain at the Shipyard, jamming at the Data Archives, dust at the Mining Grounds. `local` (2026-11-19): the location's own enemies; the rest of its pools are roamers. Local ones are a little more likely (balance.json encounters.local_weight, at most about 20%), so roamers still show up. Shipyard pools rebuilt 2026-11-19 with its new enemies (Gaffhook, Kettle, Weldwright, Stevedore, Deck Gunner, Hull Ripper, Frogman; elites Pile Driver, Breakwater), mixing local and roaming fights. Mining Grounds pools rebuilt the same way 2026-11-19 (Crusher, Powder Monkey, Leacher, Shaftsinker, Dust Devil, Fuse, Mole; elites Excavator, Detonator). Data Archives pools rebuilt the same way 2026-11-20 (Firewall, Mimic, Coldline, Cable Rat, Watchdog, Redactor, Ghostnode; elites Archivist, Cryovault).",
   "locations": [
     {
       "id": "shipyard",
@@ -8,17 +8,98 @@
       "map_zone": "coast",
       "map_icon": "anchor",
       "regulars": [
-        "scrap_warden",
         "rivet_brute",
+        "gaffhook",
+        "kettle",
+        "weldwright",
+        "stevedore",
+        "deck_gunner",
+        "hull_ripper",
+        "frogman",
+        "scrap_warden",
         "needle_drone"
       ],
       "elites": [
+        "dock_breaker",
+        "pile_driver",
+        "breakwater",
         "siege_warden",
-        "dock_breaker"
+        "caustic_engine"
+      ],
+      "local": [
+        "rivet_brute",
+        "gaffhook",
+        "kettle",
+        "weldwright",
+        "stevedore",
+        "deck_gunner",
+        "hull_ripper",
+        "frogman",
+        "dock_breaker",
+        "pile_driver",
+        "breakwater"
       ],
       "boss": "anchor",
       "encounters": {
         "weak": [
+          {
+            "enemies": [
+              "rivet_brute"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "gaffhook"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "stevedore"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "hull_ripper"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "deck_gunner"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "kettle",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "frogman",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "frogman",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "kettle",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
           {
             "enemies": [
               "scrap_warden"
@@ -27,7 +108,14 @@
           },
           {
             "enemies": [
-              "rivet_brute"
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "needle_drone"
             ],
             "weight": 3
           },
@@ -41,12 +129,78 @@
           {
             "enemies": [
               "scrap_warden",
-              "needle_drone"
+              "scrap_warden"
             ],
             "weight": 3
           }
         ],
         "strong": [
+          {
+            "enemies": [
+              "gaffhook",
+              "stevedore"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "deck_gunner",
+              "hull_ripper"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "rivet_brute",
+              "kettle"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "stevedore",
+              "weldwright"
+            ],
+            "weight": 2
+          },
+          {
+            "enemies": [
+              "weldwright",
+              "frogman",
+              "frogman"
+            ],
+            "weight": 4
+          },
+          {
+            "enemies": [
+              "weldwright",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "hull_ripper",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "kettle",
+              "needle_drone",
+              "needle_drone"
+            ],
+            "weight": 5
+          },
+          {
+            "enemies": [
+              "gaffhook",
+              "scrap_warden",
+              "needle_drone"
+            ],
+            "weight": 5
+          },
           {
             "enemies": [
               "rivet_brute",
@@ -63,23 +217,23 @@
           },
           {
             "enemies": [
-              "rivet_brute",
-              "rivet_brute"
+              "needle_drone",
+              "scrap_warden"
             ],
-            "weight": 1
+            "weight": 3
           },
           {
             "enemies": [
-              "rivet_brute",
-              "needle_drone",
-              "needle_drone"
+              "scrap_warden",
+              "scrap_warden",
+              "scrap_warden"
             ],
             "weight": 5
           },
           {
             "enemies": [
-              "scrap_warden",
-              "scrap_warden",
+              "needle_drone",
+              "needle_drone",
               "scrap_warden"
             ],
             "weight": 5
@@ -98,12 +252,35 @@
       "map_icon": "data",
       "regulars": [
         "arc_sentry",
-        "needle_drone",
-        "scrap_warden"
+        "firewall",
+        "mimic",
+        "coldline",
+        "cable_rat",
+        "watchdog",
+        "redactor",
+        "ghostnode",
+        "scrap_warden",
+        "needle_drone"
       ],
       "elites": [
-        "caustic_engine",
-        "relay_sentinel"
+        "relay_sentinel",
+        "archivist",
+        "cryovault",
+        "siege_warden",
+        "caustic_engine"
+      ],
+      "local": [
+        "arc_sentry",
+        "firewall",
+        "mimic",
+        "coldline",
+        "cable_rat",
+        "watchdog",
+        "redactor",
+        "ghostnode",
+        "relay_sentinel",
+        "archivist",
+        "cryovault"
       ],
       "boss": "cipher",
       "encounters": {
@@ -116,6 +293,64 @@
           },
           {
             "enemies": [
+              "cable_rat"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "coldline"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "watchdog"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "mimic"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "firewall",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "ghostnode",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "redactor",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "coldline",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
               "needle_drone"
             ],
             "weight": 3
@@ -129,8 +364,15 @@
           },
           {
             "enemies": [
-              "arc_sentry",
+              "needle_drone",
               "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "scrap_warden"
             ],
             "weight": 3
           }
@@ -138,17 +380,83 @@
         "strong": [
           {
             "enemies": [
-              "arc_sentry",
+              "firewall",
+              "arc_sentry"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "mimic",
+              "redactor"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "ghostnode",
+              "watchdog"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "coldline",
+              "cable_rat"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "cable_rat",
               "arc_sentry"
             ],
             "weight": 2
           },
           {
             "enemies": [
-              "arc_sentry",
+              "ghostnode",
+              "redactor",
+              "mimic"
+            ],
+            "weight": 4
+          },
+          {
+            "enemies": [
+              "coldline",
               "scrap_warden"
             ],
-            "weight": 2
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "watchdog",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "arc_sentry",
+              "needle_drone",
+              "needle_drone"
+            ],
+            "weight": 5
+          },
+          {
+            "enemies": [
+              "firewall",
+              "cable_rat",
+              "scrap_warden"
+            ],
+            "weight": 5
+          },
+          {
+            "enemies": [
+              "redactor",
+              "scrap_warden"
+            ],
+            "weight": 3
           },
           {
             "enemies": [
@@ -160,14 +468,21 @@
           {
             "enemies": [
               "needle_drone",
-              "needle_drone",
-              "needle_drone"
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "scrap_warden",
+              "scrap_warden"
             ],
             "weight": 5
           },
           {
             "enemies": [
-              "arc_sentry",
+              "needle_drone",
               "needle_drone",
               "scrap_warden"
             ],
@@ -187,13 +502,35 @@
       "map_icon": "pick",
       "regulars": [
         "ember_hound",
-        "rivet_brute",
-        "arc_sentry"
+        "crusher",
+        "powder_monkey",
+        "leacher",
+        "shaftsinker",
+        "dust_devil",
+        "fuse",
+        "mole",
+        "scrap_warden",
+        "needle_drone"
       ],
       "elites": [
-        "caustic_engine",
+        "bore_crawler",
+        "excavator",
+        "detonator",
         "siege_warden",
-        "bore_crawler"
+        "caustic_engine"
+      ],
+      "local": [
+        "ember_hound",
+        "crusher",
+        "powder_monkey",
+        "leacher",
+        "shaftsinker",
+        "dust_devil",
+        "fuse",
+        "mole",
+        "bore_crawler",
+        "excavator",
+        "detonator"
       ],
       "boss": "bedrock",
       "encounters": {
@@ -206,20 +543,86 @@
           },
           {
             "enemies": [
-              "rivet_brute"
+              "crusher"
             ],
             "weight": 3
           },
           {
             "enemies": [
-              "arc_sentry"
+              "mole"
             ],
-            "weight": 2
+            "weight": 3
           },
           {
             "enemies": [
-              "ember_hound",
-              "arc_sentry"
+              "shaftsinker"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "fuse"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "dust_devil",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "powder_monkey",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "leacher",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "dust_devil",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "needle_drone",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "scrap_warden"
             ],
             "weight": 3
           }
@@ -227,38 +630,111 @@
         "strong": [
           {
             "enemies": [
-              "ember_hound",
-              "rivet_brute"
+              "dust_devil",
+              "powder_monkey"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "leacher",
+              "mole"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "fuse",
+              "shaftsinker"
             ],
             "weight": 3
           },
           {
             "enemies": [
               "ember_hound",
-              "ember_hound"
+              "crusher"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "crusher",
+              "mole"
             ],
             "weight": 2
           },
           {
             "enemies": [
-              "rivet_brute",
-              "rivet_brute"
+              "leacher",
+              "dust_devil",
+              "dust_devil"
             ],
-            "weight": 1
+            "weight": 4
           },
           {
             "enemies": [
-              "rivet_brute",
-              "arc_sentry",
-              "arc_sentry"
+              "powder_monkey",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "shaftsinker",
+              "needle_drone"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "ember_hound",
+              "needle_drone",
+              "needle_drone"
             ],
             "weight": 5
           },
           {
             "enemies": [
-              "ember_hound",
-              "ember_hound",
-              "arc_sentry"
+              "fuse",
+              "scrap_warden",
+              "needle_drone"
+            ],
+            "weight": 5
+          },
+          {
+            "enemies": [
+              "mole",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "scrap_warden"
+            ],
+            "weight": 2
+          },
+          {
+            "enemies": [
+              "needle_drone",
+              "scrap_warden"
+            ],
+            "weight": 3
+          },
+          {
+            "enemies": [
+              "scrap_warden",
+              "scrap_warden",
+              "scrap_warden"
+            ],
+            "weight": 5
+          },
+          {
+            "enemies": [
+              "needle_drone",
+              "needle_drone",
+              "scrap_warden"
             ],
             "weight": 5
           }

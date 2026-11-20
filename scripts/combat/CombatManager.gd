@@ -51,6 +51,8 @@ signal chance_failed(mech: MechData, component: ComponentData)
 signal mech_vented(mech: MechData, amount: int)
 ## An enemy left the fight: no part could give it a card again (a kill).
 signal enemy_retreated(mech: MechData)
+## The Operator analyzed this turn's weak points (`analyzed`).
+signal analyzed_changed()
 
 ## Enemies that started the fight with cards: only they can run out and
 ## retreat (a part with no cards at all, like a test dummy, stays).
@@ -158,6 +160,14 @@ var enemy_charged: Dictionary = {}
 var enemy_lost_seen: Dictionary = {}
 var player_heat_last: float = 0.0
 var _min_roll_next: bool = false
+## Heat banking (balance.json heat.bank): what the player's last turn saved,
+## waiting to become player_mech.banked_heat as their next turn starts.
+var _bank_next: int = 0
+## Analyzed parts (balance.json analysis): this turn's one weak point among
+## the regular / elite enemies (MechData -> ComponentData), with its own RNG so
+## the rest of the fight rolls the same with it on or off.
+var analyzed: Dictionary = {}
+var analysis_rng := RandomNumberGenerator.new()
 
 func _init(p_player: MechData, p_enemies: Array[MechData], seed_value: int = -1) -> void:
 	player_mech = p_player
@@ -165,14 +175,18 @@ func _init(p_player: MechData, p_enemies: Array[MechData], seed_value: int = -1)
 	rng = RandomNumberGenerator.new()
 	if seed_value >= 0:
 		rng.seed = seed_value
+		analysis_rng.seed = seed_value + 7919
 	else:
 		rng.randomize()
+		analysis_rng.randomize()
 
 func start_combat() -> void:
 	_player_parts_at_start = player_mech.non_destroyed_components().size()
 	_armed = enemies.filter(func(w): return w.has_cards_left())
 	spent.clear()
 	venting.clear()
+	_bank_next = 0
+	player_mech.banked_heat = 0
 	for m in [player_mech] + enemies:
 		for c in m.components:
 			c.set_meta("save_used", 0) # Reinforced Bulkhead: saves used this fight
@@ -345,6 +359,67 @@ func cards_left(mech: MechData) -> int:
 ## Whether every card `mech` has left standing has been played.
 func out_of_cards(mech: MechData) -> bool:
 	return cards_left(mech) == 0 and (mech != player_mech or bonus_cards.is_empty())
+
+# ---------- heat banking ----------
+## Logan, 2026-11-19: Heat left unspent at the end of a turn is saved
+## (heat.bank_share of it, rounded down), up to heat.bank_max_share of the
+## mech's max Heat, and raises next turn's max Heat by that much.
+
+static func banking() -> bool:
+	return bool(Balance.section("heat").get("bank", false))
+
+## The most the player can have saved: bank_max_share of their max Heat
+## (without what's saved now).
+func bank_cap() -> int:
+	if not banking():
+		return 0
+	var base := player_mech.heat_capacity() - player_mech.banked_heat
+	return int(floor(base * Balance.get_num("heat", "bank_max_share", 0.5)))
+
+## What ending the turn at `heat` (-1: the player's heat now) would save.
+func bank_projection(heat: int = -1) -> int:
+	if not banking():
+		return 0
+	if heat < 0:
+		heat = player_mech.current_heat
+	var unspent := maxi(0, player_mech.heat_capacity() - heat)
+	return mini(bank_cap(), int(floor(unspent * Balance.get_num("heat", "bank_share", 1.0))))
+
+# ---------- analyzed parts ----------
+
+static func analysis_on() -> bool:
+	return bool(Balance.section("analysis").get("enabled", false))
+
+## As the player's turn starts, the Operator analyzes one part across all
+## the living regular / elite enemies (Logan, 2026-11-19: one in all, so the
+## player has to choose which mech to go after), not last turn's part while
+## there's another. Bosses never have one.
+func _analyze() -> void:
+	var before: Array = analyzed.values()
+	for m in analyzed:
+		(analyzed[m] as ComponentData).analyzed = false
+	analyzed.clear()
+	if not analysis_on():
+		return
+	var pool: Array = [] # [mech, part]
+	for w in enemies:
+		if w.is_defeated() or w.tier == "boss":
+			continue
+		for part in w.non_destroyed_components():
+			pool.append([w, part])
+	if pool.size() > 1:
+		pool = pool.filter(func(e): return not before.has(e[1]))
+	if not pool.is_empty():
+		var pick: Array = pool[analysis_rng.randi() % pool.size()]
+		(pick[1] as ComponentData).analyzed = true
+		analyzed[pick[0]] = pick[1]
+	analyzed_changed.emit()
+
+## Clears every analyzed mark (the fight is over).
+func _clear_analysis() -> void:
+	for m in analyzed:
+		(analyzed[m] as ComponentData).analyzed = false
+	analyzed.clear()
 
 # ---------- the Vent action ----------
 ## Proposed default (the vent itself is Decided; its details are the open
@@ -662,6 +737,8 @@ func end_player_turn() -> void:
 	turn_changed.emit(phase, turn_number)
 
 	player_heat_last = float(player_mech.current_heat) / maxf(1.0, float(player_mech.heat_capacity()))
+	_bank_next = bank_projection()
+	stats.add("heat_banked", _bank_next)
 	# Step 4: player heat disperses; each living Warden's turn starts
 	# (Absorb clears, Burn heats it, turn-start passives, repeating attacks).
 	CombatHeat.vent(self, player_mech)
@@ -748,6 +825,9 @@ func _start_player_turn() -> void:
 	for w in enemies:
 		if not w.is_defeated():
 			CombatHeat.vent(self, w)
+	player_mech.banked_heat = _bank_next
+	_bank_next = 0
+	_analyze()
 	player_mech.clear_mech_status("absorb")
 	_dodged[player_mech] = 0
 	_cards_this_turn = 0
@@ -894,6 +974,8 @@ func _end_game(r: Result) -> void:
 		stats.record_min("fastest_fight", turn_number)
 	for c in player_mech.components:
 		c.remove_status("offline", 99) # Offline clears when the fight ends
+	player_mech.banked_heat = 0
+	_clear_analysis()
 	phase = Phase.GAME_OVER
 	game_over.emit(r)
 

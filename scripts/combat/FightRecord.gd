@@ -58,6 +58,7 @@ static func mech_to_dict(m: MechData) -> Dictionary:
 		"id": m.id, "name": m.name, "cells": m.cells.map(func(c): return [c.x, c.y]),
 		"max_heat": m.max_heat, "vent_at_max": m.vent_at_max, "turn_heat": m.turn_heat, "heat": m.current_heat,
 		"phase2": m.phase2_reached, "statuses": _statuses_to_list(m.mech_statuses), "parts": parts,
+		"threat": m.threat, "threat_openers": m.threat_openers.duplicate(true),
 	}
 
 ## The mech a record names, as it stood: its file's AI, lines and rules,
@@ -83,6 +84,8 @@ static func mech_from_dict(d: Dictionary) -> MechData:
 	m.turn_heat = int(d.get("turn_heat", 0))
 	m.current_heat = int(d.get("heat", 0))
 	m.phase2_reached = bool(d.get("phase2", false))
+	m.threat = int(d.get("threat", 0))
+	m.threat_openers = d.get("threat_openers", []).duplicate(true)
 	m.mech_statuses = _statuses_from_list(d.get("statuses", []))
 	return m
 

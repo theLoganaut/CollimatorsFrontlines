@@ -121,10 +121,20 @@ static func make(id: String) -> ComponentData:
 ## every card's damage times damage_mult (rounded, at least 1), and a
 ## damage-dealing card's heat cost times heat_mult (rounded). Refit Bay
 ## keeps the unscaled numbers.
+##
+## Counter/utility cards (no damage; Logan, 2026-11-19): they skip heat_add
+## (combat.utility_skip_heat_add) and their Deflect / Absorb stacks are times
+## combat.utility_shield_mult (rounded, at least 1).
 static func scale_card(card: CardData) -> void:
-	if card.heat_cost > 0:
+	var utility := card.hits <= 0 or card.damage_max <= 0
+	if card.heat_cost > 0 and not (utility and bool(Balance.section("combat").get("utility_skip_heat_add", false))):
 		card.heat_cost += Balance.get_int("combat", "heat_add", 0)
-	if card.hits <= 0 or card.damage_max <= 0:
+	if utility:
+		var sm := Balance.get_num("combat", "utility_shield_mult", 1.0)
+		if sm != 1.0:
+			for s in card.statuses:
+				if s.status in ["deflect", "absorb"] and s.stacks > 0:
+					s.stacks = maxi(1, roundi(s.stacks * sm))
 		return
 	var dm := Balance.get_num("combat", "damage_mult", 1.0)
 	if dm != 1.0:

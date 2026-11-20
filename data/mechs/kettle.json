@@ -1,0 +1,91 @@
+{
+  "id": "kettle",
+  "name": "Kettle",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "reckless",
+    "cards": "status",
+    "targets": "focus",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Slugs Heat onto you that the rain won't let you vent, and blows off its own between shots."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "quickload_chip",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "pressure_regulator",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "vent_cannon",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 1
+    }
+  ]
+}

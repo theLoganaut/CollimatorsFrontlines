@@ -10,8 +10,15 @@ func _initialize() -> void:
 	for k in ["damage_mult", "heat_mult", "hp_mult"]:
 		Balance.set_value("combat", k, 1.0)
 	Balance.set_value("combat", "heat_add", 0)
+	Balance.set_value("combat", "utility_shield_mult", 1.0)
 	# ...and heat vents by the ratio (TestHeatRules tests the full reset).
 	Balance.set_value("heat", "full_reset", false)
+	# The turn-variety rules (2026-11-19) are off too; TestTurnVariety turns
+	# each on for its own tests.
+	Balance.set_value("heat", "bank", false)
+	Balance.set_value("analysis", "enabled", false)
+	Balance.set_value("enemy_ai", "max_cards", {})
+	Balance.set_value("enemy_ai", "intent_damage_mult", 1.0)
 
 	TestDataLoader.run_all(t)
 	TestHeatRules.run_all(t)
@@ -29,6 +36,8 @@ func _initialize() -> void:
 	TestContent.run_all(t)
 	TestMeta.run_all(t)
 	TestSaves.run_all(t)
+	TestThreat.run_all(t)
+	TestTurnVariety.run_all(t)
 
 	t.summary()
 	quit(1 if t.failed > 0 else 0)

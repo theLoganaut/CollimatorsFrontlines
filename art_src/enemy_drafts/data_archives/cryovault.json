@@ -1,0 +1,116 @@
+{
+  "id": "cryovault",
+  "name": "Cryovault",
+  "tier": "elite",
+  "weight_class": "heavy",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "status",
+    "targets": "strongest",
+    "rhythm": "afflict, guard",
+    "_why": "Locks your parts in ice and turtles behind Fortress Core's Deflect while its friends work."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Data Archives. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "components": [
+    {
+      "id": "lockdown_cannon",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "flak_wall",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "coolant_loop",
+      "offset": [
+        2,
+        2
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "fortress_core",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 0
+    }
+  ]
+}

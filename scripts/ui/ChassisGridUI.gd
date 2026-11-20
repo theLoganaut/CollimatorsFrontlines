@@ -263,6 +263,50 @@ func flash(component: ComponentData) -> void:
 	for cell_ui in _cells_by_component.get(component, []):
 		cell_ui.flash()
 
+## A part's outer outline as screen-space segments (pairs of points), just
+## outside its cells and run across the gap where the part continues,
+## ordered around its middle so drawing them in order traces the shape
+## (AnalysisOverlay). Empty if the part isn't on this grid.
+func outline_segments_global(part: ComponentData) -> PackedVector2Array:
+	var cells: Dictionary = {}
+	for cell in part.placed_cells:
+		cells[cell] = true
+	var step := cell_size + gap
+	var o := 2.0 # just outside the cell
+	var segs: Array = []
+	var mid := Vector2.ZERO
+	for cell in cells:
+		var r := Rect2(Vector2(cell.y, cell.x) * step, Vector2(cell_size, cell_size))
+		mid += r.get_center()
+		for side in [[Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 1)], [Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)],
+				[Vector2i(0, -1), Vector2i(-1, 0), Vector2i(1, 0)], [Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]]:
+			if cells.has(cell + side[0]):
+				continue
+			var before: float = gap if cells.has(cell + side[1]) else o
+			var after: float = gap if cells.has(cell + side[2]) else o
+			var off: Vector2i = side[0]
+			var a: Vector2
+			var b: Vector2
+			if off.x != 0: # top or bottom
+				var y := r.position.y - o if off.x < 0 else r.end.y + o
+				a = Vector2(r.position.x - before, y)
+				b = Vector2(r.end.x + after, y)
+			else: # left or right
+				var x := r.position.x - o if off.y < 0 else r.end.x + o
+				a = Vector2(x, r.position.y - before)
+				b = Vector2(x, r.end.y + after)
+			segs.append([a, b])
+	if segs.is_empty():
+		return PackedVector2Array()
+	mid /= float(cells.size())
+	segs.sort_custom(func(p, q): return (((p[0] + p[1]) / 2.0) - mid).angle() < (((q[0] + q[1]) / 2.0) - mid).angle())
+	var xf := get_global_transform()
+	var out := PackedVector2Array()
+	for sg in segs:
+		out.append(xf * (sg[0] as Vector2))
+		out.append(xf * (sg[1] as Vector2))
+	return out
+
 ## The screen rects of the component's cells.
 func component_rects_global(component: ComponentData) -> Array[Rect2]:
 	var out: Array[Rect2] = []

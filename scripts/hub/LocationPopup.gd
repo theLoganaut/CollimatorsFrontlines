@@ -7,6 +7,9 @@ extends Control
 ## stops and mech, an optional seed (the same seed replays the same run), and
 ## Launch. Clicking outside the panel or Cancel closes it. open_continue()
 ## reuses it, centered, for a saved run: Continue, or Abandon (which ejects).
+## A location's threat level is picked here (Logan, 2026-11-19): "THREAT
+## LEVEL" with a small triangle either side, up to one past the highest
+## level cleared there (Profile.threat_unlocked), and what that level adds.
 
 signal launch_pressed(location: Dictionary)
 signal continue_pressed()
@@ -14,6 +17,8 @@ signal abandon_pressed()
 signal closed()
 ## Launch pressed on the Daily Operation (open_daily).
 signal daily_launch_pressed()
+## The threat level picked for a location changed (the War Table redraws its units).
+signal threat_changed(location_id: String, level: int)
 
 const PANEL_SIZE := Vector2(400, 330)
 const PAD := 20.0
@@ -41,6 +46,12 @@ var _beam: float = 0.0
 var _vbox: VBoxContainer
 var _spacer: Control
 var _buttons: HBoxContainer
+var _threat_row: HBoxContainer
+var _threat_down: TriangleButton
+var _threat_up: TriangleButton
+var _threat_label: Label
+var _threat_info: Label
+var _threat: int = 0
 const CONTINUE_W := 340.0
 
 func _ready() -> void:
@@ -67,6 +78,20 @@ func _ready() -> void:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 2)
 	vbox.add_child(gap)
+	_threat_row = HBoxContainer.new()
+	_threat_row.add_theme_constant_override("separation", 4)
+	vbox.add_child(_threat_row)
+	_threat_down = TriangleButton.new(false)
+	_threat_down.pressed.connect(_step_threat.bind(-1))
+	_threat_row.add_child(_threat_down)
+	_threat_label = UIKit.label("", 13, Palette.WARNING)
+	_threat_label.custom_minimum_size = Vector2(0, 26)
+	_threat_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_threat_row.add_child(_threat_label)
+	_threat_up = TriangleButton.new(true)
+	_threat_up.pressed.connect(_step_threat.bind(1))
+	_threat_row.add_child(_threat_up)
+	_threat_info = _label(vbox, 11, Color("b9d8d4"))
 	_seed = LineEdit.new()
 	_seed.placeholder_text = "Seed (optional, blank = random)"
 	_seed.custom_minimum_size = Vector2(0, 32)
@@ -113,6 +138,40 @@ func _on_secondary() -> void:
 	else:
 		abandon_pressed.emit()
 
+## The threat level to launch at (0 for the Daily, training or a saved run).
+func threat_value() -> int:
+	return _threat if _threat_row.visible else 0
+
+func _step_threat(d: int) -> void:
+	var id := str(_location.get("id", ""))
+	var n := clampi(_threat + d, 0, Profile.threat_unlocked(id))
+	if n == _threat:
+		return
+	_threat = n
+	Profile.pick_threat(id, n)
+	_show_threat()
+	threat_changed.emit(id, n)
+	_refit()
+
+## The picked level, its arrows, and what it adds.
+func _show_threat() -> void:
+	var id := str(_location.get("id", ""))
+	var top := Profile.threat_unlocked(id)
+	_threat_label.text = "THREAT LEVEL  %d  ·  %s" % [_threat, Threat.level_name(_threat).to_upper()]
+	_threat_label.add_theme_color_override("font_color", Palette.WARNING if _threat > 0 else Color("b9d8d4"))
+	_threat_down.disabled = _threat <= 0
+	_threat_up.disabled = _threat >= top
+	var lines: Array[String] = []
+	for e in Threat.effects_up_to(_threat):
+		lines.append("·  " + e)
+	if _threat > 0:
+		lines.append(Threat.chips_text(_threat))
+	if Threat.operator_line(_threat) != "":
+		lines.append("Operator: \"%s\"" % Threat.operator_line(_threat))
+	if _threat == top and top < Threat.max_level():
+		lines.append("Clear Threat %d here to unlock Threat %d." % [top, top + 1])
+	_threat_info.text = "\n".join(lines)
+
 ## The typed seed, or -1 for a random one.
 func seed_value() -> int:
 	var t := _seed.text.strip_edges()
@@ -151,6 +210,12 @@ func open(location: Dictionary, mission: Dictionary, anchor: Rect2 = Rect2(), gr
 	if not rules.is_empty():
 		_summary.text += "\n\n" + "\n".join(rules)
 	_facts.text = "%d encounters  ·  Mech: %s (change it in the Hangar)" % [stops, Profile.mech.capitalize()]
+	var threat_on: bool = not mission.get("training", false) and not Tutorial.active
+	_threat_row.visible = threat_on
+	_threat_info.visible = threat_on
+	_threat = Profile.threat_picked(str(location.get("id", ""))) if threat_on else 0
+	if threat_on:
+		_show_threat()
 	_continue_mode = false
 	_daily_mode = false
 	_primary.disabled = false
@@ -182,6 +247,8 @@ func open_daily(d: Dictionary, anchor: Rect2 = Rect2()) -> void:
 	if best > 0:
 		lines.append("Your best: %d (%s)" % [best, Profile.daily.get("best_date", "")])
 	_facts.text = "\n".join(lines)
+	_threat_row.visible = false
+	_threat_info.visible = false
 	_seed.visible = false
 	_primary.text = "Done for today" if played else "Launch daily"
 	_primary.disabled = played
@@ -201,6 +268,8 @@ func open_continue(summary: Dictionary) -> void:
 	_facts.text = "%d scraps  ·  seed %d" % [summary.get("scraps", 0), summary.get("seed", 0)]
 	_continue_mode = true
 	_abandon_armed = false
+	_threat_row.visible = false
+	_threat_info.visible = false
 	_seed.visible = false
 	_primary.text = "Continue"
 	_secondary.text = "Abandon (eject)"
@@ -295,3 +364,25 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		accept_event()
 		close() # a click outside the panel (the panel eats its own clicks)
+
+## A small triangle button (the threat level's arrows), drawn, not a glyph.
+class TriangleButton extends Button:
+	var right: bool
+
+	func _init(p_right: bool) -> void:
+		right = p_right
+		flat = true
+		focus_mode = Control.FOCUS_NONE
+		custom_minimum_size = Vector2(24, 26)
+		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		pressed.connect(func(): Audio.play("ui", 0.03))
+		mouse_entered.connect(queue_redraw)
+		mouse_exited.connect(queue_redraw)
+
+	func _draw() -> void:
+		var c := (size / 2.0).floor()
+		var w := 5.0
+		var h := 6.0
+		var col := Color(GlassPanel.HOLO, 0.2) if disabled else (Palette.LINK if is_hovered() else Color(GlassPanel.HOLO, 0.9))
+		var k := 1.0 if right else -1.0
+		draw_colored_polygon(PackedVector2Array([c + Vector2(w * k, 0), c + Vector2(-w * k, -h), c + Vector2(-w * k, h)]), col)

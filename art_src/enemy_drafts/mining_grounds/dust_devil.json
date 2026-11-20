@@ -1,0 +1,76 @@
+{
+  "id": "dust_devil",
+  "name": "Dust Devil",
+  "tier": "regular",
+  "weight_class": "light",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "damage",
+    "targets": "hardpoints",
+    "rhythm": "assault, afflict",
+    "_why": "Built for the dust: doubles its damage while you're Smoked and stays clear itself."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Mining Grounds. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      3,
+      0
+    ]
+  ],
+  "components": [
+    {
+      "id": "flash_pistol",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "exhaust_fans",
+      "offset": [
+        1,
+        0
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "afterburner",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 2
+    }
+  ]
+}

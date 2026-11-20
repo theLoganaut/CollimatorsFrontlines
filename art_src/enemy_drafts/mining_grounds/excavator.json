@@ -1,0 +1,120 @@
+{
+  "id": "excavator",
+  "name": "Excavator",
+  "tier": "elite",
+  "weight_class": "heavy",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "reckless",
+    "cards": "heavy",
+    "targets": "strongest",
+    "rhythm": "charge, assault",
+    "_why": "Two of the heaviest arms in the game; the Fuse lets it be reckless once."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Mining Grounds. Build it in Refit Bay's Enemies tab once vetted. Its parts total 276 HP, more than any boss (214-226).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "components": [
+    {
+      "id": "colossus_fist",
+      "offset": [
+        0,
+        2
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "demolition_hammer",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "bulwark_frame",
+      "offset": [
+        2,
+        2
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "overheat_fuse",
+      "offset": [
+        2,
+        4
+      ],
+      "rotation": 3
+    }
+  ]
+}

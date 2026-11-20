@@ -28,6 +28,7 @@ const DEFS := [
 	["scraps_spent", "Scraps spent"],
 	["parts_acquired", "Parts acquired"],
 	["repair_bays", "Repair bays used"],
+	["bays_retaken", "Captured bays retaken"],
 	["autonomous_bays", "Autonomous bays visited"],
 	["refits", "Refits"],
 ]

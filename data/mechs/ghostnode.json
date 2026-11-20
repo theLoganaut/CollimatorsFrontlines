@@ -1,0 +1,83 @@
+{
+  "id": "ghostnode",
+  "name": "Ghostnode",
+  "tier": "regular",
+  "weight_class": "general",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "careful",
+    "cards": "status",
+    "targets": "random",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "Almost no damage: makes your attacks go where you didn't aim."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "components": [
+    {
+      "id": "flare_array",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "scatter_link",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "exhaust_fans",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 2
+    }
+  ]
+}

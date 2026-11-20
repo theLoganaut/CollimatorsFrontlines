@@ -1,0 +1,76 @@
+{
+  "id": "coldline",
+  "name": "Coldline",
+  "tier": "regular",
+  "weight_class": "light",
+  "max_heat": 6,
+  "defeat_hp_fraction": 0.4,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "careful",
+    "cards": "status",
+    "targets": "hardpoints",
+    "rhythm": "afflict, recover",
+    "_why": "Freezes one of your weapons, then cools itself off."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Data Archives. Build it in Refit Bay's Enemies tab once vetted.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ]
+  ],
+  "components": [
+    {
+      "id": "thermal_spike_rifle",
+      "offset": [
+        0,
+        1
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "coolant_loop",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "feedback_loop",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 0
+    }
+  ]
+}

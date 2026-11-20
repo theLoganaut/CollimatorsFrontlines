@@ -574,6 +574,20 @@ static func run_all(t: TestContext) -> void:
 
 	_saves_and_maps(t)
 
+	t.group("A location's own enemies are a little more likely (local_weight), roamers still show up")
+	t.assert_eq(RunData.local_factor(["scrap_warden"], ["gaffhook"], 1.2), 1.0, "roamers only: unchanged")
+	t.assert_true(is_equal_approx(RunData.local_factor(["gaffhook", "kettle"], ["gaffhook", "kettle"], 1.2), 1.2), "all local: x1.2")
+	t.assert_true(is_equal_approx(RunData.local_factor(["gaffhook", "scrap_warden"], ["gaffhook"], 1.2), 1.1), "half local: x1.1")
+	t.assert_eq(RunData.local_factor(["gaffhook"], [], 1.2), 1.0, "a location with no local list: unchanged")
+	var picks := {}
+	var erng := RandomNumberGenerator.new()
+	erng.seed = 5
+	for i in range(4000):
+		var id := MapGenerator._pick_elite(erng, ["local_a", "roam_b"], {"local": ["local_a"], "local_weight": 1.2})
+		picks[id] = int(picks.get(id, 0)) + 1
+	var ratio: float = float(picks["local_a"]) / float(picks["roam_b"])
+	t.assert_true(ratio > 1.05 and ratio < 1.35, "a local elite comes up about 1.2x as often as a roaming one (%.2f)" % ratio)
+
 	t.group("Two copies of one part get distinct ids (cards stay tied to their own copy)")
 	var dup := _new_run(24)
 	var s2 := dup.new_part("voltage_spike")

@@ -139,7 +139,22 @@ static func load_mech(dict: Dictionary) -> MechData:
 	for comp_dict in dict.get("components", []):
 		m.components.append(load_component(comp_dict))
 	m.current_heat = 0
+	if m.tier != "":
+		_scale_enemy_damage(m)
 	return m
+
+## Fewer, bigger intents (Logan, 2026-11-19): an enemy's attacks deal
+## balance.json enemy_ai.intent_damage_mult (rounded, at least 1), set as it
+## loads so its intents show the numbers it hits for.
+static func _scale_enemy_damage(m: MechData) -> void:
+	var dm := Balance.get_num("enemy_ai", "intent_damage_mult", 1.0)
+	if dm == 1.0:
+		return
+	for c in m.components:
+		for card in c.cards:
+			if card.hits > 0 and card.damage_max > 0:
+				card.damage_min = maxi(1, roundi(card.damage_min * dm))
+				card.damage_max = maxi(card.damage_min, roundi(card.damage_max * dm))
 
 static func load_mech_from_json(json_text: String) -> MechData:
 	var parsed = JSON.parse_string(json_text)

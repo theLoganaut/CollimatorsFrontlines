@@ -96,6 +96,8 @@ static func deal_damage(mech: MechData, comp: ComponentData, amount: int) -> Dic
 ## Absorb) is looked up on `defender`; `status` may list several (any of them).
 static func card_multiplier(card: CardData, target: ComponentData, defender: MechData = null) -> float:
 	var m := 1.0
+	if target.analyzed: # the Operator's weak point (CombatManager._analyze)
+		m *= Balance.get_num("analysis", "damage_mult", 1.5)
 	var s: Dictionary = card.rule.get("mult_if_target_status", {})
 	if not s.is_empty() and target_has_status(target, defender, s["status"]):
 		if not s.get("hardpoint_only", false) or target.category == ComponentData.CATEGORY_HARDPOINT:

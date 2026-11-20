@@ -66,7 +66,7 @@ func image_center_offset() -> Vector2:
 func feet_offset() -> Vector2:
 	var bottom := image_size.y
 	if _sprite != null:
-		bottom -= MechArt.bottom_inset(_sprite.texture) * image_size.y
+		bottom -= MechArt.bottom_inset(MechArt.enemy(mech.id)) * image_size.y # the still sprite
 	return Vector2(IMAGE_X + image_size.x / 2.0, image_y + bottom)
 
 func _ready() -> void:
@@ -116,10 +116,9 @@ func _build_children() -> void:
 	_image_rect.color = Palette.PANEL_2
 	_image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_image_rect)
-	var tex := MechArt.enemy(mech.id)
-	if tex != null:
+	_sprite = MechArt.enemy_sprite(mech.id, image_size) # animated if it has a strip
+	if _sprite != null:
 		_image_rect.color = Color.TRANSPARENT # the sprite stands on the field
-		_sprite = MechArt.sprite(tex, image_size)
 		_image_rect.add_child(_sprite)
 
 	grid = ChassisGridUI.new()
@@ -140,7 +139,8 @@ func _build_children() -> void:
 	_health_bar.threshold = mech.defeat_hp_threshold()
 	_health_bar.mouse_filter = Control.MOUSE_FILTER_STOP
 	UIState.describe_on_hover(_health_bar, func(): return ["%s: %d / %d HP" % [display_name, mech.current_hp(), mech.max_hp()],
-		"Destroyed at %d HP (the dark red end of the bar), or once all its hardpoints are." % mech.defeat_hp_threshold()])
+		"Destroyed at %d HP (the dark red end of the bar), or once all its hardpoints are." % mech.defeat_hp_threshold()
+		+ ("" if mech.threat <= 0 else " Threat %d (%s): the chevrons on its name plate." % [mech.threat, Threat.level_name(mech.threat)])])
 	add_child(_health_bar)
 
 	_heat_box = HeatBox.new()
@@ -323,6 +323,150 @@ func play_retreated() -> void:
 	tw.tween_property(_image_rect, "position:y", _image_rect.position.y - 14.0, 0.9).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 	tw.tween_property(grid, "self_modulate:a", 0.3, 0.6)
 
+# ---------- a boss's phase 2 ----------
+
+## How much bigger a boss's phase-2 form stands (it grows from its feet).
+const P2_SCALE := 1.15
+const P2_CHARGE_TIME := 0.9 # it shudders and flares before it changes
+const P2_BURN_TIME := 1.1   # the new form burns in over the old, feet first
+
+## Pixel dissolve for the change: each pixel shows once `progress` passes
+## its threshold (noise, rising from the feet), and the line where they meet
+## burns in `edge_color`. `reverse` dissolves the old form away instead.
+const DISSOLVE_SHADER := """
+shader_type canvas_item;
+uniform float progress : hint_range(0.0, 1.0) = 0.0;
+uniform bool reverse = false;
+uniform vec4 edge_color : source_color = vec4(1.0, 0.45, 0.15, 1.0);
+float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void fragment() {
+	vec4 c = texture(TEXTURE, UV) * COLOR;
+	vec2 px = floor(UV / TEXTURE_PIXEL_SIZE);
+	float h = clamp(hash(px) * 0.5 + (1.0 - UV.y) * 0.5, 0.0, 1.0);
+	bool shown = reverse ? h >= progress : h < progress;
+	if (!shown) {
+		c.a = 0.0;
+	} else if (abs(h - progress) < 0.07 && progress > 0.0 && progress < 1.0) {
+		c.rgb = mix(c.rgb, edge_color.rgb * 1.6, 0.85);
+	}
+	COLOR = c;
+}
+"""
+
+var _aura: TextureRect = null
+var in_phase2_form: bool = false
+
+## A boss enters phase 2: its phase-2 form (MechArt.enemy_phase2) replaces
+## the sprite, bigger, with a pulsing aura in `tint`. Animated: it shudders
+## and flares, then the new form burns in pixel by pixel from the feet up
+## while the old one burns away, and it flashes as it settles. Reduce motion
+## (or not animated): a quick crossfade. Without phase-2 art it keeps its
+## sprite and only gains the aura.
+func play_phase2(animate: bool, tint: Color) -> void:
+	if in_phase2_form:
+		return
+	in_phase2_form = true
+	var settings := get_node_or_null("/root/GameSettings")
+	var still: bool = settings != null and settings.reduce_motion
+	var old := _sprite
+	var neo: TextureRect = MechArt.enemy_sprite(mech.id, image_size, true) if MechArt.enemy_phase2(mech.id) != null else null
+	if neo == null:
+		if old != null:
+			_add_aura(old, tint, still)
+		return
+	_stand_phase2(neo)
+	_image_rect.add_child(neo)
+	_sprite = neo
+	grid.backdrop = neo
+	if old == null:
+		_add_aura(neo, tint, still)
+		return
+	if not animate or still:
+		neo.modulate.a = 0.0
+		var fade := create_tween().set_parallel(true)
+		fade.tween_property(old, "modulate:a", 0.0, 0.35)
+		fade.tween_property(neo, "modulate:a", 1.0, 0.35)
+		fade.chain().tween_callback(old.queue_free)
+		_add_aura(neo, tint, still)
+		return
+	# hidden until it burns in; the old form keeps its place meanwhile
+	var burn_in := ShaderMaterial.new()
+	burn_in.shader = _dissolve_shader()
+	burn_in.set_shader_parameter("edge_color", tint)
+	neo.material = burn_in
+	var burn_out := ShaderMaterial.new()
+	burn_out.shader = burn_in.shader
+	burn_out.set_shader_parameter("edge_color", tint)
+	burn_out.set_shader_parameter("reverse", true)
+	old.material = burn_out
+	var target_scale := neo.scale
+	neo.scale = Vector2.ONE
+	var home := old.position
+	var tw := create_tween()
+	# charge: it shudders and flares three times, harder each time
+	for i in range(3):
+		var k := float(i + 1) / 3.0
+		tw.tween_property(_image_rect, "modulate", Color(1.0 + 0.6 * k, 1.0 + 0.3 * k, 1.0 + 0.2 * k), P2_CHARGE_TIME / 6.0)
+		tw.parallel().tween_property(old, "position", home + Vector2(3.0 * k * (1 if i % 2 == 0 else -1), 0), P2_CHARGE_TIME / 6.0)
+		tw.tween_property(_image_rect, "modulate", Color.WHITE, P2_CHARGE_TIME / 6.0)
+		tw.parallel().tween_property(old, "position", home, P2_CHARGE_TIME / 6.0)
+	# burn: the new form rises in from the feet as the old one goes, growing
+	tw.tween_method(func(v: float) -> void:
+		burn_in.set_shader_parameter("progress", v)
+		burn_out.set_shader_parameter("progress", v), 0.0, 1.0, P2_BURN_TIME)
+	tw.parallel().tween_property(neo, "scale", target_scale, P2_BURN_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	# settle: a flash, then it stands there
+	tw.tween_property(_image_rect, "modulate", Color(2.4, 2.2, 2.0), 0.06)
+	tw.tween_property(_image_rect, "modulate", Color.WHITE, 0.45)
+	tw.tween_callback(func() -> void:
+		old.queue_free()
+		neo.material = null
+		_add_aura(neo, tint, still))
+
+static var _dissolve: Shader = null
+
+static func _dissolve_shader() -> Shader:
+	if _dissolve == null:
+		_dissolve = Shader.new()
+		_dissolve.code = DISSOLVE_SHADER
+	return _dissolve
+
+## The phase-2 sprite stands where the old one did: its lowest pixel on the
+## same line, grown P2_SCALE from there.
+func _stand_phase2(neo: TextureRect) -> void:
+	var p1 := MechArt.enemy(mech.id)
+	var p2 := MechArt.enemy_phase2(mech.id)
+	var inset1 := MechArt.bottom_inset(p1) if p1 != null else 0.0
+	var inset2 := MechArt.bottom_inset(p2)
+	neo.position.y += (inset2 - inset1) * neo.size.y
+	neo.pivot_offset = Vector2(neo.size.x / 2.0, neo.size.y * (1.0 - inset2))
+	neo.scale = Vector2(P2_SCALE, P2_SCALE)
+
+## A glow of the sprite in `tint` behind it, breathing slowly (still with
+## Reduce motion).
+func _add_aura(over: TextureRect, tint: Color, still: bool) -> void:
+	_aura = TextureRect.new()
+	_aura.texture = over.texture # the same AtlasTexture: it animates with the sprite
+	_aura.size = over.size
+	_aura.position = over.position
+	_aura.expand_mode = over.expand_mode
+	_aura.stretch_mode = over.stretch_mode
+	_aura.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_aura.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aura.pivot_offset = over.pivot_offset
+	_aura.scale = over.scale * 1.06
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_aura.material = add
+	_aura.modulate = Color(tint.r, tint.g, tint.b, 0.3)
+	_image_rect.add_child(_aura)
+	if over.get_parent() == _image_rect:
+		_image_rect.move_child(_aura, over.get_index())
+	if not still:
+		var tw := _aura.create_tween().set_loops()
+		tw.tween_property(_aura, "modulate:a", 0.5, 1.1).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(_aura, "modulate:a", 0.15, 1.1).set_trans(Tween.TRANS_SINE)
+
 ## Highlights the name bar while this enemy is taking its turn.
 func set_acting(acting: bool) -> void:
 	_acting = acting
@@ -339,3 +483,8 @@ func _draw_name_bar() -> void:
 	if mech.tier != "regular": # elites and bosses: a tag in the corner
 		var tag := mech.tier.to_upper()
 		_name_bar.draw_string(get_theme_default_font(), Vector2(r.end.x - 52, r.size.y - 7), tag, HORIZONTAL_ALIGNMENT_RIGHT, 46, 9, Color(Palette.LINK, 0.9))
+	# the run's threat level: a rank chevron per level, stacked at the left (Veterans)
+	for i in range(mech.threat):
+		var y := r.size.y - 7.0 - i * 3.0
+		var x := 9.0
+		_name_bar.draw_polyline(PackedVector2Array([Vector2(x - 4.0, y), Vector2(x, y - 3.0), Vector2(x + 4.0, y)]), Palette.WARNING, 1.4, true)

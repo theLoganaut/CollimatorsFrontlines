@@ -1,0 +1,139 @@
+{
+  "id": "archivist",
+  "name": "Archivist",
+  "tier": "elite",
+  "weight_class": "general",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "heat": "reckless",
+    "cards": "heavy",
+    "targets": "focus",
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "_why": "It learns: Resonate grows every time it plays, Replay doubles it, and when it runs hot it swaps its Heat onto you."
+  },
+  "_note": "From Refit Bay's Enemies tab, verbatim (tools/import_refit_bay.py).",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "components": [
+    {
+      "id": "resonance_blade",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "echo_buffer",
+      "offset": [
+        1,
+        3
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "queue_processor",
+      "offset": [
+        1,
+        1
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "polarity_inverter",
+      "offset": [
+        0,
+        4
+      ],
+      "rotation": 1
+    },
+    {
+      "id": "insulated_core",
+      "offset": [
+        2,
+        0
+      ],
+      "rotation": 3
+    }
+  ]
+}

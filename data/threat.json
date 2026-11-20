@@ -1,0 +1,41 @@
+{
+  "_note": "Threat levels (Logan, 2026-11-08 and 11-19; tasks/Threat levels in the Hermes vault). Level 0 is the plain mission; each level adds its effect and keeps every one below. Names and Operator lines are Claude's drafts (2026-11-19) for Logan to vet. Numbers are in balance.json \"threat\"; {name} in the text is filled from there.",
+  "levels": [
+    {
+      "level": 0,
+      "name": "Standard",
+      "effect": "",
+      "operator": "Standard op. Get in, hit the target, get out."
+    },
+    {
+      "level": 1,
+      "name": "Contested",
+      "effect": "Veterans: enemies have {veteran_hp_pct}% more HP.",
+      "operator": "They've put veterans on the line. Expect them to soak more than usual."
+    },
+    {
+      "level": 2,
+      "name": "Hot Zone",
+      "effect": "They're expecting you: elites open every fight with an extra move.",
+      "operator": "Word got out. Their elites will be set up and waiting when you engage."
+    },
+    {
+      "level": 3,
+      "name": "Counteroffensive",
+      "effect": "Captured bays: enemies may be waiting at a repair bay. Win the fight to use it.",
+      "operator": "They're pushing into our rear. Some repair bays may already be in their hands."
+    },
+    {
+      "level": 4,
+      "name": "Lockdown",
+      "effect": "On alert: the boss fights its phase 2 playbook from the start.",
+      "operator": "The commander knows you're coming. No warm-up this time."
+    },
+    {
+      "level": 5,
+      "name": "Last Stand",
+      "effect": "Supply lines cut: fights pay {scraps_less_pct}% fewer scraps.",
+      "operator": "Our convoys are getting hit. You'll be working with whatever you can salvage."
+    }
+  ]
+}

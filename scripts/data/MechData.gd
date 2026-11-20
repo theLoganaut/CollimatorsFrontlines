@@ -22,6 +22,11 @@ var ai: Dictionary = {}
 var lines: Dictionary = {}
 ## A boss past its phase change (sticky once reached).
 var phase2_reached: bool = false
+## The threat level it was made at (Threat.apply_to_enemies; chevrons on
+## its name plate), and the extra fight-start moves that level gives it
+## (EnemyAI.apply_openers).
+var threat: int = 0
+var threat_openers: Array = []
 var cells: Array[Vector2i] = []   # chassis cells
 var max_heat: int
 ## Share of heat vented at max heat; < 0 = balance.json heat.vent_at_max
@@ -36,6 +41,9 @@ var heat_check_timing: String
 var components: Array[ComponentData] = []
 
 var current_heat: int = 0
+## Heat saved from the player's last turn (heat banking, balance.json
+## heat.bank; CombatManager): it raises this turn's max Heat. 0 for enemies.
+var banked_heat: int = 0
 ## Redirect Spike in a squad (Logan, 2026-10-13: "cover yourself OR an
 ## ally"): an ally's Spike covering this mech (`covered_by`, on
 ## `covered_by_mech`), and whether this mech's own Spike is away covering an
@@ -144,7 +152,7 @@ func living_passives(type: String) -> Array[ComponentData]:
 
 ## Max heat including living Thermal Core / Overpressure Valve bonuses.
 func heat_capacity() -> int:
-	var cap := max_heat
+	var cap := max_heat + banked_heat
 	for c in living_passives(ComponentData.PASSIVE_HEAT_MODS):
 		cap += int(c.passive.get("max_heat", 0))
 	return cap
@@ -240,6 +248,8 @@ func clone() -> MechData:
 	m.ai = ai.duplicate(true)
 	m.lines = lines.duplicate()
 	m.phase2_reached = phase2_reached
+	m.threat = threat
+	m.threat_openers = threat_openers.duplicate(true)
 	m.retreated = retreated
 	m.cells = cells.duplicate()
 	m.max_heat = max_heat
@@ -251,6 +261,7 @@ func clone() -> MechData:
 	for c in components:
 		m.components.append(c.clone())
 	m.current_heat = current_heat
+	m.banked_heat = banked_heat
 	m.mech_statuses = []
 	for s in mech_statuses:
 		m.mech_statuses.append(s.clone())

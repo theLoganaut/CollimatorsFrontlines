@@ -231,6 +231,8 @@ func _build_panels() -> void:
 		box.add_child(alert)
 	for line in Conditions.describe(run.location, run.mission):
 		box.add_child(UIKit.label(line, 10, Palette.WARNING, true))
+	for line in Threat.describe(run.mission):
+		box.add_child(UIKit.label(line, 10, Palette.WARNING, true))
 	var chosen: String = run.orders.get("chosen", "")
 	if chosen != "":
 		box.add_child(UIKit.label("ORDERS  ·  %s" % DeploymentOrders.title(chosen).to_upper(), 11, Palette.LINK))
@@ -330,6 +332,8 @@ func _on_node_hover(id: int, hovering: bool) -> void:
 				Economy.repair_pool(run.player_mech.max_hp(), float(run.mod("repair_mult", 1.0))),
 				roundi(Balance.get_num("economy", "repair_pool_fraction", 0.5) * float(run.mod("repair_mult", 1.0)) * 100.0),
 				int(Balance.get_num("economy", "repair_pool_max", 75))]
+			if Threat.level(run.mission) >= Threat.CAPTURED_BAYS and not Threat.before_boss(run.map, n):
+				body += " Threat %d: enemies may be waiting here." % Threat.level(run.mission)
 		RunMap.KIND_SHOP:
 			title = "Autonomous bay"
 			body = "Spend scraps: parts, a bigger Cargo, frame squares; sell or refine what you carry."

@@ -45,5 +45,16 @@
  ],
  "rescue_hot": [
   "They were on alert by the end at {location}. Faster next time, or they'll be waiting."
+ ],
+ "_analysis_note": "Combat: as your turn starts the Operator marks each regular / elite enemy's analyzed part (CombatScene, AnalysisOverlay). Claude's drafts for Logan to vet (2026-11-19).",
+ "analysis": [
+   "Found a weak point.",
+   "Got a soft spot on that one. Marked.",
+   "Seam in their plating. Hit it there.",
+   "Scan's back. That part's compromised.",
+   "Weak point. Make it count.",
+   "That one's running hot. Put rounds in it.",
+   "Spotted damage under the plating. Marked for you.",
+   "There. That part won't hold."
  ]
 }

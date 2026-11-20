@@ -1,0 +1,112 @@
+{
+  "id": "detonator",
+  "name": "Detonator",
+  "tier": "elite",
+  "weight_class": "heavy",
+  "max_heat": 8,
+  "defeat_hp_fraction": 0.3,
+  "heat_check_timing": "end_of_turn",
+  "ai": {
+    "slip": 0.3,
+    "protocols": 0.7,
+    "guard": 0.5,
+    "heat": "reckless",
+    "cards": "status",
+    "targets": "random",
+    "rhythm": "afflict, charge",
+    "_why": "Spots you with Acid shots, sets you burning, then calls in Cataclysm."
+  },
+  "_note": "Claude's draft (2026-11-19), Proposed: from Frontlines Enemy Ideas - Mining Grounds. Build it in Refit Bay's Enemies tab once vetted. Enemies can Salvo since 2026-11-20.",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ]
+  ],
+  "components": [
+    {
+      "id": "cataclysm_mortar",
+      "offset": [
+        0,
+        0
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "hell_dropper",
+      "offset": [
+        0,
+        2
+      ],
+      "rotation": 3
+    },
+    {
+      "id": "fire_control_relay",
+      "offset": [
+        0,
+        3
+      ],
+      "rotation": 2
+    },
+    {
+      "id": "overpressure_valve",
+      "offset": [
+        1,
+        2
+      ],
+      "rotation": 2
+    }
+  ]
+}
